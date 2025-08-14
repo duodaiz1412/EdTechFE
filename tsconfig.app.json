@@ -34,7 +34,7 @@
       "@redux/*": ["./src/redux/*"],
       "@styles/*": ["./src/styles/*"],
       "@types/*": ["./src/types/*"],
-      "@utils/*": ["./src/utils/*"]
+      "@utils/*": ["src/redux/utils/*"]
     }
   },
   "include": ["src", "src/assets", "src/vite-env.d.ts"]

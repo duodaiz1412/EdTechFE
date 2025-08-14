@@ -38,21 +38,14 @@ Frontend này là một Single Page Application (SPA) được xây dựng bằn
   - Tự động tính tổng tiền
   - Event emission sau khi tạo thành công
 
-### **5. ✅ Long Polling Monitoring**
-- **Implementation:** `src/hooks/useLongPolling.ts`
-- **Tính năng:**
-  - Automatic polling mỗi 5-15 giây
-  - Error handling và retry logic
-  - Configurable interval và max retries
-
-### **6. ✅ State Machine Implementation**
+### **5. ✅ State Machine Implementation**
 - **Implementation:** `src/utils/orderStateMachine.ts`
 - **Tính năng:**
   - Order state transitions: CREATED → CONFIRMED → DELIVERED/CANCELLED
   - Validation cho allowed transitions
   - Helper methods: `canCancel()`, `canDeliver()`
 
-### **7. ✅ Pub/Sub Pattern với Event Bus**
+### **6. ✅ Pub/Sub Pattern với Event Bus**
 - **Library:** `mitt` (Popular và lightweight)
 - **Implementation:** `src/utils/eventBus.ts`
 - **Events:**
@@ -71,7 +64,6 @@ src/
 ├── components/            # Reusable components
 │   └── RealTimeIndicator.tsx # Real-time status indicator
 ├── hooks/                 # Custom hooks
-│   └── useLongPolling.ts  # Long polling implementation
 ├── pages/                 # Page components
 │   ├── Home/              # Orders list page
 │   ├── OrderDetail/       # Order detail page
@@ -110,17 +102,7 @@ src/
 
 ## 📡 **Real-time Features**
 
-### **1. Long Polling (`useLongPolling`)**
-```typescript
-const { isPolling } = useLongPolling({
-  queryKey: ['orders'],
-  enabled: true,
-  interval: 10000, // 10 seconds
-  maxRetries: 3
-});
-```
-
-### **2. Event Bus System**
+### **1. Event Bus System**
 ```typescript
 // Emit events
 orderEvents.created(orderId, userId);
@@ -132,7 +114,7 @@ orderEvents.onStatusChanged((data) => {
 });
 ```
 
-### **3. State Machine Validation**
+### **2. State Machine Validation**
 ```typescript
 const stateMachine = new OrderStateMachine(currentStatus);
 
