@@ -25,8 +25,11 @@ export default {
         custom1: "0px 1px 2px 0px rgba(16, 24, 40, 0.06)",
         custom2: "0px 1px 3px 0px rgba(16, 24, 40, 0.1)",
       },
+      fontFamily: {
+        sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Ubuntu", "Cantarell", "Noto Sans", "sans-serif"],
+      },
     },
   },
-  plugins: [],
+  plugins: [require("daisyui")],
 }
 

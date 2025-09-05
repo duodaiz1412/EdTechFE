@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
 import {ToastContainer} from "react-toastify";
+import DaisyUIDemo from "./components/DaisyUIDemo";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="about" element={<About />} />
+            <Route path="demo" element={<DaisyUIDemo />} />
           </Route>
         </Routes>
         <ToastContainer
