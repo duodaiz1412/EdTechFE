@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import {Link} from "react-router-dom";
 
 export default function Home() {
   return (
@@ -14,7 +14,8 @@ export default function Home() {
               Quản lý đơn hàng nhanh chóng và trực quan
             </h1>
             <p className="mt-4 text-base-content/70">
-              Tạo, xem và theo dõi đơn hàng theo thời gian thực. Bắt đầu ngay với giao diện hiện đại dựa trên DaisyUI.
+              Tạo, xem và theo dõi đơn hàng theo thời gian thực. Bắt đầu ngay
+              với giao diện hiện đại dựa trên DaisyUI.
             </p>
             <div className="mt-8 flex items-center justify-center gap-3">
               <Link to="/create-order" className="btn btn-primary">

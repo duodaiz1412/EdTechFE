@@ -109,12 +109,12 @@ export interface IDataWithMeta<T> {
 
 export enum EOrderStatus {
   CREATED = "created",
-  CONFIRMED = "confirmed", 
+  CONFIRMED = "confirmed",
   DELIVERED = "delivered",
-  CANCELLED = "cancelled"
+  CANCELLED = "cancelled",
 }
 
 export enum EPaymentStatus {
-  SUCCESS = 'success',
-  FAILED = 'failed'
+  SUCCESS = "success",
+  FAILED = "failed",
 }

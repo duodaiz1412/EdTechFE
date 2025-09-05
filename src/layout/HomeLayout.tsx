@@ -10,9 +10,7 @@ export default function HomeLayout({children}: HomeLayoutProps) {
     <div className="relative min-h-screen bg-base-content">
       <Navbar />
       {/* <Header /> */}
-      <main className="pt-[100px]">
-        {children}
-      </main>
+      <main className="pt-[100px]">{children}</main>
     </div>
   );
 }

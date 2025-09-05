@@ -3,8 +3,11 @@ const STORE_NAME = "state";
 
 // NETWORK
 const NETWORK_CONFIG = {
-  API_BASE_URL: (import.meta.env.VITE_API_BASE_URL || "http://localhost:3000") + "/api",
-  PAYMENT_API_BASE_URL: (import.meta.env.VITE_PAYMENT_API_BASE_URL || "http://localhost:3001") + "/api",
+  API_BASE_URL:
+    (import.meta.env.VITE_API_BASE_URL || "http://localhost:3000") + "/api",
+  PAYMENT_API_BASE_URL:
+    (import.meta.env.VITE_PAYMENT_API_BASE_URL || "http://localhost:3001") +
+    "/api",
   TIMEOUT: 30000,
   RETRY: false,
   USE_TOKEN: true,

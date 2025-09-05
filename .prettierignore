@@ -1,12 +1,51 @@
-.next
-next-env.d.ts
+# Dependencies
 node_modules
 yarn.lock
 package-lock.json
-public
-docs
-coverage
-.gitlab-ci.yml
+pnpm-lock.yaml
+
+# Build outputs
 dist
+dist-ssr
 build
+out
+.next
+.nuxt
+
+# Environment files
+.env
+.env.*
+
+# Coverage
+coverage
+.nyc_output
+
+# Cache
+.cache
+.parcel-cache
+.eslintcache
+*.tsbuildinfo
+
+# Logs
+*.log
+logs
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea
+
+# Git
+.git
 .husky
+
+# Documentation
+docs
+*.md
+
+# Config files that shouldn't be formatted
+.gitlab-ci.yml
+.github

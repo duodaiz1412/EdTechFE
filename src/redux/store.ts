@@ -1,8 +1,8 @@
-import { configureStore, createSlice } from '@reduxjs/toolkit';
+import {configureStore, createSlice} from "@reduxjs/toolkit";
 
 // Tạo một slice mặc định để tránh lỗi
 const defaultSlice = createSlice({
-  name: 'default',
+  name: "default",
   initialState: {
     value: 0,
   },
@@ -13,7 +13,7 @@ const defaultSlice = createSlice({
   },
 });
 
-export const { increment } = defaultSlice.actions;
+export const {increment} = defaultSlice.actions;
 
 const store = configureStore({
   reducer: {

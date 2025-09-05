@@ -2,7 +2,6 @@ import Config from "@/config";
 import axios, {AxiosError, AxiosRequestConfig, AxiosResponse} from "axios";
 import {toast} from "react-toastify";
 
-
 export interface IDataError {
   errorCode: string;
   errorMessage?: string;
@@ -84,8 +83,8 @@ function createApiClient(config: AxiosRequestConfig, options: IFetcherOptions) {
       "Content-Type": options.isFormData
         ? "multipart/form-data"
         : options.skipJsonParsing
-        ? undefined
-        : "application/json",
+          ? undefined
+          : "application/json",
       "Authorization": getAuthorization(defaultOptions),
     },
     baseURL: Config.NETWORK_CONFIG.API_BASE_URL,
