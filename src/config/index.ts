@@ -19,8 +19,6 @@ const NETWORK_CONFIG = {
 const PATHNAME = {
   HOME: "/",
   LOGIN: "/login",
-  CREATE_ORDER: "/create-order",
-  ORDER_DETAIL: "/order-detail",
 };
 
 // LANGUAGE

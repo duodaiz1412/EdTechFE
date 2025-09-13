@@ -1,23 +1,9 @@
-import {configureStore, createSlice} from "@reduxjs/toolkit";
-
-// Tạo một slice mặc định để tránh lỗi
-const defaultSlice = createSlice({
-  name: "default",
-  initialState: {
-    value: 0,
-  },
-  reducers: {
-    increment: (state) => {
-      state.value += 1;
-    },
-  },
-});
-
-export const {increment} = defaultSlice.actions;
+import {configureStore} from "@reduxjs/toolkit";
+import authReducer from "./slice/authSlice";
 
 const store = configureStore({
   reducer: {
-    default: defaultSlice.reducer,
+    auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

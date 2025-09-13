@@ -1,95 +1,4 @@
-export interface IOrder {
-  id: string;
-  userId: string;
-  totalAmount: string;
-  status: EOrderStatus;
-  items?: Array<{
-    id: number;
-    name: string;
-    quantity: number;
-    price: number;
-  }> | null;
-  paymentId?: string | null;
-  deliveryAddress?: string | null;
-  notes?: string | null;
-  createdAt: string;
-  updatedAt: string;
-  onClick?: () => void;
-}
-
-export interface IProduct {
-  id: number;
-  name: string;
-  price: number;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface IPayment {
-  id: string;
-  orderId: string;
-  userId: string;
-  amount: number;
-  status: EPaymentStatus;
-  transactionId?: string;
-  paymentMethod?: string;
-  message?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ICreateOrderDto {
-  userId: string;
-  totalAmount: number;
-  items?: Array<{
-    productId: string;
-    quantity: number;
-    price: number;
-  }>;
-  deliveryAddress?: string;
-  notes?: string;
-}
-
-export interface IUpdateOrderDto {
-  status?: EOrderStatus;
-  deliveryAddress?: string;
-  notes?: string;
-}
-
-export interface ICreateProductDto {
-  name: string;
-  price: number;
-  description?: string;
-}
-
-export interface IUpdateProductDto {
-  name?: string;
-  price?: number;
-  description?: string;
-}
-
-export interface IProcessPaymentDto {
-  orderId: string;
-  userId: string;
-  amount: number;
-  authToken: string;
-  pin: string;
-}
-
-export interface IPaymentResponse {
-  paymentId: string;
-  status: EPaymentStatus;
-  message?: string;
-  transactionId?: string;
-}
-
-export interface IOrderStatus {
-  id: string;
-  status: EOrderStatus;
-  updatedAt: string;
-}
-
+// Common API Response Types
 export interface IApiResponse<T> {
   success: boolean;
   data?: T;
@@ -107,14 +16,193 @@ export interface IDataWithMeta<T> {
   };
 }
 
-export enum EOrderStatus {
-  CREATED = "created",
-  CONFIRMED = "confirmed",
-  DELIVERED = "delivered",
-  CANCELLED = "cancelled",
+// EdTech Domain Types
+export interface Course {
+  id: string;
+  title: string;
+  shortIntroduction?: string;
+  description?: string;
+  image?: string;
+  videoLink?: string;
+  tags?: string;
+  category?: string;
+  status: CourseStatus;
+  published: boolean;
+  publishedOn?: string;
+  upcoming: boolean;
+  featured: boolean;
+  disableSelfLearning: boolean;
+  paidCourse: boolean;
+  coursePrice?: number;
+  currency?: string;
+  amountUsd?: number;
+  enableCertification: boolean;
+  paidCertificate: boolean;
+  enrollments: number;
+  lessons: number;
+  rating?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export enum EPaymentStatus {
-  SUCCESS = "success",
-  FAILED = "failed",
+export interface Chapter {
+  id: string;
+  title: string;
+  courseId: string;
+  isScormPackage: boolean;
+  scormPackage?: string;
+  scormPackagePath?: string;
+  manifestFile?: string;
+  launchFile?: string;
+  createdAt: string;
+  updatedAt: string;
 }
+
+export interface Lesson {
+  id: string;
+  title: string;
+  chapterId: string;
+  courseId: string;
+  content?: string;
+  videoUrl?: string;
+  fileUrl?: string;
+  duration?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Enrollment {
+  id: string;
+  memberId: string;
+  courseId: string;
+  memberType: EnrollmentMemberType;
+  role: EnrollmentRole;
+  progress?: number;
+  currentLessonId?: string;
+  paymentId?: string;
+  purchasedCertificate: boolean;
+  certificateId?: string;
+  cohortId?: string;
+  subgroupId?: string;
+  batchOldId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Payment {
+  id: string;
+  memberId: string;
+  billingName: string;
+  source?: string;
+  paymentForDocumentType?: string;
+  paymentForDocument?: string;
+  paymentReceived: boolean;
+  paymentForCertificate: boolean;
+  currency: string;
+  amount: number;
+  amountWithGst?: number;
+  orderId?: string;
+  paymentId?: string;
+  addressId?: string;
+  gstin?: string;
+  pan?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Certificate {
+  id: string;
+  userId: string;
+  courseId: string;
+  certificateNumber: string;
+  issuedDate: string;
+  validUntil?: string;
+  status: CertificateStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Enums
+export enum CourseStatus {
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  PUBLISHED = "PUBLISHED",
+  DRAFT = "DRAFT",
+}
+
+export enum EnrollmentMemberType {
+  STUDENT = "STUDENT",
+  INSTRUCTOR = "INSTRUCTOR",
+  ADMIN = "ADMIN",
+}
+
+export enum EnrollmentRole {
+  STUDENT = "STUDENT",
+  INSTRUCTOR = "INSTRUCTOR",
+  ADMIN = "ADMIN",
+}
+
+export enum CertificateStatus {
+  PENDING = "PENDING",
+  ISSUED = "ISSUED",
+  EXPIRED = "EXPIRED",
+  REVOKED = "REVOKED",
+}
+
+export enum PaymentStatus {
+  PENDING = "PENDING",
+  SUCCESS = "SUCCESS",
+  FAILED = "FAILED",
+  REFUNDED = "REFUNDED",
+}
+
+// Auth Types
+export interface User {
+  id: string;
+  email: string;
+  username: string;
+  fullName: string;
+  userImage?: string;
+  enabled: boolean;
+  userType: string;
+  lastActive?: string;
+  roles: UserRole[];
+}
+
+export interface UserRole {
+  id: string;
+  role: string;
+}
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+}
+
+export interface AuthState {
+  user: User | null;
+  token: string | null;
+  refreshToken: string | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
+export const API_VERSIONS = {
+  V1: {
+    baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/v1`,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  },
+} as const;
+
+export const HTTP_STATUS = {
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  SERVER_ERROR: 500,
+  SERVICE_UNAVAILABLE: 503,
+  GATEWAY_TIMEOUT: 504,
+} as const;
