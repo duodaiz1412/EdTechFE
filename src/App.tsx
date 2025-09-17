@@ -9,6 +9,9 @@ import DaisyUIDemo from "./components/DaisyUIDemo";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Verify from "./pages/Auth/Verify.tsx";
+import CourseLayout from "./layout/CourseLayout.tsx";
+import Courses from "./pages/Course/Courses.tsx";
+import CourseDetail from "./pages/Course/CourseDetail.tsx";
 
 function App() {
   return (
@@ -27,6 +30,17 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/auth/verify" element={<Verify />} />
             <Route path="demo" element={<DaisyUIDemo />} />
+          </Route>
+
+          <Route
+            element={
+              <CourseLayout>
+                <Outlet />
+              </CourseLayout>
+            }
+          >
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/course/:courseId" element={<CourseDetail />} />
           </Route>
 
           {/* Auth routes with AuthLayout */}
