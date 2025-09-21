@@ -39,7 +39,19 @@ export default function Login() {
 
   const handleSubmit = async () => {
     if (!email) return;
-    await handleLogin(email);
+
+    try {
+      const result = await handleLogin(email);
+
+      // Nếu gửi email thành công, redirect đến trang chờ
+      if (result) {
+        navigate("/auth/waiting-magic-link", {
+          state: {email},
+        });
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   };
   return (
     <div className="card bg-base-100 border border-base-300">

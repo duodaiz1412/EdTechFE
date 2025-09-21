@@ -162,11 +162,11 @@ export interface User {
   email: string;
   username: string;
   fullName: string;
-  userImage?: string;
+  userImage?: string | null;
   enabled: boolean;
   userType: string;
   lastActive?: string;
-  roles: UserRole[];
+  roles: UserRole[] | null;
 }
 
 export interface UserRole {
@@ -206,3 +206,47 @@ export const HTTP_STATUS = {
   SERVICE_UNAVAILABLE: 503,
   GATEWAY_TIMEOUT: 504,
 } as const;
+
+// Profile Page Types
+export interface UserInfo {
+  name: string;
+  title: string;
+  email: string;
+  phone: string;
+  location: string;
+}
+
+export interface MenuItem {
+  id: string;
+  label: string;
+  icon: any;
+}
+
+export interface ProfileCourse {
+  id: string;
+  title: string;
+  status: "In Progress" | "Completed" | "Not Started";
+  progress: number;
+  hoursRemaining?: number;
+  hoursCompleted?: number;
+  students?: number;
+  modules?: {
+    total: number;
+    completed: number;
+  };
+  certificate?: boolean;
+}
+
+export interface WeeklyProgress {
+  day: string;
+  hours: number;
+  progress: number;
+}
+
+export interface SettingItem {
+  title: string;
+  description: string;
+  value: string;
+  action: string;
+  variant?: "default" | "destructive";
+}
