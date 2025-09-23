@@ -7,7 +7,7 @@ interface HomeLayoutProps {
 
 export default function HomeLayout({children}: HomeLayoutProps) {
   return (
-    <div className="relative min-h-screen bg-base-content">
+    <div className="relative min-h-screen bg-base-200">
       <Navbar />
       <main className="pt-[100px]">{children}</main>
     </div>

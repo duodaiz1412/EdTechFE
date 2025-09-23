@@ -74,7 +74,7 @@ const categories: {key: string; label: string}[] = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-base-200" data-theme="light">
+    <div className="min-h-screen bg-base-200">
       {/* Hero với search */}
       <section className="bg-base-100 border-b border-base-300">
         <div className="container mx-auto px-4 py-10 md:py-14">
