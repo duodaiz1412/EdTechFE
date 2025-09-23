@@ -9,9 +9,10 @@ import DaisyUIDemo from "./components/DaisyUIDemo";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Verify from "./pages/Auth/Verify.tsx";
-import CourseLayout from "./layout/CourseLayout.tsx";
+import MainLayout from "./layout/MainLayout.tsx";
 import Courses from "./pages/Course/Courses.tsx";
 import CourseDetail from "./pages/Course/CourseDetail.tsx";
+import CourseLayout from "./layout/CourseLayout.tsx";
 
 function App() {
   return (
@@ -32,6 +33,19 @@ function App() {
             <Route path="demo" element={<DaisyUIDemo />} />
           </Route>
 
+          {/* Main layout with course browser */}
+          <Route
+            element={
+              <MainLayout>
+                <Outlet />
+              </MainLayout>
+            }
+          >
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/course/:courseId" element={<CourseDetail />} />
+          </Route>
+
+          {/* Course Layout */}
           <Route
             element={
               <CourseLayout>
@@ -39,8 +53,10 @@ function App() {
               </CourseLayout>
             }
           >
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/course/:courseId" element={<CourseDetail />} />
+            <Route
+              path="/course/:courseId/learn/lesson"
+              element={<p>Demo layout</p>}
+            />
           </Route>
 
           {/* Auth routes with AuthLayout */}
@@ -56,6 +72,7 @@ function App() {
             <Route path="/auth/verify" element={<Verify />} />
           </Route>
         </Routes>
+
         <ToastContainer
           position="top-right"
           draggable

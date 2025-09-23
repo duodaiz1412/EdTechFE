@@ -1,13 +1,18 @@
 import {Link} from "react-router-dom";
 
-interface SidebarItemProps {
+interface MainSidebarItemProps {
   to: string;
   icon: JSX.Element;
   label: string;
   isActive?: boolean;
 }
 
-export const SidebarItem = ({to, icon, label, isActive}: SidebarItemProps) => {
+export const MainSidebarItem = ({
+  to,
+  icon,
+  label,
+  isActive,
+}: MainSidebarItemProps) => {
   return (
     <Link
       to={to}

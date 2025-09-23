@@ -5,9 +5,9 @@ export const courses = [
     shortIntroduction:
       "Learn the basics of React.js and build dynamic web applications.",
     rating: 4.5,
-    category: "Web Development",
+    categories: ["Web Development", "Framework"],
     instructors: ["Jane Doe", "John Smith"],
-    languages: "English, Spanish",
+    languages: "English",
     whatYouWillLearn: [
       "Understand React components and JSX",
       "Manage state and props",
@@ -15,7 +15,6 @@ export const courses = [
       "Use React Router for navigation",
     ],
     topics: ["React Basics", "State Management", "Routing"],
-    level: "Beginner",
     requirements: ["Basic HTML, CSS, and JavaScript knowledge", "Computer"],
     description:
       "This course is designed for beginners who want to learn React.js from scratch. You will start with the fundamentals and gradually build up to more complex concepts.",
@@ -29,6 +28,47 @@ export const courses = [
     promoVideo: "https://youtu.be/Tn6-PIqc4UM?si=oC1CY_4ZFvBeGcqF",
     enrolledStudents: 1200,
     enroll: true,
+    curriculum: [
+      {
+        chapterName: "Introduction",
+        lessons: [
+          {
+            type: "lecture",
+            subType: "video",
+            title: "Welcome to the course",
+            description: "lorem ipsum",
+            link: "https://youtu.be/JPT3bFIwJYA?si=QSEFTCE_pFgI1vMh",
+          },
+          {
+            type: "lecture",
+            subType: "article",
+            title: "Useful resources",
+            description: "lorem ipsum",
+            content: "React official documentation: https://react.dev/",
+          },
+          {
+            type: "quiz",
+            title: "Introduction Quiz",
+            questions: [
+              {
+                position: 1,
+                question: "What is React?",
+                options: [
+                  {
+                    answer: "A JavaScript library for building user interfaces",
+                    isTrue: true,
+                  },
+                  {answer: "A CSS framework", isTrue: false},
+                  {answer: "A database management system", isTrue: false},
+                  {answer: "A web server", isTrue: false},
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {chapterName: "React Core Concepts"},
+    ],
   },
   {
     id: "2",
@@ -36,7 +76,7 @@ export const courses = [
     shortIntroduction:
       "A comprehensive guide to building iOS applications using Swift.",
     rating: 4.7,
-    category: "Mobile Development",
+    categories: ["Mobile Development", "Programming Language"],
     instructors: ["Alice Johnson"],
     languages: "English",
     whatYouWillLearn: [
@@ -46,7 +86,6 @@ export const courses = [
       "Publishing apps to the App Store",
     ],
     topics: ["Swift Basics", "UI Design", "App Deployment"],
-    level: "Intermediate",
     requirements: ["Basic programming knowledge", "Mac computer with Xcode"],
     description:
       "This course is ideal for developers who want to create iOS applications. You will learn Swift programming and how to use Apple's development tools.",

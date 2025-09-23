@@ -34,8 +34,17 @@ export default function CourseDetail() {
                 </Link>
               ))}
             </div>
-            <div className="flex space-x-2">
-              <Languages size={20} />: {course?.languages}
+            <div className="flex items-center space-x-6">
+              <div className="flex space-x-2">
+                <Languages size={20} />: <span>{course?.languages}</span>
+              </div>
+              <div className="flex space-x-2">
+                {course?.categories.map((category) => (
+                  <span key={category} className="badge badge-primary">
+                    {category}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
           <div className="card border border-slate-200">
@@ -63,7 +72,7 @@ export default function CourseDetail() {
           </div>
           <div>
             <h3 className="text-xl font-semibold mb-4">Course contents</h3>
-            <CourseContentList />
+            <CourseContentList curriculum={course?.curriculum} />
           </div>
           <div>
             <h3 className="text-xl font-semibold mb-4">Description</h3>
