@@ -14,6 +14,10 @@ import WaitingForMagicLink from "./pages/Auth/WaitingForMagicLink";
 import Profile from "./pages/Profile/index.tsx";
 import UserManagement from "./pages/Cms/UserManagement";
 import Settings from "./pages/Cms/Settings";
+import MainLayout from "./layout/MainLayout.tsx";
+import Courses from "./pages/Course/Courses.tsx";
+import CourseDetail from "./pages/Course/CourseDetail.tsx";
+import CourseLayout from "./layout/CourseLayout.tsx";
 
 function App() {
   return (
@@ -48,6 +52,32 @@ function App() {
             <Route path="/cms/settings" element={<Settings />} />
           </Route>
 
+          {/* Main layout with course browser */}
+          <Route
+            element={
+              <MainLayout>
+                <Outlet />
+              </MainLayout>
+            }
+          >
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/course/:courseId" element={<CourseDetail />} />
+          </Route>
+
+          {/* Course Layout */}
+          <Route
+            element={
+              <CourseLayout>
+                <Outlet />
+              </CourseLayout>
+            }
+          >
+            <Route
+              path="/course/:courseId/learn/lesson"
+              element={<p>Demo layout</p>}
+            />
+          </Route>
+
           {/* Auth routes with AuthLayout */}
           <Route
             element={
@@ -65,6 +95,7 @@ function App() {
             />
           </Route>
         </Routes>
+
         <ToastContainer
           position="top-right"
           draggable
