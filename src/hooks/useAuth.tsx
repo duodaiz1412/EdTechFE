@@ -108,7 +108,7 @@ const useAuth = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate("/auth/login");
+    navigate("/");
   };
 
   const clearAuthError = () => {

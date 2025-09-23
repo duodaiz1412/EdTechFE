@@ -7,7 +7,7 @@ export function AuthLayout({children, className}: Props) {
   const rootClass =
     `relative min-h-screen bg-base-200 ${className || ""}`.trim();
   return (
-    <div className={rootClass} data-theme="light">
+    <div className={rootClass}>
       <header className="w-full border-b border-base-300 bg-base-100/80 backdrop-blur">
         <div className="container mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
