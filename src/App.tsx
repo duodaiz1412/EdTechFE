@@ -20,7 +20,7 @@ import {authServices} from "./lib/services/auth.services.ts";
 function App() {
   const dispatch = useAppDispatch();
 
-  const {isLoading} = useQuery({
+  useQuery({
     queryKey: ["userInfo"],
     queryFn: async () => {
       // Get tokens
@@ -63,63 +63,56 @@ function App() {
 
   return (
     <>
-      {isLoading && (
-        <div className="w-full h-screen flex items-center justify-center">
-          <span className="loading loading-spinner loading-xl"></span>
-        </div>
-      )}
-      {!isLoading && (
-        <BrowserRouter>
-          <Routes>
-            {/* Auth layout: login, register */}
+      <BrowserRouter>
+        <Routes>
+          {/* Auth layout: login, register */}
+          <Route
+            element={
+              <AuthLayout>
+                <Outlet />
+              </AuthLayout>
+            }
+          >
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Route>
+          <Route path="/notify" element={<Notify />} />
+          <Route path="/auth/verify" element={<VerifyRedirect />} />
+          <Route path="/verify" element={<Verify />} />
+
+          {/* Public layout */}
+          <Route
+            element={
+              <MainLayout>
+                <Outlet />
+              </MainLayout>
+            }
+          >
+            <Route path="/" element={<Courses />} />
+            <Route path="/course/:courseId" element={<CourseDetail />} />
+          </Route>
+
+          {/* Protected routes */}
+          <Route element={<ProtectedRoute />}>
             <Route
               element={
-                <AuthLayout>
+                <CourseLayout>
                   <Outlet />
-                </AuthLayout>
+                </CourseLayout>
               }
             >
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-            </Route>
-            <Route path="/notify" element={<Notify />} />
-            <Route path="/auth/verify" element={<VerifyRedirect />} />
-            <Route path="/verify" element={<Verify />} />
-
-            {/* Public layout */}
-            <Route
-              element={
-                <MainLayout>
-                  <Outlet />
-                </MainLayout>
-              }
-            >
-              <Route path="/" element={<Courses />} />
-              <Route path="/course/:courseId" element={<CourseDetail />} />
-            </Route>
-
-            {/* Protected routes */}
-            <Route element={<ProtectedRoute />}>
               <Route
-                element={
-                  <CourseLayout>
-                    <Outlet />
-                  </CourseLayout>
-                }
-              >
-                <Route
-                  path="/course/:courseId/learn/lesson"
-                  element={<p>Demo learning</p>}
-                />
-                <Route
-                  path="/course/:courseId/enroll"
-                  element={<p>Demo enroll</p>}
-                />
-              </Route>
+                path="/course/:courseId/learn/lesson"
+                element={<p>Demo learning</p>}
+              />
+              <Route
+                path="/course/:courseId/enroll"
+                element={<p>Demo enroll</p>}
+              />
             </Route>
-          </Routes>
-        </BrowserRouter>
-      )}
+          </Route>
+        </Routes>
+      </BrowserRouter>
       <ToastContainer
         position="top-right"
         draggable

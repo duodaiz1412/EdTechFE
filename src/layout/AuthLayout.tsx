@@ -11,7 +11,7 @@ export default function AuthLayout({children}: AuthLayoutProps) {
       <main className="w-1/2 p-6 flex items-center justify-center relative">
         <Link
           to="/"
-          className="absolute top-6 left-6 flex items-center space-x-2"
+          className="absolute top-6 left-6 flex items-center space-x-2 link link-hover"
         >
           <MoveLeft size={20} />
           <span>Back to home</span>

@@ -88,11 +88,10 @@
 import {authServices} from "@/lib/services/auth.services";
 import {useQuery} from "@tanstack/react-query";
 import {CircleCheck} from "lucide-react";
-import {useLocation, useNavigate} from "react-router-dom";
+import {useLocation} from "react-router-dom";
 
 export default function Verify() {
   const location = useLocation();
-  const navigate = useNavigate();
 
   const {isLoading, error} = useQuery({
     queryKey: ["verify", location.state?.token],
@@ -100,7 +99,7 @@ export default function Verify() {
       const response = await authServices.verify(location.state?.token);
       localStorage.setItem("accessToken", response.accessToken);
       localStorage.setItem("refreshToken", response.refreshToken);
-      navigate("/");
+      window.location.href = "/";
       return response;
     },
   });
