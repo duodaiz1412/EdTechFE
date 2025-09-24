@@ -7,7 +7,7 @@ export default function MainSidebar() {
       <div className="p-4 space-y-2">
         <MainSidebarItem
           isActive={true}
-          to="/courses"
+          to="/"
           icon={<BookOpen />}
           label="Courses"
         />
