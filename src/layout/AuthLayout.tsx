@@ -1,34 +1,24 @@
-type Props = {
-  children: JSX.Element;
-  className?: string;
-};
+import {MoveLeft} from "lucide-react";
+import {Link} from "react-router-dom";
 
-export function AuthLayout({children, className}: Props) {
-  const rootClass =
-    `relative min-h-screen bg-base-200 ${className || ""}`.trim();
+interface AuthLayoutProps {
+  children?: JSX.Element;
+}
+
+export default function AuthLayout({children}: AuthLayoutProps) {
   return (
-    <div className={rootClass}>
-      <header className="w-full border-b border-base-300 bg-base-100/80 backdrop-blur">
-        <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="font-semibold">ETech</span>
-          </div>
-          <div className="text-sm text-base-content/70">
-            Đăng nhập / Đăng ký
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-10 md:py-16">
-        <div className="mx-auto w-full max-w-md">{children}</div>
+    <div className="fixed top-0 left-0 right-0 bottom-0 flex">
+      <main className="w-1/2 p-6 flex items-center justify-center relative">
+        <Link
+          to="/"
+          className="absolute top-6 left-6 flex items-center space-x-2 link link-hover"
+        >
+          <MoveLeft size={20} />
+          <span>Back to home</span>
+        </Link>
+        {children}
       </main>
-
-      <footer className="border-t border-base-300 bg-base-100/80">
-        <div className="container mx-auto px-4 h-12 flex items-center justify-center text-xs text-base-content/60">
-          © {new Date().getFullYear()} ETech. All rights reserved.
-        </div>
-      </footer>
+      <div className="w-1/2 h-full bg-slate-300"></div>
     </div>
   );
 }

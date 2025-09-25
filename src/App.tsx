@@ -1,84 +1,71 @@
 import {BrowserRouter, Outlet, Route, Routes} from "react-router";
-import HomeLayout from "./layout/HomeLayout";
-import CmsLayout from "./layout/CmsLayout";
-import {AuthLayout} from "./layout/AuthLayout";
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Dashboard from "./pages/Dashboard";
 import {ToastContainer} from "react-toastify";
-import DaisyUIDemo from "./components/DaisyUIDemo";
+import AuthLayout from "./layout/AuthLayout";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
-import Verify from "./pages/Auth/Verify.tsx";
-import WaitingForMagicLink from "./pages/Auth/WaitingForMagicLink";
-import Profile from "./pages/Profile/index.tsx";
-import UserManagement from "./pages/Cms/UserManagement";
-import Settings from "./pages/Cms/Settings";
+import VerifyRedirect from "./pages/Auth/VerifyRedirect.tsx";
 import MainLayout from "./layout/MainLayout.tsx";
 import Courses from "./pages/Course/Courses.tsx";
 import CourseDetail from "./pages/Course/CourseDetail.tsx";
 import CourseLayout from "./layout/CourseLayout.tsx";
+import ProtectedRoute from "./components/ProtectedRoute.tsx";
+import Notify from "./pages/Auth/Notify.tsx";
+import Verify from "./pages/Auth/Verify.tsx";
+import {useAppDispatch} from "./redux/hooks.ts";
+import {useQuery} from "@tanstack/react-query";
+import {userServices} from "./lib/services/user.services.ts";
+import {login} from "./redux/slice/userSlice.tsx";
+import {authServices} from "./lib/services/auth.services.ts";
 
 function App() {
+  const dispatch = useAppDispatch();
+
+  useQuery({
+    queryKey: ["userInfo"],
+    queryFn: async () => {
+      // Get tokens
+      let isTokenExpired = false;
+      let accessToken = localStorage.getItem("accessToken");
+      const refreshToken = localStorage.getItem("refreshToken");
+
+      // Get data if tokens exist
+      if (!accessToken) return null;
+      let response = await userServices.getUserInfo(accessToken);
+
+      // Logic when token is expired
+      if (response.status !== 200) {
+        isTokenExpired = true;
+        if (!refreshToken) return null;
+
+        const newTokenRequest = await authServices.refresh(refreshToken);
+        if (newTokenRequest === null) return null;
+
+        localStorage.setItem("accessToken", newTokenRequest.accessToken);
+        localStorage.setItem("refreshToken", newTokenRequest.refreshToken);
+        accessToken = newTokenRequest.accessToken;
+      }
+
+      if (isTokenExpired) {
+        response = await userServices.getUserInfo(String(accessToken));
+      }
+
+      // Set global state
+      dispatch(
+        login({
+          name: response.data.fullName,
+          email: response.data.email,
+          role: response.data.userType,
+        }),
+      );
+      return response;
+    },
+  });
+
   return (
     <>
       <BrowserRouter>
         <Routes>
-          <Route
-            element={
-              <HomeLayout>
-                <Outlet />
-              </HomeLayout>
-            }
-          >
-            <Route path="/" element={<Home />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/auth/verify" element={<Verify />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="demo" element={<DaisyUIDemo />} />
-          </Route>
-
-          {/* CMS routes with CmsLayout */}
-          <Route
-            element={
-              <CmsLayout>
-                <Outlet />
-              </CmsLayout>
-            }
-          >
-            <Route path="/cms" element={<Dashboard />} />
-            <Route path="/cms/user-management" element={<UserManagement />} />
-            <Route path="/cms/settings" element={<Settings />} />
-          </Route>
-
-          {/* Main layout with course browser */}
-          <Route
-            element={
-              <MainLayout>
-                <Outlet />
-              </MainLayout>
-            }
-          >
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/course/:courseId" element={<CourseDetail />} />
-          </Route>
-
-          {/* Course Layout */}
-          <Route
-            element={
-              <CourseLayout>
-                <Outlet />
-              </CourseLayout>
-            }
-          >
-            <Route
-              path="/course/:courseId/learn/lesson"
-              element={<p>Demo layout</p>}
-            />
-          </Route>
-
-          {/* Auth routes with AuthLayout */}
+          {/* Auth layout: login, register */}
           <Route
             element={
               <AuthLayout>
@@ -88,24 +75,53 @@ function App() {
           >
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/auth/verify" element={<Verify />} />
+          </Route>
+          <Route path="/notify" element={<Notify />} />
+          <Route path="/auth/verify" element={<VerifyRedirect />} />
+          <Route path="/verify" element={<Verify />} />
+
+          {/* Public layout */}
+          <Route
+            element={
+              <MainLayout>
+                <Outlet />
+              </MainLayout>
+            }
+          >
+            <Route path="/" element={<Courses />} />
+            <Route path="/course/:courseId" element={<CourseDetail />} />
+          </Route>
+
+          {/* Protected routes */}
+          <Route element={<ProtectedRoute />}>
             <Route
-              path="/auth/waiting-magic-link"
-              element={<WaitingForMagicLink />}
-            />
+              element={
+                <CourseLayout>
+                  <Outlet />
+                </CourseLayout>
+              }
+            >
+              <Route
+                path="/course/:courseId/learn/lesson"
+                element={<p>Demo learning</p>}
+              />
+              <Route
+                path="/course/:courseId/enroll"
+                element={<p>Demo enroll</p>}
+              />
+            </Route>
           </Route>
         </Routes>
-
-        <ToastContainer
-          position="top-right"
-          draggable
-          pauseOnFocusLoss
-          autoClose={3000}
-          hideProgressBar
-          newestOnTop
-          pauseOnHover
-        />
       </BrowserRouter>
+      <ToastContainer
+        position="top-right"
+        draggable
+        pauseOnFocusLoss
+        autoClose={3000}
+        hideProgressBar
+        newestOnTop
+        pauseOnHover
+      />
     </>
   );
 }
