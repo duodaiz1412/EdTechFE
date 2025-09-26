@@ -1,13 +1,16 @@
 import {useAppSelector} from "@/redux/hooks";
-import {Outlet} from "react-router-dom";
+import {useEffect} from "react";
+import {Navigate, Outlet} from "react-router-dom";
+import {toast} from "react-toastify";
 
 export default function ProtectedRoute() {
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
-  return isAuthenticated ? (
-    <Outlet />
-  ) : (
-    <div className="w-full h-screen flex justify-center items-center">
-      <div className="loading loading-xl"></div>
-    </div>
-  );
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast.warning("Require login to access");
+    }
+  }, [isAuthenticated]);
+
+  return isAuthenticated ? <Outlet /> : <Navigate to="/" />;
 }
