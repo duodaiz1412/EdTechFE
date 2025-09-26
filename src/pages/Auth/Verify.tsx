@@ -97,8 +97,6 @@ export default function Verify() {
     queryKey: ["verify", location.state?.token],
     queryFn: async () => {
       const response = await authServices.verify(location.state?.token);
-      localStorage.setItem("accessToken", response.accessToken);
-      localStorage.setItem("refreshToken", response.refreshToken);
       window.location.href = "/";
       return response;
     },

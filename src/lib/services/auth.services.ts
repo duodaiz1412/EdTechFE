@@ -95,6 +95,9 @@ export const authServices = {
       AUTH_ENDPOINTS.VERIFY + `?token=${token}`,
     );
 
+    localStorage.setItem("accessToken", response.data.accessToken);
+    localStorage.setItem("refreshToken", response.data.refreshToken);
+
     return {
       accessToken: response.data.accessToken,
       refreshToken: response.data.refreshToken,
@@ -108,6 +111,9 @@ export const authServices = {
     });
 
     if (response.status !== 200) return null;
+
+    localStorage.setItem("accessToken", response.data.accessToken);
+    localStorage.setItem("refreshToken", response.data.refreshToken);
 
     return {
       accessToken: response.data.accessToken,

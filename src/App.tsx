@@ -38,10 +38,9 @@ function App() {
         if (!refreshToken) return null;
 
         const newTokenRequest = await authServices.refresh(refreshToken);
+
         if (newTokenRequest === null) return null;
 
-        localStorage.setItem("accessToken", newTokenRequest.accessToken);
-        localStorage.setItem("refreshToken", newTokenRequest.refreshToken);
         accessToken = newTokenRequest.accessToken;
       }
 
