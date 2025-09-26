@@ -6,7 +6,10 @@ export interface UserState {
   data: {
     name: string;
     email: string;
-    role: string;
+    username: string;
+    image: string | undefined;
+    type: string;
+    roles: string[];
   } | null;
 }
 

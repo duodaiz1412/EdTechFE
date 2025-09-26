@@ -119,16 +119,41 @@ import axios from "axios";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
 const USER_ENDPOINTS = {
-  GET_USER_INFO: BASE_API + "/users/me",
+  USER_INFO: BASE_API + "/users/me",
 };
+
+interface UserInfoProps {
+  id?: string;
+  email?: string;
+  username?: string;
+  fullName?: string;
+  userImage?: string;
+  enabled?: boolean;
+  userType?: string;
+  lastActive?: string;
+  roles?: string[];
+}
 
 export const userServices = {
   async getUserInfo(accessToken: string) {
-    const response = await axios.get(USER_ENDPOINTS.GET_USER_INFO, {
+    const response = await axios.get(USER_ENDPOINTS.USER_INFO, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
+
+    return response;
+  },
+  async changeUserInfo(accessToken: string, userInfo: UserInfoProps) {
+    const response = await axios.put(
+      USER_ENDPOINTS.USER_INFO,
+      {...userInfo},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
 
     return response;
   },

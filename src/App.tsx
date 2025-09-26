@@ -16,6 +16,8 @@ import {useQuery} from "@tanstack/react-query";
 import {userServices} from "./lib/services/user.services.ts";
 import {login} from "./redux/slice/userSlice.tsx";
 import {authServices} from "./lib/services/auth.services.ts";
+import ProfileLayout from "./layout/ProfileLayout.tsx";
+import Profile from "./pages/Profile/Profile.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -48,12 +50,19 @@ function App() {
         response = await userServices.getUserInfo(String(accessToken));
       }
 
+      const userRoles = JSON.parse(
+        atob(String(accessToken?.split(".")[1])),
+      ).roles;
+
       // Set global state
       dispatch(
         login({
           name: response.data.fullName,
           email: response.data.email,
-          role: response.data.userType,
+          username: response.data.username,
+          image: response.data.userImage || undefined,
+          type: response.data.userType,
+          roles: userRoles,
         }),
       );
       return response;
@@ -93,6 +102,16 @@ function App() {
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
+            <Route
+              element={
+                <ProfileLayout>
+                  <Outlet />
+                </ProfileLayout>
+              }
+            >
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<p>Settings</p>} />
+            </Route>
             <Route
               element={
                 <CourseLayout>
