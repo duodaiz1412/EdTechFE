@@ -14,7 +14,7 @@ export default function ProfileSidebar() {
           icon={<CircleUserRound />}
           label="Profile"
         />
-        {userData?.roles.includes("SYSTEM_MANAGER") && (
+        {userData?.type === "SYSTEM_USER" && (
           <ProfileSidebarItem
             to="/cms"
             icon={<UsersRound />}

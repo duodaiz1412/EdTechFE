@@ -1,4 +1,5 @@
 import {userServices} from "@/lib/services/user.services";
+import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {useAppSelector} from "@/redux/hooks";
 import {useState} from "react";
 import {toast} from "react-toastify";
@@ -44,9 +45,7 @@ export default function Profile() {
     e.preventDefault();
     if (!isChangeInfo) return;
 
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) return;
-
+    const accessToken = await getAccessToken();
     const response = await userServices.changeUserInfo(accessToken, {
       username: username,
       fullName: fullName,
@@ -56,7 +55,8 @@ export default function Profile() {
     if (response.status !== 200) {
       toast.error("Failed to change info, please try later.");
     }
-    window.location.reload();
+    setIsChangeInfo(false);
+    toast.success("Change info successfully");
   };
 
   return (
@@ -72,6 +72,7 @@ export default function Profile() {
             type="text"
             className="input w-full"
             value={fullName}
+            required
             onChange={(e) => {
               setFullName(e.target.value);
               setIsChangeInfo(true);
@@ -88,6 +89,7 @@ export default function Profile() {
               type="email"
               className="input w-full"
               value={email}
+              required
               onChange={(e) => {
                 setEmail(e.target.value);
                 setIsChangeInfo(true);
@@ -103,6 +105,7 @@ export default function Profile() {
               type="text"
               className="input w-full"
               value={username}
+              required
               onChange={(e) => {
                 setUsername(e.target.value);
                 setIsChangeInfo(true);

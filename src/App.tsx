@@ -15,9 +15,9 @@ import {useAppDispatch} from "./redux/hooks.ts";
 import {useQuery} from "@tanstack/react-query";
 import {userServices} from "./lib/services/user.services.ts";
 import {login} from "./redux/slice/userSlice.tsx";
-import {authServices} from "./lib/services/auth.services.ts";
 import ProfileLayout from "./layout/ProfileLayout.tsx";
 import Profile from "./pages/Profile/Profile.tsx";
+import {getAccessToken} from "./lib/utils/getAccessToken.ts";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -25,34 +25,8 @@ function App() {
   useQuery({
     queryKey: ["userInfo"],
     queryFn: async () => {
-      // Get tokens
-      let isTokenExpired = false;
-      let accessToken = localStorage.getItem("accessToken");
-      const refreshToken = localStorage.getItem("refreshToken");
-
-      // Get data if tokens exist
-      if (!accessToken) return null;
-      let response = await userServices.getUserInfo(accessToken);
-
-      // Logic when token is expired
-      if (response.status !== 200) {
-        isTokenExpired = true;
-        if (!refreshToken) return null;
-
-        const newTokenRequest = await authServices.refresh(refreshToken);
-
-        if (newTokenRequest === null) return null;
-
-        accessToken = newTokenRequest.accessToken;
-      }
-
-      if (isTokenExpired) {
-        response = await userServices.getUserInfo(String(accessToken));
-      }
-
-      const userRoles = JSON.parse(
-        atob(String(accessToken?.split(".")[1])),
-      ).roles;
+      const accessToken = await getAccessToken();
+      const response = await userServices.getUserInfo(accessToken);
 
       // Set global state
       dispatch(
@@ -62,7 +36,6 @@ function App() {
           username: response.data.username,
           image: response.data.userImage || undefined,
           type: response.data.userType,
-          roles: userRoles,
         }),
       );
       return response;
