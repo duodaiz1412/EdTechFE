@@ -20,7 +20,9 @@ export default function CourseSettingsContent() {
       <div className="space-y-8">
         {/* Course Status */}
         <section className="flex items-center gap-4">
-          <Button className="bg-gray-800 text-white hover:bg-gray-700">Publish</Button>
+          <Button className="bg-gray-800 text-white hover:bg-gray-700">
+            Publish
+          </Button>
           <p className="text-sm text-gray-600">
             New students can find your course via search.
           </p>
@@ -28,15 +30,20 @@ export default function CourseSettingsContent() {
 
         {/* Delete */}
         <section className="flex items-center gap-4">
-          <Button className="bg-red-600 text-white hover:bg-red-700">Delete</Button>
+          <Button className="bg-red-600 text-white hover:bg-red-700">
+            Delete
+          </Button>
           <p className="text-sm text-gray-600">
-            We promise students lifetime access, so courses cannot be deleted after students have enrolled.
+            We promise students lifetime access, so courses cannot be deleted
+            after students have enrolled.
           </p>
         </section>
 
         {/* Enrollment */}
         <section className="space-y-2 max-w-xl">
-          <label className="text-sm font-medium text-gray-800">Enrollment</label>
+          <label className="text-sm font-medium text-gray-800">
+            Enrollment
+          </label>
           <div className="flex items-center gap-3">
             <CommonSelect
               value={enrollment}
@@ -62,12 +69,12 @@ export default function CourseSettingsContent() {
 
         {/* Instructors */}
         <section>
-          <label className="text-sm font-medium text-gray-800">Instructors</label>
+          <label className="text-sm font-medium text-gray-800">
+            Instructors
+          </label>
           <div className="mt-2 text-sm text-gray-500">Coming soon...</div>
         </section>
       </div>
     </div>
   );
 }
-
-

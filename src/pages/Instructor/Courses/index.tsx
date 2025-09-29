@@ -17,7 +17,10 @@ const mockCourses: Course[] = [
 
 export default function InstructorCourse() {
   const navigate = useNavigate();
-  const [deleteState, setDeleteState] = useState<{open: boolean; course: Course | null}>({open: false, course: null});
+  const [deleteState, setDeleteState] = useState<{
+    open: boolean;
+    course: Course | null;
+  }>({open: false, course: null});
 
   const handleCreateCourse = () => {
     navigate("/instructor/courses/create");
@@ -90,7 +93,11 @@ export default function InstructorCourse() {
       <DeleteModal
         open={deleteState.open}
         title="Delete course"
-        message={deleteState.course ? `Are you sure you want to delete "${deleteState.course.title}"?` : "Are you sure you want to delete this course?"}
+        message={
+          deleteState.course
+            ? `Are you sure you want to delete "${deleteState.course.title}"?`
+            : "Are you sure you want to delete this course?"
+        }
         onClose={() => setDeleteState({open: false, course: null})}
         onConfirm={() => {
           // TODO: call API delete
