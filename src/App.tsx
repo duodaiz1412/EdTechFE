@@ -1,26 +1,36 @@
-import {BrowserRouter, Outlet, Route, Routes} from "react-router";
+import {BrowserRouter, Outlet, Route, Routes} from "react-router-dom";
 import {ToastContainer} from "react-toastify";
+import {useQuery} from "@tanstack/react-query";
+
+import {login} from "./redux/slice/userSlice.tsx";
+import {useAppDispatch, useAppSelector} from "./redux/hooks.ts";
+import {userServices} from "./lib/services/user.services.ts";
+import {getAccessToken} from "./lib/utils/getAccessToken.ts";
+
+import ProtectedRoute from "./components/ProtectedRoute.tsx";
+
 import AuthLayout from "./layout/AuthLayout";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
+import Notify from "./pages/Auth/Notify.tsx";
 import VerifyRedirect from "./pages/Auth/VerifyRedirect.tsx";
+import Verify from "./pages/Auth/Verify.tsx";
+
 import MainLayout from "./layout/MainLayout.tsx";
+
+import CourseLayout from "./layout/CourseLayout.tsx";
 import Courses from "./pages/Course/Courses.tsx";
 import CourseDetail from "./pages/Course/CourseDetail.tsx";
-import CourseLayout from "./layout/CourseLayout.tsx";
-import ProtectedRoute from "./components/ProtectedRoute.tsx";
-import Notify from "./pages/Auth/Notify.tsx";
-import Verify from "./pages/Auth/Verify.tsx";
-import {useAppDispatch} from "./redux/hooks.ts";
-import {useQuery} from "@tanstack/react-query";
-import {userServices} from "./lib/services/user.services.ts";
-import {login} from "./redux/slice/userSlice.tsx";
+
 import ProfileLayout from "./layout/ProfileLayout.tsx";
 import Profile from "./pages/Profile/Profile.tsx";
-import {getAccessToken} from "./lib/utils/getAccessToken.ts";
+import Settings from "./pages/Profile/Settings.tsx";
+import UserList from "./pages/CMS/UserList.tsx";
+import UserDetail from "./pages/CMS/UserDetail.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
+  const userInfo = useAppSelector((state) => state.user.data);
 
   useQuery({
     queryKey: ["userInfo"],
@@ -83,7 +93,13 @@ function App() {
               }
             >
               <Route path="/profile" element={<Profile />} />
-              <Route path="/settings" element={<p>Settings</p>} />
+              {userInfo?.type === "SYSTEM_USER" && (
+                <>
+                  <Route path="/users" element={<UserList />} />
+                  <Route path="/users/:userId" element={<UserDetail />} />
+                </>
+              )}
+              <Route path="/settings" element={<Settings />} />
             </Route>
             <Route
               element={

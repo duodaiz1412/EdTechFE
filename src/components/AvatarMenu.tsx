@@ -1,6 +1,6 @@
 import {useAppDispatch, useAppSelector} from "@/redux/hooks";
 import {logout} from "@/redux/slice/userSlice";
-import {Presentation, User, Settings, LogOut} from "lucide-react";
+import {Presentation, User, Settings, LogOut, UsersRound} from "lucide-react";
 import {Link, useNavigate} from "react-router-dom";
 
 export default function AvatarMenu() {
@@ -42,6 +42,14 @@ export default function AvatarMenu() {
             <span>Profile</span>
           </Link>
         </li>
+        {userData?.type === "SYSTEM_USER" && (
+          <li>
+            <Link to="/users">
+              <UsersRound size={20} />
+              <span>User Management</span>
+            </Link>
+          </li>
+        )}
         <li>
           <Link to="/instructor">
             <Presentation size={20} />

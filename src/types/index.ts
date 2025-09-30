@@ -250,3 +250,15 @@ export interface SettingItem {
   action: string;
   variant?: "default" | "destructive";
 }
+
+export interface UserInfoProps {
+  id?: string;
+  email?: string;
+  username?: string;
+  fullName?: string;
+  userImage?: string;
+  enabled?: boolean;
+  userType?: "SYSTEM_USER" | "WEBSITE_USER";
+  lastActive?: string;
+  roles?: string[];
+}

@@ -6,7 +6,7 @@ export default function ProfileLayout({children}: {children: JSX.Element}) {
     <div>
       <ProfileSidebar />
       <ProfileNavbar />
-      <main className="top-16 w-5/6 p-6 right-0 fixed">{children}</main>
+      <main className="mt-16 w-5/6 p-6 ml-auto">{children}</main>
     </div>
   );
 }

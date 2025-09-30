@@ -1,6 +1,6 @@
 import {useState, useEffect, useCallback} from "react";
 import {userServices} from "../lib/services/user.services";
-import type {User} from "../pages/Cms/UserManagement";
+import type {User} from "../pages/CMS/UserManagement";
 
 export interface UseUsersState {
   users: User[];
