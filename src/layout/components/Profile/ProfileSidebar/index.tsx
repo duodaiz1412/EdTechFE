@@ -16,7 +16,7 @@ export default function ProfileSidebar() {
         />
         {userData?.type === "SYSTEM_USER" && (
           <ProfileSidebarItem
-            to="/cms"
+            to="/users"
             icon={<UsersRound />}
             label="User Management"
           />

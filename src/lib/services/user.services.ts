@@ -115,24 +115,13 @@
 //   }
 // }
 
+import {UserInfoProps} from "@/types";
 import axios from "axios";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
 const USER_ENDPOINTS = {
   USER_INFO: BASE_API + "/users/me",
 };
-
-interface UserInfoProps {
-  id?: string;
-  email?: string;
-  username?: string;
-  fullName?: string;
-  userImage?: string;
-  enabled?: boolean;
-  userType?: string;
-  lastActive?: string;
-  roles?: string[];
-}
 
 export const userServices = {
   async getUserInfo(accessToken: string) {

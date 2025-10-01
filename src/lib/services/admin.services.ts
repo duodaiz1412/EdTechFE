@@ -1,0 +1,40 @@
+import {UserInfoProps} from "@/types";
+import axios from "axios";
+
+const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1/admin/users";
+
+export const adminServices = {
+  async getUserList(page: number, size: number, accessToken: string) {
+    const response = await axios.get(BASE_API + `?page=${page}&size=${size}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    return response;
+  },
+
+  async getUser(userId: string, accessToken: string) {
+    const response = await axios.get(BASE_API + `/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    return response;
+  },
+
+  async updateUser(
+    userId: string,
+    userData: UserInfoProps,
+    accessToken: string,
+  ) {
+    const response = await axios.put(BASE_API + `/${userId}`, userData, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    return response;
+  },
+};

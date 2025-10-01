@@ -4,18 +4,46 @@ import {useAppSelector} from "@/redux/hooks";
 import {useState} from "react";
 import {toast} from "react-toastify";
 
+import {useForm} from "react-hook-form";
+import {yupResolver} from "@hookform/resolvers/yup";
+import * as yup from "yup";
+
+interface IFormData {
+  fullName: string;
+  email: string;
+  username: string;
+}
+
 export default function Profile() {
   const userData = useAppSelector((state) => state.user.data);
 
-  const [fullName, setFullName] = useState(userData?.name);
-  const [email, setEmail] = useState(userData?.email);
-  const [username, setUsername] = useState(userData?.username);
+  const initialValue: IFormData = {
+    fullName: userData?.name || "",
+    email: userData?.email || "",
+    username: userData?.username || "",
+  };
+
+  const schema = yup
+    .object({
+      fullName: yup.string().required(),
+      email: yup.string().email().required(),
+      username: yup.string().required(),
+    })
+    .required();
+
+  const {
+    register,
+    handleSubmit,
+    formState: {isDirty},
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: initialValue,
+  });
+
   const [image, setImage] = useState<File | string | undefined>(
     userData?.image,
   );
   const [preview, setPreview] = useState<string | undefined>(undefined);
-
-  const [isChangeInfo, setIsChangeInfo] = useState(false);
 
   const handleUploadImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,28 +69,20 @@ export default function Profile() {
     reader.readAsDataURL(file);
   };
 
-  const handleChangeInfo = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!isChangeInfo) return;
-
+  const onSubmit = async (data: IFormData) => {
     const accessToken = await getAccessToken();
-    const response = await userServices.changeUserInfo(accessToken, {
-      username: username,
-      fullName: fullName,
-      email: email,
-    });
+    const response = await userServices.changeUserInfo(accessToken, data);
 
     if (response.status !== 200) {
       toast.error("Failed to change info, please try later.");
     }
-    setIsChangeInfo(false);
     toast.success("Change info successfully");
   };
 
   return (
-    <div className="w-full max-w-5/6 mx-auto">
+    <div>
       <h2 className="text-xl font-bold mb-10">Your profile</h2>
-      <form className="space-y-8" onSubmit={handleChangeInfo}>
+      <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
         <div className="flex flex-col space-y-2">
           <label htmlFor="fullname" className="font-semibold">
             Fullname
@@ -71,12 +91,7 @@ export default function Profile() {
             id="fullname"
             type="text"
             className="input w-full"
-            value={fullName}
-            required
-            onChange={(e) => {
-              setFullName(e.target.value);
-              setIsChangeInfo(true);
-            }}
+            {...register("fullName")}
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -88,12 +103,7 @@ export default function Profile() {
               id="email"
               type="email"
               className="input w-full"
-              value={email}
-              required
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setIsChangeInfo(true);
-              }}
+              {...register("email")}
             />
           </div>
           <div className="flex flex-col space-y-2">
@@ -104,12 +114,7 @@ export default function Profile() {
               id="username"
               type="text"
               className="input w-full"
-              value={username}
-              required
-              onChange={(e) => {
-                setUsername(e.target.value);
-                setIsChangeInfo(true);
-              }}
+              {...register("username")}
             />
           </div>
         </div>
@@ -130,11 +135,7 @@ export default function Profile() {
             />
           </div>
         </div>
-        <button
-          className="btn btn-primary"
-          type="submit"
-          disabled={!isChangeInfo}
-        >
+        <button className="btn btn-primary" type="submit" disabled={!isDirty}>
           Save
         </button>
       </form>
