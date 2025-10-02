@@ -42,7 +42,7 @@ export default function PricingContent() {
   };
 
   return (
-    <div className="p-8">
+    <div className="">
       <div className="flex justify-between items-center mb-6">
         <Heading3>Course Pricing</Heading3>
         <Button

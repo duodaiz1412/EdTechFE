@@ -1,6 +1,13 @@
 import Button from "@/components/Button";
 import Chip from "@/components/Chip";
-import {Edit3, Trash2} from "lucide-react";
+import {
+  Edit3,
+  Trash2,
+  PlayCircle,
+  HelpCircle,
+  ClipboardList,
+  Code2,
+} from "lucide-react";
 
 export type CourseItemType = "lecture" | "quiz" | "assignment" | "coding";
 
@@ -21,15 +28,15 @@ interface ChapterItemProps {
 const getItemIcon = (type: CourseItemType) => {
   switch (type) {
     case "lecture":
-      return "📄";
+      return <PlayCircle size={20} />;
     case "quiz":
-      return "❓";
+      return <HelpCircle size={20} />;
     case "assignment":
-      return "📋";
+      return <ClipboardList size={20} />;
     case "coding":
-      return "</>";
+      return <Code2 size={20} />;
     default:
-      return "📄";
+      return <PlayCircle size={20} />;
   }
 };
 

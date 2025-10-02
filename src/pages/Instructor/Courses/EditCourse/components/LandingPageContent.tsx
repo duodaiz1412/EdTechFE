@@ -79,7 +79,7 @@ export default function LandingPageContent() {
   };
 
   return (
-    <div className="p-8">
+    <div className="">
       <div className="flex justify-between items-center mb-6">
         <Heading3>Course Landing Page</Heading3>
         <div className="flex gap-3">

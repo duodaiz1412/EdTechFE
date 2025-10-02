@@ -40,9 +40,9 @@ export default function InstructorSidebar() {
   ];
 
   return (
-    <div className="fixed top-0 left-0 h-screen w-64 bg-white border-r border-gray-200 shadow-sm z-50">
+    <div className="fixed top-0 left-0 h-screen w-1/6 bg-white border-r border-gray-200 shadow-sm z-50">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 ">
         <h1 className="text-xl font-bold text-gray-900">Edtech</h1>
       </div>
 

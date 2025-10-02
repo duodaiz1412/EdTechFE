@@ -33,7 +33,7 @@ export default function IntendedLearnersContent() {
   };
 
   return (
-    <div className="p-8">
+    <div className="">
       <Heading3 className="mb-6">Intended Learners</Heading3>
 
       <div className="space-y-8">

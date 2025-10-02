@@ -1,4 +1,5 @@
 import Button from "@/components/Button";
+import {HelpCircle, ClipboardList, Code2, FileText} from "lucide-react";
 import {useNavigate, useParams} from "react-router";
 import {CourseItem} from "./ChapterItem";
 
@@ -24,7 +25,9 @@ export default function NewItemAction({
             navigate(`/instructor/courses/${courseId}/edit/lecture/create`)
           }
         >
-          📄 Lecture
+          <span className="inline-flex items-center gap-2">
+            <FileText size={16} /> Lecture
+          </span>
         </Button>
         <Button
           variant="secondary"
@@ -32,21 +35,27 @@ export default function NewItemAction({
           className="bg-blue-50 text-blue-700"
           onClick={() => onAddItem(chapterId, "quiz")}
         >
-          ❓ Quiz
+          <span className="inline-flex items-center gap-2">
+            <HelpCircle size={16} /> Quiz
+          </span>
         </Button>
         <Button
           variant="secondary"
           size="sm"
           onClick={() => onAddItem(chapterId, "assignment")}
         >
-          📋 Assignment
+          <span className="inline-flex items-center gap-2">
+            <ClipboardList size={16} /> Assignment
+          </span>
         </Button>
         <Button
           variant="secondary"
           size="sm"
           onClick={() => onAddItem(chapterId, "coding")}
         >
-          &lt;/&gt; Coding exercise
+          <span className="inline-flex items-center gap-2">
+            <Code2 size={16} /> Coding exercise
+          </span>
         </Button>
       </div>
     </div>

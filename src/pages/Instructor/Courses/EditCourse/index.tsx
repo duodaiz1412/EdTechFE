@@ -1,6 +1,6 @@
 import {useState} from "react";
 import {useNavigate} from "react-router";
-import {ArrowLeft, Settings, Eye} from "lucide-react";
+import {ArrowLeft, Settings} from "lucide-react";
 import Button from "@/components/Button";
 import {Heading2} from "@/components/Typography";
 import Chip from "@/components/Chip";
@@ -50,46 +50,60 @@ export default function EditCourse() {
   const [activeSection, setActiveSection] = useState("intended-learners");
 
   const renderContent = () => {
+    let content;
     switch (activeSection) {
       case "intended-learners":
-        return <IntendedLearnersContent />;
+        content = <IntendedLearnersContent />;
+        break;
       case "settings":
-        return <CourseSettingsContent />;
+        content = <CourseSettingsContent />;
+        break;
       case "course-structure":
-        return <CourseStructureContent />;
+        content = <CourseStructureContent />;
+        break;
       case "setup-test":
-        return (
-          <div className="p-8 text-center text-gray-500">
+        content = (
+          <div className="text-center text-gray-500">
             Setup & test video content coming soon...
           </div>
         );
+        break;
       case "film-edit":
-        return <FilmEditContent />;
+        content = <FilmEditContent />;
+        break;
       case "curriculum":
-        return <CurriculumContent />;
+        content = <CurriculumContent />;
+        break;
       case "caption":
-        return <CaptionContent />;
+        content = <CaptionContent />;
+        break;
       case "accessibility":
-        return <AccessibilityContent />;
+        content = <AccessibilityContent />;
+        break;
       case "landing-page":
-        return <LandingPageContent />;
+        content = <LandingPageContent />;
+        break;
       case "pricing":
-        return <PricingContent />;
+        content = <PricingContent />;
+        break;
       case "promotions":
-        return <PromotionsContent />;
+        content = <PromotionsContent />;
+        break;
       case "messages":
-        return <CourseMessagesContent />;
+        content = <CourseMessagesContent />;
+        break;
       default:
-        return (
-          <div className="p-8 text-center text-gray-500">
+        content = (
+          <div className="text-center text-gray-500">
             Content for {activeSection} coming soon...
           </div>
         );
     }
+    return <div className="px-10 py-6">{content}</div>;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="bg-white border-b px-6 py-4">
         <div className="flex items-center justify-between">
@@ -110,13 +124,6 @@ export default function EditCourse() {
           <div className="flex items-center gap-3">
             <Button
               variant="secondary"
-              leftIcon={<Eye size={16} />}
-              className="bg-gray-100 text-gray-700 hover:bg-gray-200"
-            >
-              Preview
-            </Button>
-            <Button
-              variant="secondary"
               leftIcon={<Settings size={16} />}
               onClick={() => setActiveSection("settings")}
               className="bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -127,10 +134,10 @@ export default function EditCourse() {
         </div>
       </div>
 
-      <div className="flex">
+      <div className="flex px-32 gap-4">
         {/* Sidebar Navigation */}
-        <div className="w-80 bg-white border-r min-h-screen">
-          <div className="p-6">
+        <div className="w-1/5 bg-white min-h-screen">
+          <div className="px-16 py-12">
             {navigationItems.map((section, sectionIndex) => (
               <div key={sectionIndex} className="mb-8">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
@@ -157,7 +164,9 @@ export default function EditCourse() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 bg-white">{renderContent()}</div>
+        <div className="flex-1 mt-4 mb-20 bg-white border border-[#D9D9D9] rounded-lg">
+          {renderContent()}
+        </div>
       </div>
     </div>
   );

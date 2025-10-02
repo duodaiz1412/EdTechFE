@@ -167,7 +167,7 @@ export default function CurriculumContent() {
   };
 
   return (
-    <div className="p-8">
+    <div className="">
       <div className="flex justify-between items-center mb-6">
         <Heading3>Curriculum</Heading3>
         <Button
