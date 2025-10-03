@@ -121,6 +121,7 @@ import axios from "axios";
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
 const USER_ENDPOINTS = {
   USER_INFO: BASE_API + "/users/me",
+  ASSIGN_ROLE: BASE_API + "/users/me/roles",
 };
 
 export const userServices = {
@@ -133,10 +134,33 @@ export const userServices = {
 
     return response;
   },
+
   async changeUserInfo(accessToken: string, userInfo: UserInfoProps) {
     const response = await axios.put(
       USER_ENDPOINTS.USER_INFO,
       {...userInfo},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    return response;
+  },
+
+  async assignRole(
+    accessToken: string,
+    role:
+      | "SYSTEM_MANAGER"
+      | "COURSE_CREATOR"
+      | "LMS_STUDENT"
+      | "MODERATOR"
+      | "BATCH_EVALUATOR",
+  ) {
+    const response = await axios.post(
+      USER_ENDPOINTS.ASSIGN_ROLE,
+      {role: role},
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

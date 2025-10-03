@@ -1,3 +1,4 @@
+import {adminServices} from "@/lib/services/admin.services";
 import {userServices} from "@/lib/services/user.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {useAppDispatch, useAppSelector} from "@/redux/hooks";
@@ -15,12 +16,16 @@ export default function ProtectedRoute() {
       const accessToken = await getAccessToken();
       const response = await userServices.getUserInfo(accessToken);
 
-      // Decode token to get roles
-      const roles = JSON.parse(atob(accessToken.split(".")[1])).roles;
+      // Get user roles by admin api (FIX LATER)
+      const roles = await adminServices.getUserRoles(
+        accessToken,
+        response.data.id,
+      );
 
       // Set global state
       dispatch(
         login({
+          id: response.data.id,
           name: response.data.fullName,
           email: response.data.email,
           username: response.data.username,

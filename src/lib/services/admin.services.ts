@@ -37,4 +37,18 @@ export const adminServices = {
 
     return response;
   },
+
+  async getUserRoles(accessToken: string, userId: string) {
+    const response = await axios.get(BASE_API + `/${userId}/roles`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (response.status !== 200) return [];
+
+    return response.data.map(
+      (role: {id: string; name: string; role: string}) => role.role,
+    );
+  },
 };

@@ -1,4 +1,4 @@
-import {BrowserRouter, Outlet, Route, Routes} from "react-router-dom";
+import {BrowserRouter, Navigate, Outlet, Route, Routes} from "react-router-dom";
 import {ToastContainer} from "react-toastify";
 import {useQuery} from "@tanstack/react-query";
 
@@ -27,12 +27,15 @@ import Profile from "./pages/Profile/Profile.tsx";
 import Settings from "./pages/Profile/Settings.tsx";
 import UserList from "./pages/CMS/UserList.tsx";
 import UserDetail from "./pages/CMS/UserDetail.tsx";
+
 import InstructorLayout from "./layout/InstructorLayout.tsx";
 import InstructorCourse from "./pages/Instructor/Courses/index.tsx";
 import CreateCourse from "./pages/Instructor/Courses/CreateCourse/index.tsx";
 import EditCourse from "./pages/Instructor/Courses/EditCourse/index.tsx";
 import CreateLecture from "./pages/Instructor/Courses/EditCourse/components/CreateLecture.tsx";
 import {CourseProvider} from "./context/CourseContext.tsx";
+import BecomeInstructor from "./pages/Instructor/BecomeInstructor.tsx";
+import {adminServices} from "./lib/services/admin.services.ts";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -44,12 +47,16 @@ function App() {
       const accessToken = await getAccessToken();
       const response = await userServices.getUserInfo(accessToken);
 
-      // Decode token to get roles
-      const roles = JSON.parse(atob(accessToken.split(".")[1])).roles;
+      // Get user roles by admin api (FIX LATER)
+      const roles = await adminServices.getUserRoles(
+        accessToken,
+        response.data.id,
+      );
 
       // Set global state
       dispatch(
         login({
+          id: response.data.id,
           name: response.data.fullName,
           email: response.data.email,
           username: response.data.username,
@@ -93,8 +100,8 @@ function App() {
             <Route path="/course/:courseId" element={<CourseDetail />} />
           </Route>
 
-          {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
+            {/* Profile layout */}
             <Route
               element={
                 <ProfileLayout>
@@ -102,15 +109,34 @@ function App() {
                 </ProfileLayout>
               }
             >
+              {/* Profile route */}
               <Route path="/profile" element={<Profile />} />
-              {userInfo?.type === "SYSTEM_USER" && (
-                <>
-                  <Route path="/users" element={<UserList />} />
-                  <Route path="/users/:userId" element={<UserDetail />} />
-                </>
-              )}
+              {/* Admin CMS routes */}
+              <Route
+                path="/users"
+                element={
+                  userInfo?.type === "SYSTEM_USER" ? (
+                    <UserList />
+                  ) : (
+                    <Navigate to="/" />
+                  )
+                }
+              />
+              <Route
+                path="/users/:userId"
+                element={
+                  userInfo?.type === "SYSTEM_USER" ? (
+                    <UserDetail />
+                  ) : (
+                    <Navigate to="/" />
+                  )
+                }
+              />
+              {/* Settings route */}
               <Route path="/settings" element={<Settings />} />
             </Route>
+
+            {/* Learner routes */}
             <Route
               element={
                 <CourseLayout>
@@ -127,14 +153,18 @@ function App() {
                 element={<p>Demo enroll</p>}
               />
             </Route>
-          </Route>
-          {/* Instructor layout */}
-          <Route element={<ProtectedRoute />}>
+
+            {/* Instructor routes */}
+            <Route path="/teaching" element={<BecomeInstructor />} />
             <Route
               element={
-                <InstructorLayout>
-                  <Outlet />
-                </InstructorLayout>
+                userInfo?.roles.includes("COURSE_CREATOR") ? (
+                  <InstructorLayout>
+                    <Outlet />
+                  </InstructorLayout>
+                ) : (
+                  <Navigate to="/teaching" />
+                )
               }
             >
               <Route path="/instructor" element={<InstructorCourse />} />
@@ -143,20 +173,36 @@ function App() {
             <Route
               path="/instructor/courses/create"
               element={
-                <CourseProvider>
-                  <CreateCourse />
-                </CourseProvider>
+                userInfo?.roles.includes("COURSE_CREATOR") ? (
+                  <CourseProvider>
+                    <CreateCourse />
+                  </CourseProvider>
+                ) : (
+                  <Navigate to="/teaching" />
+                )
               }
             />
             {/* Edit course without sidebar */}
             <Route
               path="/instructor/courses/:courseId/edit"
-              element={<EditCourse />}
+              element={
+                userInfo?.roles.includes("COURSE_CREATOR") ? (
+                  <EditCourse />
+                ) : (
+                  <Navigate to="/teaching" />
+                )
+              }
             />
             {/* Create lecture page */}
             <Route
               path="/instructor/courses/:courseId/edit/lecture/create"
-              element={<CreateLecture />}
+              element={
+                userInfo?.roles.includes("COURSE_CREATOR") ? (
+                  <CreateLecture />
+                ) : (
+                  <Navigate to="/teaching" />
+                )
+              }
             />
           </Route>
         </Routes>

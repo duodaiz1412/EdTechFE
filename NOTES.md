@@ -1,7 +1,5 @@
-### Note ngày 26/9/2025:
-- Chức năng thực hiện: Profile, CMS
+### Note ngày 03/10/2025:
+- Chức năng thực hiện: Get roles, Become instructor
 - Vấn đề:
-    + Chưa rõ cách up file (cụ thể là up avatar)
-    + Role của user chỉ lấy được thông qua token
-    + Cần tách logic lấy access token và refresh token nếu cần (sử dụng exp tách ra từ payload của token).
+    + Get roles đang sử dụng api của admin
 

@@ -4,6 +4,7 @@ import {RootState} from "../store";
 export interface UserState {
   isAuthenticated: boolean;
   data: {
+    id: string;
     name: string;
     email: string;
     username: string;

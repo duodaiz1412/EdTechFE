@@ -42,8 +42,8 @@ export default function InstructorSidebar() {
   return (
     <div className="fixed top-0 left-0 h-screen w-1/6 bg-white border-r border-gray-200 shadow-sm z-50">
       {/* Header */}
-      <div className="p-6 ">
-        <h1 className="text-xl font-bold text-gray-900">Edtech</h1>
+      <div className="px-6 py-4">
+        <h1 className="text-2xl font-bold text-blue-600">Edtech</h1>
       </div>
 
       {/* Navigation */}
