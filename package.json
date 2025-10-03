@@ -45,6 +45,7 @@
     "@reduxjs/toolkit": "^2.6.1",
     "@tanstack/react-query": "^5.69.0",
     "@types/react": "18.3.12",
+    "@types/react-select": "^5.0.1",
     "axios": "^1.10.0",
     "axios-retry": "^4.5.0",
     "cmdk": "^1.1.1",
@@ -66,13 +67,15 @@
     "react-icons": "^5.5.0",
     "react-redux": "^9.2.0",
     "react-resizable-panels": "^2.1.7",
+    "react-select": "^5.10.2",
     "react-toastify": "^11.0.5",
     "recharts": "^2.15.1",
     "redux": "^5.0.1",
     "sonner": "^2.0.1",
+    "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
-    "yup": "^1.6.1"
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.23.0",
