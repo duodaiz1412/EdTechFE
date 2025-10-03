@@ -1,16 +1,41 @@
-import {useAppSelector} from "@/redux/hooks";
-import {useEffect} from "react";
+import {userServices} from "@/lib/services/user.services";
+import {getAccessToken} from "@/lib/utils/getAccessToken";
+import {useAppDispatch, useAppSelector} from "@/redux/hooks";
+import {login} from "@/redux/slice/userSlice";
+import {useQuery} from "@tanstack/react-query";
 import {Navigate, Outlet} from "react-router-dom";
-import {toast} from "react-toastify";
 
 export default function ProtectedRoute() {
+  const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      toast.warning("Require login to access");
-    }
-  }, [isAuthenticated]);
+  const {isLoading} = useQuery({
+    queryKey: ["userInfo"],
+    queryFn: async () => {
+      const accessToken = await getAccessToken();
+      const response = await userServices.getUserInfo(accessToken);
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/" />;
+      // Decode token to get roles
+      const roles = JSON.parse(atob(accessToken.split(".")[1])).roles;
+
+      // Set global state
+      dispatch(
+        login({
+          name: response.data.fullName,
+          email: response.data.email,
+          username: response.data.username,
+          image: response.data.userImage || undefined,
+          type: response.data.userType,
+          roles: roles,
+        }),
+      );
+      return response;
+    },
+  });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return isAuthenticated ? <Outlet /> : <Navigate to="/" replace />;
 }

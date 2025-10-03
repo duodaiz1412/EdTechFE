@@ -44,6 +44,9 @@ function App() {
       const accessToken = await getAccessToken();
       const response = await userServices.getUserInfo(accessToken);
 
+      // Decode token to get roles
+      const roles = JSON.parse(atob(accessToken.split(".")[1])).roles;
+
       // Set global state
       dispatch(
         login({
@@ -52,6 +55,7 @@ function App() {
           username: response.data.username,
           image: response.data.userImage || undefined,
           type: response.data.userType,
+          roles: roles,
         }),
       );
       return response;

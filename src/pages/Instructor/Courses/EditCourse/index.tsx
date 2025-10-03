@@ -137,7 +137,7 @@ export default function EditCourse() {
       <div className="flex px-32 gap-4">
         {/* Sidebar Navigation */}
         <div className="w-1/5 bg-white min-h-screen">
-          <div className="px-16 py-12">
+          <div className="px-6 py-12">
             {navigationItems.map((section, sectionIndex) => (
               <div key={sectionIndex} className="mb-8">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">

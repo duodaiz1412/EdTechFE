@@ -11,7 +11,7 @@ export default function InstructorLayout({children}: InstructorLayoutProps) {
       <InstructorSidebar />
       <div className="flex flex-col flex-1 ml-[16.6667%]">
         <InstructorNavbar />
-        <main className="mt-20">{children}</main>
+        <main className="mt-20 p-6">{children}</main>
       </div>
     </div>
   );

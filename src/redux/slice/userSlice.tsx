@@ -9,6 +9,7 @@ export interface UserState {
     username: string;
     image: string | undefined;
     type: string;
+    roles: string[];
   } | null;
 }
 
