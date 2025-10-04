@@ -2,4 +2,4 @@
 - Chức năng thực hiện: Get roles, Become instructor
 - Vấn đề:
     + Get roles đang sử dụng api của admin
-
+    + Logic lặp lại hơi nhiều ở route App.tsx

@@ -36,6 +36,9 @@ export default function BecomeInstructor() {
         roles: [...(userData?.roles || []), "COURSE_CREATOR"],
       }),
     );
+
+    // Refresh token (Có thể check hết hạn, check có null hay ko, hoặc viết 1 hàm utils)
+
     navigate("/instructor");
   };
 

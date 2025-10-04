@@ -13,8 +13,6 @@ export const getAccessToken = async () => {
 
     const response = await authServices.refresh(String(refreshToken));
     accessToken = response?.accessToken;
-    localStorage.setItem("accessToken", String(accessToken));
-    localStorage.setItem("refreshToken", String(response?.refreshToken));
   }
   return accessToken;
 };
