@@ -1,127 +1,3 @@
-// Common API Response Types
-export interface IApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  errorCode?: string;
-}
-
-export interface IDataWithMeta<T> {
-  data: T;
-  meta: {
-    totalPage: number;
-    totalItems: number;
-    currentPage: number;
-    pageSize?: number;
-  };
-}
-
-// EdTech Domain Types
-export interface Course {
-  id: string;
-  title: string;
-  shortIntroduction?: string;
-  description?: string;
-  image?: string;
-  videoLink?: string;
-  tags?: string;
-  category?: string;
-  status: CourseStatus;
-  published: boolean;
-  publishedOn?: string;
-  upcoming: boolean;
-  featured: boolean;
-  disableSelfLearning: boolean;
-  paidCourse: boolean;
-  coursePrice?: number;
-  currency?: string;
-  amountUsd?: number;
-  enableCertification: boolean;
-  paidCertificate: boolean;
-  enrollments: number;
-  lessons: number;
-  rating?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Chapter {
-  id: string;
-  title: string;
-  courseId: string;
-  isScormPackage: boolean;
-  scormPackage?: string;
-  scormPackagePath?: string;
-  manifestFile?: string;
-  launchFile?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Lesson {
-  id: string;
-  title: string;
-  chapterId: string;
-  courseId: string;
-  content?: string;
-  videoUrl?: string;
-  fileUrl?: string;
-  duration?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Enrollment {
-  id: string;
-  memberId: string;
-  courseId: string;
-  memberType: EnrollmentMemberType;
-  role: EnrollmentRole;
-  progress?: number;
-  currentLessonId?: string;
-  paymentId?: string;
-  purchasedCertificate: boolean;
-  certificateId?: string;
-  cohortId?: string;
-  subgroupId?: string;
-  batchOldId?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Payment {
-  id: string;
-  memberId: string;
-  billingName: string;
-  source?: string;
-  paymentForDocumentType?: string;
-  paymentForDocument?: string;
-  paymentReceived: boolean;
-  paymentForCertificate: boolean;
-  currency: string;
-  amount: number;
-  amountWithGst?: number;
-  orderId?: string;
-  paymentId?: string;
-  addressId?: string;
-  gstin?: string;
-  pan?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Certificate {
-  id: string;
-  userId: string;
-  courseId: string;
-  certificateNumber: string;
-  issuedDate: string;
-  validUntil?: string;
-  status: CertificateStatus;
-  createdAt: string;
-  updatedAt: string;
-}
-
 // Enums
 export enum CourseStatus {
   IN_PROGRESS = "IN_PROGRESS",
@@ -156,39 +32,6 @@ export enum PaymentStatus {
   REFUNDED = "REFUNDED",
 }
 
-// Auth Types
-export interface User {
-  id: string;
-  email: string;
-  username: string;
-  fullName: string;
-  userImage?: string | null;
-  enabled: boolean;
-  userType: string;
-  lastActive?: string;
-  roles: UserRole[] | null;
-}
-
-export interface UserRole {
-  id: string;
-  role: string;
-}
-
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-  tokenType: string;
-}
-
-export interface AuthState {
-  user: User | null;
-  token: string | null;
-  refreshToken: string | null;
-  isAuthenticated: boolean;
-  loading: boolean;
-  error: string | null;
-}
-
 export const API_VERSIONS = {
   V1: {
     baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/v1`,
@@ -207,51 +50,7 @@ export const HTTP_STATUS = {
   GATEWAY_TIMEOUT: 504,
 } as const;
 
-// Profile Page Types
-export interface UserInfo {
-  name: string;
-  title: string;
-  email: string;
-  phone: string;
-  location: string;
-}
-
-export interface MenuItem {
-  id: string;
-  label: string;
-  icon: any;
-}
-
-export interface ProfileCourse {
-  id: string;
-  title: string;
-  status: "In Progress" | "Completed" | "Not Started";
-  progress: number;
-  hoursRemaining?: number;
-  hoursCompleted?: number;
-  students?: number;
-  modules?: {
-    total: number;
-    completed: number;
-  };
-  certificate?: boolean;
-}
-
-export interface WeeklyProgress {
-  day: string;
-  hours: number;
-  progress: number;
-}
-
-export interface SettingItem {
-  title: string;
-  description: string;
-  value: string;
-  action: string;
-  variant?: "default" | "destructive";
-}
-
-export interface UserInfoProps {
+export interface User {
   id?: string;
   email?: string;
   username?: string;
@@ -263,17 +62,17 @@ export interface UserInfoProps {
   roles?: string[];
 }
 
-export interface CourseTagProps {
+export interface CourseTag {
   id?: string;
   name?: string;
 }
 
-export interface CourseLabelProps {
+export interface CourseLabel {
   id?: string;
   name?: string;
 }
 
-export interface CourseInfoProps {
+export interface Course {
   id?: string;
   title?: string;
   slug?: string;
@@ -292,6 +91,39 @@ export interface CourseInfoProps {
   lessons?: number;
   rating: number | null;
   language?: string;
-  tags?: CourseTagProps[];
-  labels?: CourseLabelProps[];
+  tags?: CourseTag[];
+  labels?: CourseLabel[];
+}
+
+export interface Enrollment {
+  id?: string;
+  memberId?: string;
+  memberNam?: string;
+  courseId?: string;
+  courseTitle?: string;
+  memberType?: string;
+  role?: string;
+  progress?: number;
+  currentLessonId?: string;
+  currentLessonTitle?: string;
+  enrolledAt?: string;
+}
+
+export interface Lesson {
+  id?: string;
+  title?: string;
+  slug?: string;
+  content?: string;
+  videoUrl?: string;
+  fileUrl?: string;
+  duration?: number;
+  position?: number;
+}
+
+export interface Chapter {
+  id?: string;
+  title?: string;
+  summary?: string;
+  position?: number;
+  lessons?: Lesson[];
 }

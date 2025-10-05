@@ -1,7 +1,8 @@
 import ReadOnlyRating from "@/components/ReadOnlyRating";
 import {publicServices} from "@/lib/services/public.services";
+import {formatPrice} from "@/lib/utils/formatPrice";
 import {categories} from "@/mockData/categories";
-import {CourseInfoProps} from "@/types";
+import {Course} from "@/types";
 import {useQuery} from "@tanstack/react-query";
 import {Link} from "react-router-dom";
 import {toast} from "react-toastify";
@@ -48,18 +49,16 @@ export default function Courses() {
       </form>
       {/* Courses */}
       <div className="grid grid-cols-3 gap-4">
-        {data?.content.map((course: CourseInfoProps) => (
+        {data?.content.map((course: Course) => (
           <Link
             to={`/course/${course.slug}`}
             key={course.id}
             className="card shadow hover:-translate-y-1 transition-all"
           >
-            <figure>
-              {course.image && <img src={course.image} />}
+            <figure className="h-56">
+              {course.image && <img src={course.image} className="w-full" />}
               {!course.image && (
-                <div className="w-full h-48 bg-slate-200 flex items-center justify-center">
-                  <span className="text-slate-400">No Image</span>
-                </div>
+                <div className="w-full h-full bg-slate-200"></div>
               )}
             </figure>
             <div className="card-body">
@@ -72,8 +71,7 @@ export default function Courses() {
                 <ReadOnlyRating rating={course.rating} size="sm" />
               </div>
               <div className="font-bold space-x-1">
-                <span>{course.sellingPrice}</span>
-                <span>{course.currency}</span>
+                {formatPrice(course.sellingPrice, course.currency)}
               </div>
             </div>
           </Link>

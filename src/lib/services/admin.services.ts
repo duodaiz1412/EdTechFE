@@ -1,4 +1,4 @@
-import {UserInfoProps} from "@/types";
+import {User} from "@/types";
 import axios from "axios";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1/admin/users";
@@ -24,11 +24,7 @@ export const adminServices = {
     return response;
   },
 
-  async updateUser(
-    userId: string,
-    userData: UserInfoProps,
-    accessToken: string,
-  ) {
+  async updateUser(userId: string, userData: User, accessToken: string) {
     const response = await axios.put(BASE_API + `/${userId}`, userData, {
       headers: {
         Authorization: `Bearer ${accessToken}`,

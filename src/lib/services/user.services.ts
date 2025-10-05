@@ -115,7 +115,7 @@
 //   }
 // }
 
-import {UserInfoProps} from "@/types";
+import {User} from "@/types";
 import axios from "axios";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
@@ -135,7 +135,7 @@ export const userServices = {
     return response;
   },
 
-  async changeUserInfo(accessToken: string, userInfo: UserInfoProps) {
+  async changeUserInfo(accessToken: string, userInfo: User) {
     const response = await axios.put(
       USER_ENDPOINTS.USER_INFO,
       {...userInfo},

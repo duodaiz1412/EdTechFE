@@ -1,6 +1,6 @@
 import {adminServices} from "@/lib/services/admin.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
-import {UserInfoProps} from "@/types";
+import {User} from "@/types";
 import {useQuery} from "@tanstack/react-query";
 import {SquarePen, Trash2} from "lucide-react";
 import {useState} from "react";
@@ -40,7 +40,7 @@ export default function UserList() {
                 </tr>
               </thead>
               <tbody>
-                {data?.content.map((user: UserInfoProps, index: number) => (
+                {data?.content.map((user: User, index: number) => (
                   <tr key={user.id}>
                     <th>{index + 1}</th>
                     <td>{user.fullName}</td>

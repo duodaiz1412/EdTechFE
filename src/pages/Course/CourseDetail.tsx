@@ -3,53 +3,92 @@ import ReadOnlyRating from "@/components/ReadOnlyRating";
 import {Languages} from "lucide-react";
 import CourseContentList from "./CourseContent/CourseContentList";
 import {publicServices} from "@/lib/services/public.services";
-import {useQuery} from "@tanstack/react-query";
-import {CourseLabelProps, CourseTagProps} from "@/types";
+import {Chapter, Course, CourseLabel, CourseTag} from "@/types";
+import {useEffect, useState} from "react";
+import {getAccessToken} from "@/lib/utils/getAccessToken";
+import {enrollServices} from "@/lib/services/enroll.services";
+import {formatPrice} from "@/lib/utils/formatPrice";
+import {toast} from "react-toastify";
 
 export default function CourseDetail() {
   const {slug} = useParams();
+  const [courseInfo, setCourseInfo] = useState<Course>();
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [isEnrolled, setIsEnrolled] = useState(false);
 
-  const {data} = useQuery({
-    queryKey: ["course", slug],
-    queryFn: async () => {
-      const response = await publicServices.getCourseBySlug(slug!);
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!slug) return;
+      const course = await publicServices.getCourseBySlug(slug);
+      setCourseInfo(course);
 
-      return response;
-    },
-  });
+      // Check if user is enrolled
+      const accessToken = await getAccessToken();
+      if (accessToken) {
+        const enrollments = await enrollServices.getEnrollments(accessToken);
+        if (enrollments && Array.isArray(enrollments)) {
+          setIsEnrolled(
+            enrollments.some((enroll) => enroll.courseId === course.id),
+          );
+        }
+      } else return;
+
+      // Get chapters and lessons
+      const chapters = await publicServices.getChapters(course.id);
+      setChapters(chapters);
+    };
+
+    fetchData();
+  }, [slug]);
+
+  const handleEnroll = async () => {
+    const accessToken = await getAccessToken();
+    const courseId = courseInfo?.id;
+
+    if (!accessToken) return;
+    const response = await enrollServices.enrollCourse(
+      courseId as string,
+      accessToken,
+    );
+
+    if (response.status === 200) {
+      setIsEnrolled(true);
+      toast.success("Enroll course successfully");
+    }
+  };
 
   return (
     <div className="w-full max-w-[1380px] mx-auto">
-      <div className="flex items-start space-x-4 pt-6">
+      <div className="flex items-start space-x-12 pt-6">
+        {/* Course info */}
         <div className="w-2/3 space-y-10">
-          <h2 className="text-3xl font-bold">{data?.title}</h2>
+          <h2 className="text-3xl font-bold">{courseInfo?.title}</h2>
+          {/* General info */}
           <div className="space-y-3 text-sm">
-            <p className="text-xl">{data?.shortIntroduction}</p>
+            <p className="text-xl">{courseInfo?.shortIntroduction}</p>
             <div className="flex space-x-2 items-start">
               <span className="font-semibold text-orange-900">
-                {data?.rating || 0}
+                {courseInfo?.rating || 0}
               </span>
-              <ReadOnlyRating rating={data?.rating || 0} size="xs" />
-              <span>({data?.enroll || 0})</span>
+              <ReadOnlyRating rating={courseInfo?.rating || 0} size="xs" />
+              <span>({courseInfo?.enrollments || 0})</span>
             </div>
-            {/* <div>
+            <div>
               Created by
-              {course?.instructors.map((instructor) => (
-                <Link
-                  to={`/user/${instructor}`}
-                  key={instructor}
-                  className="link ml-2"
-                >
-                  {instructor}
-                </Link>
-              ))}
-            </div> */}
+              <Link to={"/user/intructor-1"} className="link ml-2">
+                Instructor 1
+              </Link>
+              ,
+              <Link to={"/user/intructor-2"} className="link ml-2">
+                Instructor 2
+              </Link>
+            </div>
             <div className="flex items-center space-x-6">
               <div className="flex space-x-2">
-                <Languages size={20} />: <span>{data?.language}</span>
+                <Languages size={20} />: <span>{courseInfo?.language}</span>
               </div>
               <div className="flex space-x-2">
-                {data?.labels.map((label: CourseLabelProps) => (
+                {courseInfo?.labels?.map((label: CourseLabel) => (
                   <span key={label.id} className="badge badge-primary">
                     {label.name}
                   </span>
@@ -57,63 +96,98 @@ export default function CourseDetail() {
               </div>
             </div>
           </div>
-          {/* <div className="card border border-slate-200">
+          {/* What you will learn */}
+          <div className="card border border-slate-200">
             <div className="card-body">
               <div className="card-title mb-4">What you'll learn</div>
               <div className="grid grid-cols-2 gap-4">
-                {course?.whatYouWillLearn.map((item, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <span>✓</span>
-                    <span>{item}</span>
-                  </div>
-                ))}
+                <div className="flex items-center space-x-2">
+                  <span>✓</span>
+                  <span>Course content 1</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span>✓</span>
+                  <span>Course content 2</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span>✓</span>
+                  <span>Course content 3</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span>✓</span>
+                  <span>Course content 4</span>
+                </div>
               </div>
             </div>
-          </div> */}
+          </div>
+          {/* Topics (tags) */}
           <div>
             <h3 className="text-xl font-semibold mb-4">
               Explore related topics
             </h3>
-            {data?.tags.map((tags: CourseTagProps) => (
+            {courseInfo?.tags?.map((tags: CourseTag) => (
               <Link to="/" key={tags.id} className="btn mr-4">
                 {tags.name}
               </Link>
             ))}
           </div>
-          {/* <div>
+          {/* List of lessons */}
+          <div>
             <h3 className="text-xl font-semibold mb-4">Course contents</h3>
-            <CourseContentList curriculum={course?.curriculum} />
-          </div> */}
+            <CourseContentList chapters={chapters} />
+          </div>
+          {/* Description */}
           <div>
             <h3 className="text-xl font-semibold mb-4">Description</h3>
-            <p>{data?.description}</p>
+            <p
+              dangerouslySetInnerHTML={{__html: courseInfo?.description || ""}}
+            ></p>
           </div>
-          {/* <div>
+          {/* Requirements */}
+          <div>
             <h3 className="text-xl font-semibold mb-4">Requirements</h3>
             <ul className="list-disc list-inside space-y-2">
-              {course?.requirements.map((req) => <li key={req}>{req}</li>)}
+              <li>Computer</li>
+              <li>Internet connection</li>
             </ul>
-          </div> */}
-          {/* <div>
-            <h3 className="text-xl font-semibold mb-4">Target audience</h3>
+          </div>
+          {/* Who is this course for */}
+          <div>
+            <h3 className="text-xl font-semibold mb-4">
+              Who is this course for ?
+            </h3>
             <ul className="list-disc list-inside space-y-2">
-              {course?.whoIsThisCourseFor.map((learner) => (
-                <li key={learner}>{learner}</li>
-              ))}
+              <li>Web Developer</li>
+              <li>Backend Developer</li>
+              <li>Fullstack Developer</li>
             </ul>
-          </div> */}
+          </div>
         </div>
+        {/* Course enroll */}
         <div className="w-1/3 card shadow rounded-lg">
-          <figure>
-            {data?.image && <img src={data.image} />}
-            {!data?.image && (
-              <div className="w-full h-48 bg-slate-200 flex items-center justify-center">
-                <span className="text-slate-400">No Image</span>
-              </div>
+          <figure className="h-56">
+            {courseInfo?.image && <img src={courseInfo.image} />}
+            {!courseInfo?.image && (
+              <div className="w-full h-full bg-slate-200"></div>
             )}
           </figure>
           <div className="card-body space-y-2">
+            <p className="text-2xl font-bold">
+              {formatPrice(courseInfo?.sellingPrice, courseInfo?.currency)}
+            </p>
+            {!isEnrolled ? (
+              <button className="btn btn-primary" onClick={handleEnroll}>
+                Enroll this course
+              </button>
+            ) : (
+              <Link to="/">Continue learning</Link>
+            )}
             <h3 className="font-semibold">This course includes:</h3>
+            <ul className="list-disc list-inside space-y-2">
+              <li>... videos</li>
+              <li>... quizzes</li>
+              <li>Complete certification</li>
+            </ul>
           </div>
         </div>
       </div>
