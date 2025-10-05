@@ -1,5 +1,6 @@
-### Note ngày 03/10/2025:
-- Chức năng thực hiện: Get roles, Become instructor
+### Note ngày 05/10/2025:
+- Chức năng thực hiện: Get courses, get course info
 - Vấn đề:
-    + Get roles đang sử dụng api của admin
-    + Logic lặp lại hơi nhiều ở route App.tsx
+    + Xử lý value của description
+    + Xử lý enrollment
+    + Lấy các chapter cùng các bài học trong chapter của 1 khóa

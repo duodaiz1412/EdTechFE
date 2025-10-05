@@ -262,3 +262,36 @@ export interface UserInfoProps {
   lastActive?: string;
   roles?: string[];
 }
+
+export interface CourseTagProps {
+  id?: string;
+  name?: string;
+}
+
+export interface CourseLabelProps {
+  id?: string;
+  name?: string;
+}
+
+export interface CourseInfoProps {
+  id?: string;
+  title?: string;
+  slug?: string;
+  shortIntroduction?: string;
+  description?: string;
+  image?: string;
+  videoLink?: string;
+  published?: boolean;
+  publishedOn?: string;
+  coursePrice?: number;
+  sellingPrice?: number;
+  currency?: string;
+  amountUsd?: number;
+  enableCertification?: boolean;
+  enrollments?: number;
+  lessons?: number;
+  rating: number | null;
+  language?: string;
+  tags?: CourseTagProps[];
+  labels?: CourseLabelProps[];
+}

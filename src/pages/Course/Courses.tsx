@@ -1,23 +1,24 @@
 import ReadOnlyRating from "@/components/ReadOnlyRating";
+import {publicServices} from "@/lib/services/public.services";
 import {categories} from "@/mockData/categories";
-import {courses} from "@/mockData/courses";
-import {useState} from "react";
+import {CourseInfoProps} from "@/types";
+import {useQuery} from "@tanstack/react-query";
 import {Link} from "react-router-dom";
+import {toast} from "react-toastify";
 
 export default function Courses() {
-  const [filteredCategories, setFilteredCategories] = useState<string[]>([]);
-  const [displayedCourses, setDisplayedCourses] = useState(courses);
+  const {data} = useQuery({
+    queryKey: ["courses"],
+    queryFn: async () => {
+      const response = await publicServices.getCourses();
+      return response;
+    },
+  });
 
   const handleFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const {value, checked} = e.target;
+    const {value} = e.target;
 
-    if (checked) {
-      setFilteredCategories((prev: string[]) => [...prev, value]);
-    } else {
-      setFilteredCategories((prev: string[]) =>
-        prev.filter((category: string) => category !== value),
-      );
-    }
+    toast.info("Category filter: " + value);
   };
 
   return (
@@ -47,33 +48,32 @@ export default function Courses() {
       </form>
       {/* Courses */}
       <div className="grid grid-cols-3 gap-4">
-        {displayedCourses.map((course) => (
+        {data?.content.map((course: CourseInfoProps) => (
           <Link
-            to={`/course/${course.id}`}
+            to={`/course/${course.slug}`}
             key={course.id}
             className="card shadow hover:-translate-y-1 transition-all"
           >
             <figure>
-              <img src={course.thumbnail} />
+              {course.image && <img src={course.image} />}
+              {!course.image && (
+                <div className="w-full h-48 bg-slate-200 flex items-center justify-center">
+                  <span className="text-slate-400">No Image</span>
+                </div>
+              )}
             </figure>
             <div className="card-body">
               <h2 className="card-title">{course.title}</h2>
-              <div className="flex space-x-2">
-                {course.instructors.map((instructor) => (
-                  <span key={instructor} className="text-slate-500 text-xs">
-                    {instructor}
-                  </span>
-                ))}
-              </div>
+
               <div className="space-x-2 flex items-center">
                 <span className="font-semibold text-sm text-orange-900">
-                  {course.rating}
+                  {course.rating || 0}
                 </span>
-                <ReadOnlyRating rating={course.rating} size="xs" />
+                <ReadOnlyRating rating={course.rating} size="sm" />
               </div>
               <div className="font-bold space-x-1">
+                <span>{course.sellingPrice}</span>
                 <span>{course.currency}</span>
-                <span>{course.price}</span>
               </div>
             </div>
           </Link>

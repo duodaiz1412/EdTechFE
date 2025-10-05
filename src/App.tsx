@@ -97,7 +97,7 @@ function App() {
             }
           >
             <Route path="/" element={<Courses />} />
-            <Route path="/course/:courseId" element={<CourseDetail />} />
+            <Route path="/course/:slug" element={<CourseDetail />} />
           </Route>
 
           <Route element={<ProtectedRoute />}>
