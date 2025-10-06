@@ -1,5 +1,6 @@
 import {createSlice} from "@reduxjs/toolkit";
 import {RootState} from "../store";
+import {Enrollment} from "@/types";
 
 export interface UserState {
   isAuthenticated: boolean;
@@ -11,6 +12,7 @@ export interface UserState {
     image: string | undefined;
     type: string;
     roles: string[];
+    enrollments: Enrollment[];
   } | null;
 }
 

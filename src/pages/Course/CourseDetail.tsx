@@ -1,4 +1,4 @@
-import {Link, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import ReadOnlyRating from "@/components/ReadOnlyRating";
 import {Languages} from "lucide-react";
 import CourseContentList from "./CourseContent/CourseContentList";
@@ -9,12 +9,16 @@ import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {enrollServices} from "@/lib/services/enroll.services";
 import {formatPrice} from "@/lib/utils/formatPrice";
 import {toast} from "react-toastify";
+import {useAppSelector} from "@/redux/hooks";
 
 export default function CourseDetail() {
   const {slug} = useParams();
   const [courseInfo, setCourseInfo] = useState<Course>();
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const navigate = useNavigate();
+  const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
+  const userData = useAppSelector((state) => state.user.data);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -22,36 +26,35 @@ export default function CourseDetail() {
       const course = await publicServices.getCourseBySlug(slug);
       setCourseInfo(course);
 
-      // Check if user is enrolled
-      const accessToken = await getAccessToken();
-      if (accessToken) {
-        const enrollments = await enrollServices.getEnrollments(accessToken);
-        if (enrollments && Array.isArray(enrollments)) {
-          setIsEnrolled(
-            enrollments.some((enroll) => enroll.courseId === course.id),
-          );
-        }
-      } else return;
-
       // Get chapters and lessons
       const chapters = await publicServices.getChapters(course.id);
       setChapters(chapters);
+
+      // Check if user is enrolled this course
+      setIsEnrolled(
+        userData?.enrollments.some((enroll) => enroll.courseId === course.id) ||
+          false,
+      );
     };
 
     fetchData();
-  }, [slug]);
+  }, [slug, userData]);
 
   const handleEnroll = async () => {
+    if (!isAuthenticated) {
+      toast.info("Login required");
+      navigate("/login");
+    }
+
     const accessToken = await getAccessToken();
     const courseId = courseInfo?.id;
 
-    if (!accessToken) return;
     const response = await enrollServices.enrollCourse(
       courseId as string,
       accessToken,
     );
 
-    if (response.status === 200) {
+    if (response.status === 201) {
       setIsEnrolled(true);
       toast.success("Enroll course successfully");
     }
@@ -172,15 +175,19 @@ export default function CourseDetail() {
             )}
           </figure>
           <div className="card-body space-y-2">
-            <p className="text-2xl font-bold">
-              {formatPrice(courseInfo?.sellingPrice, courseInfo?.currency)}
-            </p>
             {!isEnrolled ? (
-              <button className="btn btn-primary" onClick={handleEnroll}>
-                Enroll this course
-              </button>
+              <>
+                <p className="text-2xl font-bold">
+                  {formatPrice(courseInfo?.sellingPrice, courseInfo?.currency)}
+                </p>
+                <button className="btn btn-primary" onClick={handleEnroll}>
+                  Enroll this course
+                </button>
+              </>
             ) : (
-              <Link to="/">Continue learning</Link>
+              <Link to="/" className="btn btn-neutral">
+                Continue learning
+              </Link>
             )}
             <h3 className="font-semibold">This course includes:</h3>
             <ul className="list-disc list-inside space-y-2">

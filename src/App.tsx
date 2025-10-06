@@ -6,6 +6,7 @@ import {login} from "./redux/slice/userSlice.tsx";
 import {useAppDispatch, useAppSelector} from "./redux/hooks.ts";
 import {userServices} from "./lib/services/user.services.ts";
 import {getAccessToken} from "./lib/utils/getAccessToken.ts";
+import {Role} from "./types/index.ts";
 
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 
@@ -18,6 +19,7 @@ import Verify from "./pages/Auth/Verify.tsx";
 
 import MainLayout from "./layout/MainLayout.tsx";
 
+import MyLearning from "./pages/Course/MyLearning/MyLearning.tsx";
 import CourseLayout from "./layout/CourseLayout.tsx";
 import Courses from "./pages/Course/Courses.tsx";
 import CourseDetail from "./pages/Course/CourseDetail.tsx";
@@ -35,7 +37,7 @@ import EditCourse from "./pages/Instructor/Courses/EditCourse/index.tsx";
 import CreateLecture from "./pages/Instructor/Courses/EditCourse/components/CreateLecture.tsx";
 import {CourseProvider} from "./context/CourseContext.tsx";
 import BecomeInstructor from "./pages/Instructor/BecomeInstructor.tsx";
-import {adminServices} from "./lib/services/admin.services.ts";
+import {enrollServices} from "./lib/services/enroll.services.ts";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -46,12 +48,7 @@ function App() {
     queryFn: async () => {
       const accessToken = await getAccessToken();
       const response = await userServices.getUserInfo(accessToken);
-
-      // Get user roles by admin api (FIX LATER)
-      const roles = await adminServices.getUserRoles(
-        accessToken,
-        response.data.id,
-      );
+      const enrollments = await enrollServices.getEnrollments(accessToken);
 
       // Set global state
       dispatch(
@@ -62,7 +59,8 @@ function App() {
           username: response.data.username,
           image: response.data.userImage || undefined,
           type: response.data.userType,
-          roles: roles,
+          roles: response.data.roles.map((role: Role) => role.name),
+          enrollments: enrollments,
         }),
       );
       return response;
@@ -98,6 +96,7 @@ function App() {
           >
             <Route path="/" element={<Courses />} />
             <Route path="/course/:slug" element={<CourseDetail />} />
+            <Route path="/learning" element={<MyLearning />} />
           </Route>
 
           <Route element={<ProtectedRoute />}>

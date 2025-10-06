@@ -7,6 +7,7 @@ export const enrollServices = {
   async enrollCourse(courseId: string, accessToken: string) {
     const response = await axios.post(
       `${BASE_API}/courses/${courseId}/enroll`,
+      {},
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

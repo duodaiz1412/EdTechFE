@@ -50,6 +50,12 @@ export const HTTP_STATUS = {
   GATEWAY_TIMEOUT: 504,
 } as const;
 
+export interface Role {
+  id?: string;
+  userId?: string;
+  name?: string;
+}
+
 export interface User {
   id?: string;
   email?: string;
@@ -59,7 +65,7 @@ export interface User {
   enabled?: boolean;
   userType?: "SYSTEM_USER" | "WEBSITE_USER";
   lastActive?: string;
-  roles?: string[];
+  roles?: Role[];
 }
 
 export interface CourseTag {
