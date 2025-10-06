@@ -1,4 +1,4 @@
-import { Progress } from "@/types";
+import {Progress} from "@/types";
 import axios from "axios";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
