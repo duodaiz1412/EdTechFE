@@ -133,3 +133,63 @@ export interface Chapter {
   position?: number;
   lessons?: Lesson[];
 }
+
+export interface Progress {
+  courseId?: string;
+  courseTitle?: string;
+  overallProgress?: number;
+  completedLessons?: number;
+  totalLessons?: number;
+  currentLessonId?: string;
+  currentLessonTitle?: string;
+  chapters?: {
+    chapterId?: string;
+    chapterTitle?: string;
+    lessons?: {
+      lessonId?: string;
+      lessonTitle?: string;
+      status?: string;
+      completedAt?: string;
+      duration?: number;
+      videoUrl?: string;
+    }[];
+  }[];
+}
+
+export interface CurrentLesson {
+  chapter?: number;
+  lesson?: Lesson;
+}
+
+export interface QuizQuestion {
+  id?: string;
+  quizId?: string;
+  question?: string;
+  type?: string;
+  options?: string;
+  correctAnswer?: string;
+  marks?: number;
+  creation?: string;
+}
+
+export interface Quiz {
+  id?: string;
+  title?: string;
+  explaination?: string;
+  lessonId?: string;
+  courseId?: string;
+  maxAttempts?: number;
+  showAnswer?: boolean;
+  showSubmissionHistory?: boolean;
+  totalMarks?: number;
+  passingPercentage?: number;
+  duration?: string;
+  shuffleQuestions?: boolean;
+  limitQuestionsTo?: number;
+  enableNegativeMarking?: boolean;
+  marksToCut?: number;
+  creation?: string;
+  modified?: string;
+  userAttempt?: number;
+  questions?: QuizQuestion[];
+}

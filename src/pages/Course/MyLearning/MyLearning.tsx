@@ -29,7 +29,10 @@ export default function MyLearning() {
                 value={enroll.progress}
                 max="100"
               ></progress>
-              <Link to="/" className="btn btn-neutral">
+              <Link
+                to={`/course/${enroll.courseId}/learn/lesson/${enroll.currentLessonId}`}
+                className="btn btn-neutral"
+              >
                 {enroll.currentLessonId
                   ? "Continue learning"
                   : "Start learning"}

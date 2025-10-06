@@ -10,15 +10,18 @@ import {enrollServices} from "@/lib/services/enroll.services";
 import {formatPrice} from "@/lib/utils/formatPrice";
 import {toast} from "react-toastify";
 import {useAppSelector} from "@/redux/hooks";
+import {progressServices} from "@/lib/services/progress.services";
 
 export default function CourseDetail() {
   const {slug} = useParams();
   const [courseInfo, setCourseInfo] = useState<Course>();
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [isEnrolled, setIsEnrolled] = useState(false);
-  const navigate = useNavigate();
+  const [currentLessonId, setCurrentLessonId] = useState("");
+
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
   const userData = useAppSelector((state) => state.user.data);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,6 +37,19 @@ export default function CourseDetail() {
       setIsEnrolled(
         userData?.enrollments.some((enroll) => enroll.courseId === course.id) ||
           false,
+      );
+
+      // Get progrss
+      const accessToken = await getAccessToken();
+      const progress = await progressServices.getProgress(
+        course.id,
+        accessToken,
+      );
+
+      setCurrentLessonId(
+        progress.currentLessonId ||
+          progress.chapters?.[0]?.lessons?.[0]?.lessonId ||
+          "",
       );
     };
 
@@ -137,7 +153,7 @@ export default function CourseDetail() {
           {/* List of lessons */}
           <div>
             <h3 className="text-xl font-semibold mb-4">Course contents</h3>
-            <CourseContentList chapters={chapters} />
+            <CourseContentList chapters={chapters} courseId={courseInfo?.id} />
           </div>
           {/* Description */}
           <div>
@@ -185,7 +201,10 @@ export default function CourseDetail() {
                 </button>
               </>
             ) : (
-              <Link to="/" className="btn btn-neutral">
+              <Link
+                to={`/course/${courseInfo?.id}/learn/lesson/${currentLessonId}`}
+                className="btn btn-neutral"
+              >
                 Continue learning
               </Link>
             )}

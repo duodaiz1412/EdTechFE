@@ -137,21 +137,9 @@ function App() {
 
             {/* Learner routes */}
             <Route
-              element={
-                <CourseLayout>
-                  <Outlet />
-                </CourseLayout>
-              }
-            >
-              <Route
-                path="/course/:courseId/learn/lesson"
-                element={<p>Demo learning</p>}
-              />
-              <Route
-                path="/course/:courseId/enroll"
-                element={<p>Demo enroll</p>}
-              />
-            </Route>
+              path="/course/:courseId/learn/lesson/:lessonId"
+              element={<CourseLayout />}
+            />
 
             {/* Instructor routes */}
             <Route path="/teaching" element={<BecomeInstructor />} />

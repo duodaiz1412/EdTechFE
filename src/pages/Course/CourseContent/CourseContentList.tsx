@@ -1,16 +1,30 @@
-import {Chapter} from "@/types";
+import {Chapter, CurrentLesson} from "@/types";
 import CourseContentItem from "./CourseContentItem";
 
-export default function CourseContentList({chapters}: {chapters?: Chapter[]}) {
+interface CourseContentListProps {
+  courseId?: string;
+  chapters?: Chapter[];
+  currentLesson?: CurrentLesson;
+}
+
+export default function CourseContentList({
+  courseId,
+  chapters,
+  currentLesson,
+}: CourseContentListProps) {
   return (
-    <div className="space-y-2">
+    <div>
       {chapters?.map((chapter, index) => (
         <div
           key={chapter.title}
           className="collapse collapse-arrow bg-base-100 border border-base-300 rounded-none"
         >
-          <input type="checkbox" className="chapter-toggle" />
-          <div className="collapse-title bg-slate-200 space-x-2 flex items-center">
+          <input
+            type="checkbox"
+            defaultChecked={currentLesson?.chapter === chapter.position}
+            className="chapter-toggle"
+          />
+          <div className="collapse-title bg-slate-100 space-x-2 flex items-center">
             <h2 className="font-semibold">
               Section {index + 1}: {chapter.title}
             </h2>
@@ -19,10 +33,15 @@ export default function CourseContentList({chapters}: {chapters?: Chapter[]}) {
             </span>
           </div>
           <div className="collapse-content p-0">
-            <div className="pt-3 divide-solid divide-y">
+            <div className="divide-solid divide-y">
               {chapter.lessons ? (
                 chapter.lessons.map((lesson) => (
-                  <CourseContentItem key={lesson.id} lesson={lesson} />
+                  <CourseContentItem
+                    key={lesson.id}
+                    lesson={lesson}
+                    courseId={courseId}
+                    isActive={lesson.id === currentLesson?.lesson?.id}
+                  />
                 ))
               ) : (
                 <span className="px-4">No content available</span>

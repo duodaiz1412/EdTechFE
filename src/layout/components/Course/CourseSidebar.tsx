@@ -1,7 +1,25 @@
-export default function CourseSidebar() {
+import CourseContentList from "@/pages/Course/CourseContent/CourseContentList";
+import {Chapter, CurrentLesson} from "@/types";
+import {useParams} from "react-router-dom";
+
+interface CourseSidebarProps {
+  chapters?: Chapter[];
+  currentLesson?: CurrentLesson;
+}
+
+export default function CourseSidebar({
+  chapters,
+  currentLesson,
+}: CourseSidebarProps) {
+  const {courseId} = useParams();
+
   return (
-    <div className="fixed top-16 right-0 bottom-0 z-10 bg-white border border-slate-200 w-1/4 overflow-y-scroll">
-      Sidebar
+    <div className="w-1/4 h-full overflow-y-scroll border-l border-l-slate-200">
+      <CourseContentList
+        courseId={courseId}
+        chapters={chapters}
+        currentLesson={currentLesson}
+      />
     </div>
   );
 }
