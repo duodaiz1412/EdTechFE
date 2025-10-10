@@ -1,11 +1,13 @@
 import {Lesson} from "@/types";
 import {Download} from "lucide-react";
 import {useEffect, useState} from "react";
-import CourseLessonVideo from "./CourseLessonVideo";
 import {progressServices} from "@/lib/services/progress.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {toast} from "react-toastify";
-import {CourseLessonQuiz} from "./CourseLessonQuiz";
+import CourseLessonVideo from "./LessonType/CourseLessonVideo";
+import {CourseLessonQuiz} from "./LessonType/CourseLessonQuiz";
+import LessonCommentList from "./Comment/LessonCommentList";
+import CourseReviewList from "./Review/CourseReviewList";
 
 interface CourseLessonProps {
   lesson?: Lesson;
@@ -100,6 +102,7 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
             />
             <div className="tab-content px-3 py-4">
               <h2 className="text-xl font-semibold mb-6">Comments</h2>
+              <LessonCommentList />
             </div>
 
             <input
@@ -110,6 +113,7 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
             />
             <div className="tab-content px-3 py-4">
               <h2 className="text-xl font-semibold mb-6">Reviews</h2>
+              <CourseReviewList />
             </div>
           </div>
         </div>

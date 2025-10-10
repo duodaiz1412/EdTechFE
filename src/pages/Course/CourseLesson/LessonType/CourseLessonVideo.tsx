@@ -19,7 +19,6 @@ export default function CourseLessonVideo({
       className="w-5/6 h-[600px]"
       accentColor="#2b7fff"
       thumbnailTime={5}
-      autoPlay={true}
     />
   );
 }

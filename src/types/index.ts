@@ -101,19 +101,6 @@ export interface Course {
   labels?: CourseLabel[];
 }
 
-export interface Review {
-  id?: string;
-  courseId?: string;
-  courseName?: string;
-  studentId?: string;
-  studentName?: string;
-  rating?: number;
-  comment?: string;
-  isApproved?: boolean;
-  creation?: string;
-  modified?: string;
-}
-
 export interface Enrollment {
   id?: string;
   memberId?: string;
@@ -205,4 +192,36 @@ export interface Quiz {
   modified?: string;
   userAttempt?: number;
   questions?: QuizQuestion[];
+}
+
+export interface Comment {
+  id: string;
+  lessonId?: string;
+  lessonTitle?: string;
+  authorId?: string;
+  authorName?: string;
+  authorImage?: string;
+  content?: string;
+  parentId?: string;
+  replies?: string[];
+  upvotes?: number;
+  downvotes?: number;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  userVote?: string;
+  creation?: string;
+  modified?: string;
+}
+
+export interface Review {
+  id?: string;
+  courseId?: string;
+  courseName?: string;
+  studentId?: string;
+  studentName?: string;
+  rating?: number;
+  comment?: string;
+  isApproved?: boolean;
+  creation?: string;
+  modified?: string;
 }
