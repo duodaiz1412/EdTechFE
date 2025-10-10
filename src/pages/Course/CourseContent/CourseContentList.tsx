@@ -1,5 +1,6 @@
 import {Chapter, LessonIndex} from "@/types";
 import CourseContentItem from "./CourseContentItem";
+import {useEffect, useState} from "react";
 
 interface CourseContentListProps {
   courseId?: string;
@@ -12,6 +13,14 @@ export default function CourseContentList({
   chapters,
   currentLesson,
 }: CourseContentListProps) {
+  const [openChapter, setOpenChapter] = useState<number | undefined>(undefined);
+
+  // Mỗi khi currentLesson thay đổi, tự động mở chương chứa bài học hiện tại
+  useEffect(() => {
+    if (currentLesson?.chapter != null) {
+      setOpenChapter(currentLesson.chapter);
+    }
+  }, [currentLesson]);
   return (
     <div>
       {chapters?.map((chapter, index) => (
@@ -21,9 +30,11 @@ export default function CourseContentList({
         >
           <input
             type="checkbox"
-            defaultChecked={
-              !!currentLesson?.chapter &&
-              currentLesson?.chapter === chapter.position
+            checked={openChapter === chapter.position}
+            onChange={() =>
+              setOpenChapter(
+                openChapter === chapter.position ? undefined : chapter.position,
+              )
             }
             className="chapter-toggle"
           />

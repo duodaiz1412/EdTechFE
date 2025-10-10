@@ -1,10 +1,11 @@
-import {Lesson, Quiz} from "@/types";
+import {Lesson} from "@/types";
 import {Download} from "lucide-react";
 import {useEffect, useState} from "react";
 import CourseLessonVideo from "./CourseLessonVideo";
 import {progressServices} from "@/lib/services/progress.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {toast} from "react-toastify";
+import {CourseLessonQuiz} from "./CourseLessonQuiz";
 
 interface CourseLessonProps {
   lesson?: Lesson;
@@ -14,15 +15,16 @@ interface CourseLessonProps {
 export default function CourseLesson({lesson, status}: CourseLessonProps) {
   const [lessonType, setLessonType] = useState("video");
   const [isCompleted, setIsCompleted] = useState(status);
-  const [quiz, setQuiz] = useState<Quiz | null>(null);
 
   useEffect(() => {
-    if (lesson?.content) {
-      if (lesson.content.includes("quizId")) {
-        setLessonType("quiz");
-      } else {
-        setLessonType("article");
-      }
+    if (!lesson) return;
+
+    if (lesson.videoUrl) {
+      setLessonType("video");
+    } else if (lesson.content?.includes("quizId")) {
+      setLessonType("quiz");
+    } else {
+      setLessonType("article");
     }
   }, [lesson]);
 
@@ -45,13 +47,11 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
       <div className="w-full flex justify-center bg-black">
         {lessonType === "video" && (
           <CourseLessonVideo
-            // videoUrl={lesson?.videoUrl}
+            videoUrl={lesson?.videoUrl}
             videoTitle={lesson?.title}
           />
         )}
-        {lessonType === "quiz" && (
-          <div className="w-5/6 h-[600px] bg-white"></div>
-        )}
+        {lessonType === "quiz" && <CourseLessonQuiz />}
       </div>
 
       <div className="w-5/6 mx-auto py-6 h-[500px]">

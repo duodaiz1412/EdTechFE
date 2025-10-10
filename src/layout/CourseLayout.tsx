@@ -1,7 +1,7 @@
 import {useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
-import {Chapter, LessonIndex, Progress} from "@/types";
+import {Chapter, Lesson, LessonIndex, Progress} from "@/types";
 
 import CourseNavbar from "./components/Course/CourseNavbar";
 import CourseSidebar from "./components/Course/CourseSidebar";
@@ -16,6 +16,7 @@ import {isLessonCompleted} from "@/lib/utils/isLessonCompleted";
 export default function CourseLayout() {
   const [progress, setProgress] = useState<Progress>();
   const [chapters, setChapters] = useState<Chapter[]>();
+  const [lesson, setLesson] = useState<Lesson>();
   const [currentLesson, setCurrentLesson] = useState<LessonIndex>();
   const {courseId, lessonId} = useParams();
 
