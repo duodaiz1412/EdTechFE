@@ -1,11 +1,9 @@
 import ReadOnlyRating from "@/components/ReadOnlyRating";
 import {publicServices} from "@/lib/services/public.services";
 import {formatPrice} from "@/lib/utils/formatPrice";
-import {categories} from "@/mockData/categories";
 import {Course} from "@/types";
 import {useQuery} from "@tanstack/react-query";
 import {Link} from "react-router-dom";
-import {toast} from "react-toastify";
 
 export default function Courses() {
   const {data} = useQuery({
@@ -16,37 +14,8 @@ export default function Courses() {
     },
   });
 
-  const handleFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const {value} = e.target;
-
-    toast.info("Category filter: " + value);
-  };
-
   return (
     <div className="w-full max-w-[1380px] space-y-10 mx-auto">
-      {/* Feature courses */}
-      <section>
-        <h2 className="text-2xl font-bold mb-4">Feature Courses</h2>
-        <div className="carousel rounded-2xl w-full">
-          <div className="carousel-item w-full h-[360px] bg-red-400"></div>
-          <div className="carousel-item w-full h-[360px] bg-blue-400"></div>
-          <div className="carousel-item w-full h-[360px] bg-green-400"></div>
-        </div>
-      </section>
-      {/* Category select */}
-      <form className="space-x-2">
-        {categories.map((category) => (
-          <input
-            key={category.id}
-            onChange={handleFilter}
-            className="btn btn-sm btn-outline rounded-lg"
-            type="checkbox"
-            name="categories"
-            aria-label={category.name}
-            value={category.name}
-          />
-        ))}
-      </form>
       {/* Courses */}
       <div className="grid grid-cols-3 gap-4">
         {data?.content.map((course: Course) => (

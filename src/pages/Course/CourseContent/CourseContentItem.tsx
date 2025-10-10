@@ -13,19 +13,24 @@ export default function CourseContentItem({
   courseId,
   isActive,
 }: CourseContentItemProps) {
+  const Icon = () => {
+    if (lesson.content) {
+      if (lesson.content.includes("quizId")) {
+        return <CircleQuestionMark size={16} />;
+      } else {
+        return <FileText size={16} />;
+      }
+    }
+    return <Video size={16} />;
+  };
+
   return (
     <Link
       to={`/course/${courseId}/learn/lesson/${lesson.id}`}
       className={`p-4 block hover:bg-slate-300 ${isActive ? "bg-slate-300" : ""}`}
     >
       <div className="flex items-center space-x-3">
-        {lesson.videoUrl && <Video size={16} />}
-        {lesson.content && !lesson.content.includes("quizId") && (
-          <FileText size={16} />
-        )}
-        {lesson.content && lesson.content.includes("quizId") && (
-          <CircleQuestionMark size={16} />
-        )}
+        <Icon />
         <p className="font-medium">{lesson.title}</p>
       </div>
     </Link>

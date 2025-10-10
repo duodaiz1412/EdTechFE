@@ -1,10 +1,10 @@
-import {Chapter, CurrentLesson} from "@/types";
+import {Chapter, LessonIndex} from "@/types";
 import CourseContentItem from "./CourseContentItem";
 
 interface CourseContentListProps {
   courseId?: string;
   chapters?: Chapter[];
-  currentLesson?: CurrentLesson;
+  currentLesson?: LessonIndex;
 }
 
 export default function CourseContentList({
@@ -21,7 +21,10 @@ export default function CourseContentList({
         >
           <input
             type="checkbox"
-            defaultChecked={currentLesson?.chapter === chapter.position}
+            defaultChecked={
+              !!currentLesson?.chapter &&
+              currentLesson?.chapter === chapter.position
+            }
             className="chapter-toggle"
           />
           <div className="collapse-title bg-slate-100 space-x-2 flex items-center">
@@ -40,7 +43,10 @@ export default function CourseContentList({
                     key={lesson.id}
                     lesson={lesson}
                     courseId={courseId}
-                    isActive={lesson.id === currentLesson?.lesson?.id}
+                    isActive={
+                      !!currentLesson?.lesson?.id &&
+                      lesson.id === currentLesson?.lesson?.id
+                    }
                   />
                 ))
               ) : (

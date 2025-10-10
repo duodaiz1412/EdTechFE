@@ -1,5 +1,5 @@
 import AvatarMenu from "@/components/AvatarMenu";
-import {Bell} from "lucide-react";
+import {Bell, Trophy} from "lucide-react";
 import {Link} from "react-router-dom";
 
 interface CourseNavbarProps {
@@ -15,6 +15,8 @@ export default function CourseNavbar({
   completedLessons = 0,
   progressPercent = 0,
 }: CourseNavbarProps) {
+  const isCompletedCourse = completedLessons === totalLessons;
+
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white shadow px-6 py-3 flex items-center justify-between z-10">
       <div className="flex items-center space-x-3">
@@ -27,20 +29,25 @@ export default function CourseNavbar({
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2">
           <div
-            className="radial-progress"
+            className="radial-progress border border-slate-50 text-yellow-400"
             style={
               {
                 ["--value" as string]: progressPercent,
                 ["--size" as string]: "2.5rem",
               } as React.CSSProperties
             }
-            aria-valuenow={progressPercent}
             role="progressbar"
           >
-            <span className="text-xs">{progressPercent}%</span>
+            <Trophy
+              size={20}
+              strokeWidth={3}
+              className={`${isCompletedCourse && "text-yellow-400"}`}
+            />
           </div>
           <p className="text-sm">
-            Your progress: {completedLessons}/{totalLessons}
+            {isCompletedCourse
+              ? "Completed"
+              : `Progress: ${completedLessons}/${totalLessons}`}
           </p>
         </div>
         <button className="btn btn-circle btn-ghost">

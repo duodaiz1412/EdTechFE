@@ -1,4 +1,4 @@
-### Note ngày 06/10/2025:
-- Chức năng thực hiện: Enroll, progress
+### Note ngày 10/10/2025:
+- Chức năng thực hiện: Progress, video player for m3u8
 - Vấn đề:
-    + Không có lấy thông tin của course, chapter hay lesson theo id
+    + Đợi sửa API để lấy các thông tin theo slug

@@ -101,6 +101,19 @@ export interface Course {
   labels?: CourseLabel[];
 }
 
+export interface Review {
+  id?: string;
+  courseId?: string;
+  courseName?: string;
+  studentId?: string;
+  studentName?: string;
+  rating?: number;
+  comment?: string;
+  isApproved?: boolean;
+  creation?: string;
+  modified?: string;
+}
+
 export interface Enrollment {
   id?: string;
   memberId?: string;
@@ -156,7 +169,7 @@ export interface Progress {
   }[];
 }
 
-export interface CurrentLesson {
+export interface LessonIndex {
   chapter?: number;
   lesson?: Lesson;
 }

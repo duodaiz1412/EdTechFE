@@ -3,7 +3,7 @@ import ReadOnlyRating from "@/components/ReadOnlyRating";
 import {Languages} from "lucide-react";
 import CourseContentList from "./CourseContent/CourseContentList";
 import {publicServices} from "@/lib/services/public.services";
-import {Chapter, Course, CourseLabel, CourseTag} from "@/types";
+import {Chapter, Course, CourseLabel, CourseTag, Review} from "@/types";
 import {useEffect, useState} from "react";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {enrollServices} from "@/lib/services/enroll.services";
@@ -16,6 +16,7 @@ export default function CourseDetail() {
   const {slug} = useParams();
   const [courseInfo, setCourseInfo] = useState<Course>();
   const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [currentLessonId, setCurrentLessonId] = useState("");
 
@@ -51,6 +52,8 @@ export default function CourseDetail() {
           progress.chapters?.[0]?.lessons?.[0]?.lessonId ||
           "",
       );
+
+      // Get reviews
     };
 
     fetchData();
@@ -90,7 +93,7 @@ export default function CourseDetail() {
                 {courseInfo?.rating || 0}
               </span>
               <ReadOnlyRating rating={courseInfo?.rating || 0} size="xs" />
-              <span>({courseInfo?.enrollments || 0})</span>
+              <span>({courseInfo?.enrollments || 0} students)</span>
             </div>
             <div>
               Created by
@@ -144,9 +147,9 @@ export default function CourseDetail() {
             <h3 className="text-xl font-semibold mb-4">
               Explore related topics
             </h3>
-            {courseInfo?.tags?.map((tags: CourseTag) => (
-              <Link to="/" key={tags.id} className="btn mr-4">
-                {tags.name}
+            {courseInfo?.tags?.map((tag: CourseTag) => (
+              <Link to={`/?tags=${tag.name}`} key={tag.id} className="btn mr-4">
+                {tag.name}
               </Link>
             ))}
           </div>
@@ -181,6 +184,7 @@ export default function CourseDetail() {
               <li>Fullstack Developer</li>
             </ul>
           </div>
+          {/* Rating/Reviews */}
         </div>
         {/* Course enroll */}
         <div className="w-1/3 card shadow rounded-lg">

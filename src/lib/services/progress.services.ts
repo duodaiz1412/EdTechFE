@@ -16,7 +16,7 @@ export const progressServices = {
     return response.data;
   },
 
-  async completeLesson(lessonId: string, accessToken: string) {
+  async completeLesson(lessonId?: string, accessToken?: string) {
     const response = await axios.post(
       `${BASE_API}/lessons/${lessonId}/progress`,
       {},
