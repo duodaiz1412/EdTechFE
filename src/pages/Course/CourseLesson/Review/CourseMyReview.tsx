@@ -64,7 +64,9 @@ export default function CourseMyReview({
               name="rating-11"
               className={`mask mask-star-2 mask-half-${idx % 2 == 0 ? "1" : "2"} bg-orange-400`}
               aria-label={`${value} star`}
-              defaultChecked={value === rating}
+              defaultChecked={
+                myReview ? value === myReview.rating : value === rating
+              }
               value={value}
               onClick={() => setRating(Number(value))}
             />

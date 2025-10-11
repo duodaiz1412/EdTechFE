@@ -1,4 +1,6 @@
-### Note ngày 10/10/2025:
-- Chức năng thực hiện: Progress, video player for m3u8
+### Note ngày 12/10/2025:
+- Chức năng thực hiện: Comment, Review, Fix API using slug
 - Vấn đề:
-    + Đợi sửa API để lấy các thông tin theo slug
+    + Comment chưa vote được
+    + Chưa có API lấy comment theo id
+    + Đang test quiz api
