@@ -1,4 +1,5 @@
 import AvatarMenu from "@/components/AvatarMenu";
+import Logo from "@/components/Logo";
 import {Bell, Trophy} from "lucide-react";
 import {Link} from "react-router-dom";
 
@@ -7,6 +8,7 @@ interface CourseNavbarProps {
   totalLessons?: number;
   completedLessons?: number;
   progressPercent?: number;
+  courseSlug?: string;
 }
 
 export default function CourseNavbar({
@@ -14,15 +16,16 @@ export default function CourseNavbar({
   totalLessons = 0,
   completedLessons = 0,
   progressPercent = 0,
+  courseSlug = "",
 }: CourseNavbarProps) {
   const isCompletedCourse = completedLessons === totalLessons;
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white shadow px-6 py-3 flex items-center justify-between z-10">
       <div className="flex items-center space-x-3">
-        <h1 className="text-blue-600 text-2xl font-bold">Edtech</h1>
+        <Logo />
         <div className="border-x border-x-black h-6"></div>
-        <Link className="font-semibold" to="/">
+        <Link className="font-semibold" to={`/course/${courseSlug}`}>
           {courseName || ""}
         </Link>
       </div>

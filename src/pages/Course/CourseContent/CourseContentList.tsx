@@ -1,26 +1,17 @@
 import {Chapter, LessonIndex} from "@/types";
 import CourseContentItem from "./CourseContentItem";
-import {useEffect, useState} from "react";
 
 interface CourseContentListProps {
-  courseId?: string;
+  courseSlug?: string;
   chapters?: Chapter[];
   currentLesson?: LessonIndex;
 }
 
 export default function CourseContentList({
-  courseId,
+  courseSlug,
   chapters,
   currentLesson,
 }: CourseContentListProps) {
-  const [openChapter, setOpenChapter] = useState<number | undefined>(undefined);
-
-  // Mỗi khi currentLesson thay đổi, tự động mở chương chứa bài học hiện tại
-  useEffect(() => {
-    if (currentLesson?.chapter != null) {
-      setOpenChapter(currentLesson.chapter);
-    }
-  }, [currentLesson]);
   return (
     <div>
       {chapters?.map((chapter, index) => (
@@ -30,12 +21,7 @@ export default function CourseContentList({
         >
           <input
             type="checkbox"
-            checked={openChapter === chapter.position}
-            onChange={() =>
-              setOpenChapter(
-                openChapter === chapter.position ? undefined : chapter.position,
-              )
-            }
+            defaultChecked={currentLesson?.chapter === chapter.position}
             className="chapter-toggle"
           />
           <div className="collapse-title bg-slate-100 space-x-2 flex items-center">
@@ -53,10 +39,10 @@ export default function CourseContentList({
                   <CourseContentItem
                     key={lesson.id}
                     lesson={lesson}
-                    courseId={courseId}
+                    courseSlug={courseSlug}
                     isActive={
-                      !!currentLesson?.lesson?.id &&
-                      lesson.id === currentLesson?.lesson?.id
+                      !!currentLesson?.lesson?.slug &&
+                      lesson.slug === currentLesson?.lesson?.slug
                     }
                   />
                 ))

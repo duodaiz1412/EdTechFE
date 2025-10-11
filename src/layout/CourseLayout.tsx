@@ -12,18 +12,26 @@ import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {progressServices} from "@/lib/services/progress.services";
 import {getCurrentLesson} from "@/lib/utils/getCurrentLesson";
 import {isLessonCompleted} from "@/lib/utils/isLessonCompleted";
+import {learnerServices} from "@/lib/services/learner.services";
+import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
+import {useAppSelector} from "@/redux/hooks";
+import {Lock} from "lucide-react";
 
 export default function CourseLayout() {
+  const userData = useAppSelector((state) => state.user.data);
+  const [isEnrolled, setIsEnrolled] = useState(false);
   const [progress, setProgress] = useState<Progress>();
   const [chapters, setChapters] = useState<Chapter[]>();
-  const [lesson, setLesson] = useState<Lesson>();
   const [currentLesson, setCurrentLesson] = useState<LessonIndex>();
-  const {courseId, lessonId} = useParams();
+  const [lesson, setLesson] = useState<Lesson>();
+  const {courseSlug, lessonSlug} = useParams();
 
   useQuery({
     queryKey: ["chapters"],
     queryFn: async () => {
-      const getChapters = await publicServices.getChapters(courseId as string);
+      const getChapters = await publicServices.getChapters(
+        courseSlug as string,
+      );
       setChapters(getChapters);
       return getChapters;
     },
@@ -33,30 +41,49 @@ export default function CourseLayout() {
     const fetchData = async () => {
       const accessToken = await getAccessToken();
       const getProgress = await progressServices.getProgress(
-        courseId as string,
+        courseSlug as string,
         accessToken,
       );
       setProgress(getProgress);
-      setCurrentLesson(getCurrentLesson(chapters, lessonId));
+      setCurrentLesson(getCurrentLesson(chapters, lessonSlug));
+
+      setIsEnrolled(
+        isCourseEnrolled(userData?.enrollments || [], courseSlug || ""),
+      );
+      const getLesson = await learnerServices.getLesson(
+        accessToken,
+        lessonSlug,
+      );
+      setLesson(getLesson);
     };
 
     fetchData();
-  }, [courseId, lessonId, chapters]);
+  }, [courseSlug, lessonSlug, chapters, userData]);
 
   return (
     <div>
       <CourseNavbar
-        courseName={progress?.courseTitle}
+        courseName={progress?.courseTitle || "Back to course"}
         totalLessons={progress?.totalLessons}
         completedLessons={progress?.completedLessons}
         progressPercent={progress?.overallProgress}
+        courseSlug={courseSlug}
       />
       <div className="fixed top-16 bottom-0 left-0 right-0 flex">
         <main className="w-3/4 h-full overflow-y-scroll">
-          <CourseLesson
-            lesson={currentLesson?.lesson}
-            status={isLessonCompleted(lessonId!, chapters)}
-          />
+          {isEnrolled ? (
+            <CourseLesson
+              lesson={lesson}
+              status={isLessonCompleted(lesson?.id, progress)}
+            />
+          ) : (
+            <div className="w-full h-full bg-slate-200 flex flex-col space-y-6 items-center justify-center text-slate-500">
+              <Lock size={48} />
+              <h3 className="text-lg font-semibold">
+                Enroll this course to have full access
+              </h3>
+            </div>
+          )}
         </main>
         <CourseSidebar chapters={chapters} currentLesson={currentLesson} />
       </div>

@@ -137,7 +137,7 @@ function App() {
 
             {/* Learner routes */}
             <Route
-              path="/course/:courseId/learn/lesson/:lessonId"
+              path="/course/:courseSlug/learn/lesson/:lessonSlug"
               element={<CourseLayout />}
             />
 

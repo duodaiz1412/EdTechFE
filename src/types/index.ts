@@ -78,6 +78,13 @@ export interface CourseLabel {
   name?: string;
 }
 
+export interface CourseInstructor {
+  id?: string;
+  fullName?: string;
+  email?: string;
+  userImage?: string;
+}
+
 export interface Course {
   id?: string;
   title?: string;
@@ -86,19 +93,19 @@ export interface Course {
   description?: string;
   image?: string;
   videoLink?: string;
-  published?: boolean;
-  publishedOn?: string;
+  status?: "DRAFT" | "PUBLISHED";
   coursePrice?: number;
   sellingPrice?: number;
   currency?: string;
   amountUsd?: number;
   enableCertification?: boolean;
   enrollments?: number;
-  lessons?: number;
+  lessons?: Lesson[];
   rating: number | null;
   language?: string;
   tags?: CourseTag[];
   labels?: CourseLabel[];
+  instructors?: CourseInstructor[];
 }
 
 export interface Enrollment {
@@ -107,58 +114,14 @@ export interface Enrollment {
   memberNam?: string;
   courseId?: string;
   courseTitle?: string;
+  courseSlug?: string;
   memberType?: string;
   role?: string;
   progress?: number;
   currentLessonId?: string;
   currentLessonTitle?: string;
+  currentLessonSlug?: string;
   enrolledAt?: string;
-}
-
-export interface Lesson {
-  id?: string;
-  title?: string;
-  slug?: string;
-  content?: string;
-  videoUrl?: string;
-  fileUrl?: string;
-  duration?: number;
-  position?: number;
-}
-
-export interface Chapter {
-  id?: string;
-  title?: string;
-  summary?: string;
-  position?: number;
-  lessons?: Lesson[];
-}
-
-export interface Progress {
-  courseId?: string;
-  courseTitle?: string;
-  overallProgress?: number;
-  completedLessons?: number;
-  totalLessons?: number;
-  currentLessonId?: string;
-  currentLessonTitle?: string;
-  chapters?: {
-    chapterId?: string;
-    chapterTitle?: string;
-    lessons?: {
-      lessonId?: string;
-      lessonTitle?: string;
-      status?: string;
-      completedAt?: string;
-      duration?: number;
-      videoUrl?: string;
-    }[];
-  }[];
-}
-
-export interface LessonIndex {
-  chapter?: number;
-  lesson?: Lesson;
 }
 
 export interface QuizQuestion {
@@ -175,23 +138,63 @@ export interface QuizQuestion {
 export interface Quiz {
   id?: string;
   title?: string;
-  explaination?: string;
-  lessonId?: string;
-  courseId?: string;
-  maxAttempts?: number;
   showAnswer?: boolean;
   showSubmissionHistory?: boolean;
   totalMarks?: number;
-  passingPercentage?: number;
-  duration?: string;
-  shuffleQuestions?: boolean;
-  limitQuestionsTo?: number;
-  enableNegativeMarking?: boolean;
-  marksToCut?: number;
   creation?: string;
   modified?: string;
-  userAttempt?: number;
+  modifiedBy?: string;
+  userAttempts?: number;
   questions?: QuizQuestion[];
+}
+
+export interface Lesson {
+  id?: string;
+  title?: string;
+  slug?: string;
+  content?: string;
+  videoUrl?: string;
+  fileUrl?: string;
+  duration?: number;
+  position?: number;
+  quizDto?: Quiz;
+}
+
+export interface Chapter {
+  id?: string;
+  title?: string;
+  summary?: string;
+  position?: number;
+  lessons?: Lesson[];
+}
+
+export interface LessonIndex {
+  chapter?: number;
+  lesson?: Lesson;
+}
+
+export interface Progress {
+  courseId?: string;
+  courseTitle?: string;
+  courseSlug?: string;
+  overallProgress?: number;
+  completedLessons?: number;
+  totalLessons?: number;
+  currentLessonId?: string;
+  currentLessonTitle?: string;
+  currentLessonSlug?: string;
+  chapters?: {
+    chapterId?: string;
+    chapterTitle?: string;
+    lessons?: {
+      lessonId?: string;
+      lessonTitle?: string;
+      status?: string;
+      completedAt?: string;
+      duration?: number;
+      videoUrl?: string;
+    }[];
+  }[];
 }
 
 export interface Comment {

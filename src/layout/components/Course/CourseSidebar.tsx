@@ -11,12 +11,12 @@ export default function CourseSidebar({
   chapters,
   currentLesson,
 }: CourseSidebarProps) {
-  const {courseId} = useParams();
+  const {courseSlug} = useParams();
 
   return (
     <div className="w-1/4 h-full overflow-y-scroll border-l border-l-slate-200">
       <CourseContentList
-        courseId={courseId}
+        courseSlug={courseSlug}
         chapters={chapters}
         currentLesson={currentLesson}
       />

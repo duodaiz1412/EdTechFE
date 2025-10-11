@@ -7,7 +7,7 @@ interface CourseLessonVideoProps {
 }
 
 export default function CourseLessonVideo({
-  videoUrl = "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
+  videoUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
   videoTitle = "Video title",
   onEnded,
 }: CourseLessonVideoProps) {
@@ -16,7 +16,7 @@ export default function CourseLessonVideo({
       src={videoUrl}
       onEnded={onEnded}
       videoTitle={videoTitle}
-      className="w-5/6 h-[600px]"
+      className="w-5/6 h-auto"
       accentColor="#2b7fff"
       thumbnailTime={5}
     />

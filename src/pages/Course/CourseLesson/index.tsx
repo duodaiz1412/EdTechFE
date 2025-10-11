@@ -8,6 +8,7 @@ import CourseLessonVideo from "./LessonType/CourseLessonVideo";
 import {CourseLessonQuiz} from "./LessonType/CourseLessonQuiz";
 import LessonCommentList from "./Comment/LessonCommentList";
 import CourseReviewList from "./Review/CourseReviewList";
+import CourseLessonArticle from "./LessonType/CourseLessonArticle";
 
 interface CourseLessonProps {
   lesson?: Lesson;
@@ -21,39 +22,45 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
   useEffect(() => {
     if (!lesson) return;
 
-    if (lesson.videoUrl) {
-      setLessonType("video");
-    } else if (lesson.content?.includes("quizId")) {
+    setIsCompleted(status);
+
+    if (lesson.content) {
+      setLessonType("article");
+    } else if (lesson.quizDto) {
       setLessonType("quiz");
     } else {
-      setLessonType("article");
+      setLessonType("video");
     }
-  }, [lesson]);
+  }, [status, lesson]);
 
-  const handleComplete = async () => {
+  const handleComplete = async (lessonTitle?: string) => {
     setIsCompleted(true);
+
     const accessToken = await getAccessToken();
     const response = await progressServices.completeLesson(
-      lesson?.id,
+      lesson?.slug,
       accessToken,
     );
 
     if (response.status === 200) {
-      toast.success("Lesson marked as completed");
+      toast.success(`${lessonTitle} completed!`);
     }
   };
 
   return (
     <div>
       {/* Lesson content */}
-      <div className="w-full flex justify-center bg-black">
+      <div className="w-full flex justify-center bg-black border border-slate-200">
         {lessonType === "video" && (
           <CourseLessonVideo
-            videoUrl={lesson?.videoUrl}
+            // videoUrl={lesson?.videoUrl}
             videoTitle={lesson?.title}
           />
         )}
         {lessonType === "quiz" && <CourseLessonQuiz />}
+        {lessonType === "article" && (
+          <CourseLessonArticle content={lesson?.content || ""} />
+        )}
       </div>
 
       <div className="w-5/6 mx-auto py-6 h-[500px]">
@@ -62,7 +69,10 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
           {isCompleted ? (
             <span className="badge badge-xl badge-success">Completed</span>
           ) : (
-            <button className="btn btn-neutral" onClick={handleComplete}>
+            <button
+              className="btn btn-neutral"
+              onClick={() => handleComplete(lesson?.title)}
+            >
               Mark as completed
             </button>
           )}

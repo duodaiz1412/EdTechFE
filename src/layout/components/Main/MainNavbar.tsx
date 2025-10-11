@@ -1,6 +1,7 @@
 import AvatarMenu from "@/components/AvatarMenu";
+import Logo from "@/components/Logo";
 import {useAppSelector} from "@/redux/hooks";
-import {Bell, Search} from "lucide-react";
+import {Bell} from "lucide-react";
 import {Link} from "react-router";
 
 export default function MainNavbar() {
@@ -8,11 +9,7 @@ export default function MainNavbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 px-6 py-3 shadow flex items-center justify-between bg-white z-10">
-      <h1 className="text-2xl font-bold text-blue-600">Edtech</h1>
-      <label className="input rounded-3xl w-1/3 px-4 space-x-4">
-        <input type="search" required placeholder="Search for courses" />
-        <Search color="#90a1b9" size={20} />
-      </label>
+      <Logo />
       {isAuthenticated && (
         <div className="space-x-2 flex items-center">
           <Link to="/learning">My learning</Link>

@@ -14,7 +14,7 @@ export default function MyLearning() {
   }
 
   return (
-    <div className="w-full lg:w-5/6 mx-auto my">
+    <div className="w-full p-6">
       <h2 className="text-2xl font-semibold mb-10">My Learning</h2>
       <div className="grid grid-cols-3 gap-6">
         {userData?.enrollments?.map((enroll) => (
@@ -30,10 +30,10 @@ export default function MyLearning() {
                 max="100"
               ></progress>
               <Link
-                to={`/course/${enroll.courseId}/learn/lesson/${enroll.currentLessonId}`}
+                to={`/course/${enroll.courseSlug}/learn/lesson/${enroll.currentLessonSlug}`}
                 className="btn btn-neutral"
               >
-                {enroll.currentLessonId
+                {enroll.currentLessonSlug
                   ? "Continue learning"
                   : "Start learning"}
               </Link>

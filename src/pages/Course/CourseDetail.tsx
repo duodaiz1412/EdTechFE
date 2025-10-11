@@ -11,6 +11,7 @@ import {formatPrice} from "@/lib/utils/formatPrice";
 import {toast} from "react-toastify";
 import {useAppSelector} from "@/redux/hooks";
 import {progressServices} from "@/lib/services/progress.services";
+import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
 
 export default function CourseDetail() {
   const {slug} = useParams();
@@ -18,7 +19,7 @@ export default function CourseDetail() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isEnrolled, setIsEnrolled] = useState(false);
-  const [currentLessonId, setCurrentLessonId] = useState("");
+  const [currentLessonSlug, setCurrentLessonSlug] = useState("");
 
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
   const userData = useAppSelector((state) => state.user.data);
@@ -31,29 +32,26 @@ export default function CourseDetail() {
       setCourseInfo(course);
 
       // Get chapters and lessons
-      const chapters = await publicServices.getChapters(course.id);
+      const chapters = await publicServices.getChapters(slug);
       setChapters(chapters);
 
-      // Check if user is enrolled this course
-      setIsEnrolled(
-        userData?.enrollments.some((enroll) => enroll.courseId === course.id) ||
-          false,
-      );
-
-      // Get progrss
-      const accessToken = await getAccessToken();
-      const progress = await progressServices.getProgress(
-        course.id,
-        accessToken,
-      );
-
-      setCurrentLessonId(
-        progress.currentLessonId ||
-          progress.chapters?.[0]?.lessons?.[0]?.lessonId ||
-          "",
-      );
-
       // Get reviews
+      const reviews = await publicServices.getReviews(slug);
+      setReviews(reviews);
+
+      // Check if user is enrolled this course
+      const enrolled = isCourseEnrolled(userData?.enrollments || [], slug);
+      setIsEnrolled(enrolled);
+
+      // Get progress
+      if (enrolled) {
+        const accessToken = await getAccessToken();
+        const progress = await progressServices.getProgress(slug, accessToken);
+
+        setCurrentLessonSlug(
+          progress.currentLessonSlug || chapters?.[0]?.lessons?.[0]?.slug || "",
+        );
+      }
     };
 
     fetchData();
@@ -72,7 +70,6 @@ export default function CourseDetail() {
       courseId as string,
       accessToken,
     );
-
     if (response.status === 201) {
       setIsEnrolled(true);
       toast.success("Enroll course successfully");
@@ -96,14 +93,10 @@ export default function CourseDetail() {
               <span>({courseInfo?.enrollments || 0} students)</span>
             </div>
             <div>
-              Created by
-              <Link to={"/user/intructor-1"} className="link ml-2">
-                Instructor 1
-              </Link>
-              ,
-              <Link to={"/user/intructor-2"} className="link ml-2">
-                Instructor 2
-              </Link>
+              <span className="font-semibold">Create by: </span>
+              {courseInfo?.instructors?.map((instructor) => (
+                <span key={instructor.id}>{instructor.fullName}</span>
+              ))}
             </div>
             <div className="flex items-center space-x-6">
               <div className="flex space-x-2">
@@ -118,7 +111,7 @@ export default function CourseDetail() {
               </div>
             </div>
           </div>
-          {/* What you will learn */}
+          {/* What you will learn: FIX */}
           <div className="card border border-slate-200">
             <div className="card-body">
               <div className="card-title mb-4">What you'll learn</div>
@@ -156,16 +149,20 @@ export default function CourseDetail() {
           {/* List of lessons */}
           <div>
             <h3 className="text-xl font-semibold mb-4">Course contents</h3>
-            <CourseContentList chapters={chapters} courseId={courseInfo?.id} />
+            <CourseContentList
+              chapters={chapters}
+              courseSlug={courseInfo?.slug}
+            />
           </div>
           {/* Description */}
           <div>
             <h3 className="text-xl font-semibold mb-4">Description</h3>
             <p
+              className="ql-editor ql-snow h-auto p-0"
               dangerouslySetInnerHTML={{__html: courseInfo?.description || ""}}
             ></p>
           </div>
-          {/* Requirements */}
+          {/* Requirements: FIX */}
           <div>
             <h3 className="text-xl font-semibold mb-4">Requirements</h3>
             <ul className="list-disc list-inside space-y-2">
@@ -173,7 +170,7 @@ export default function CourseDetail() {
               <li>Internet connection</li>
             </ul>
           </div>
-          {/* Who is this course for */}
+          {/* Who is this course for: FIX */}
           <div>
             <h3 className="text-xl font-semibold mb-4">
               Who is this course for ?
@@ -184,7 +181,19 @@ export default function CourseDetail() {
               <li>Fullstack Developer</li>
             </ul>
           </div>
-          {/* Rating/Reviews */}
+          {/* Reviews */}
+          <div>
+            <h3 className="text-xl font-semibold mb-4">Reviews</h3>
+            <div className="grid grid-cols-2 gap-6">
+              {reviews.length > 0 ? (
+                reviews.map((review) => (
+                  <div key={review.id}>{review.comment}</div>
+                ))
+              ) : (
+                <div>This course hasn't had review yet.</div>
+              )}
+            </div>
+          </div>
         </div>
         {/* Course enroll */}
         <div className="w-1/3 card shadow rounded-lg">
@@ -198,7 +207,7 @@ export default function CourseDetail() {
             {!isEnrolled ? (
               <>
                 <p className="text-2xl font-bold">
-                  {formatPrice(courseInfo?.sellingPrice, courseInfo?.currency)}
+                  {formatPrice(courseInfo?.sellingPrice)}
                 </p>
                 <button className="btn btn-primary" onClick={handleEnroll}>
                   Enroll this course
@@ -206,7 +215,7 @@ export default function CourseDetail() {
               </>
             ) : (
               <Link
-                to={`/course/${courseInfo?.id}/learn/lesson/${currentLessonId}`}
+                to={`/course/${courseInfo?.slug}/learn/lesson/${currentLessonSlug}`}
                 className="btn btn-neutral"
               >
                 Continue learning
