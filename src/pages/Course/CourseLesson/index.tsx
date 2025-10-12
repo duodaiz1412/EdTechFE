@@ -4,6 +4,7 @@ import {useEffect, useState} from "react";
 import {progressServices} from "@/lib/services/progress.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {toast} from "react-toastify";
+import {motion} from "motion/react";
 import CourseLessonVideo from "./LessonType/CourseLessonVideo";
 import {CourseLessonQuiz} from "./LessonType/CourseLessonQuiz";
 import LessonCommentList from "./Comment/LessonCommentList";
@@ -67,7 +68,14 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
         {/* Complete button */}
         <div className="flex mb-6 justify-end">
           {isCompleted ? (
-            <span className="badge badge-xl badge-success">Completed</span>
+            <motion.span
+              className="badge badge-xl badge-success"
+              initial={{scale: 0.8}}
+              animate={{scale: 1}}
+              transition={{duration: 0.3}}
+            >
+              Completed
+            </motion.span>
           ) : (
             <button
               className="btn btn-neutral"

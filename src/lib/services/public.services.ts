@@ -1,4 +1,4 @@
-import {Chapter} from "@/types";
+import {Chapter, User} from "@/types";
 import axios from "axios";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1/public";
@@ -27,6 +27,11 @@ export const publicServices = {
 
   async getReviews(slug: string) {
     const response = await axios.get(BASE_API + `/courses/${slug}/reviews`);
+    return response.data;
+  },
+
+  async getPublicProfile(userId: string): Promise<User> {
+    const response = await axios.get(BASE_API + `/users/${userId}`);
     return response.data;
   },
 };

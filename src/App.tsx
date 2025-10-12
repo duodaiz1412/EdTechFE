@@ -38,6 +38,7 @@ import CreateLecture from "./pages/Instructor/Courses/EditCourse/components/Crea
 import {CourseProvider} from "./context/CourseContext.tsx";
 import BecomeInstructor from "./pages/Instructor/BecomeInstructor.tsx";
 import {enrollServices} from "./lib/services/enroll.services.ts";
+import PublicProfile from "./pages/Profile/PublicProfile.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -95,6 +96,7 @@ function App() {
             }
           >
             <Route path="/" element={<Courses />} />
+            <Route path="/users/:userId/profile" element={<PublicProfile />} />
             <Route path="/course/:slug" element={<CourseDetail />} />
             <Route path="/learning" element={<MyLearning />} />
           </Route>

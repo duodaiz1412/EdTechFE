@@ -12,6 +12,7 @@ import {toast} from "react-toastify";
 import {useAppSelector} from "@/redux/hooks";
 import {progressServices} from "@/lib/services/progress.services";
 import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
+import {useQuery} from "@tanstack/react-query";
 
 export default function CourseDetail() {
   const {slug} = useParams();
@@ -25,11 +26,19 @@ export default function CourseDetail() {
   const userData = useAppSelector((state) => state.user.data);
   const navigate = useNavigate();
 
+  useQuery({
+    queryKey: ["course-info", slug],
+    queryFn: async () => {
+      if (!slug) return null;
+      const course = await publicServices.getCourseBySlug(slug);
+      setCourseInfo(course);
+      return course;
+    },
+  });
+
   useEffect(() => {
     const fetchData = async () => {
       if (!slug) return;
-      const course = await publicServices.getCourseBySlug(slug);
-      setCourseInfo(course);
 
       // Get chapters and lessons
       const chapters = await publicServices.getChapters(slug);
@@ -95,7 +104,13 @@ export default function CourseDetail() {
             <div>
               <span className="font-semibold">Create by: </span>
               {courseInfo?.instructors?.map((instructor) => (
-                <span key={instructor.id}>{instructor.fullName}</span>
+                <Link
+                  to={`/users/${instructor.id}/profile`}
+                  key={instructor.id}
+                  className="link link-hover"
+                >
+                  {instructor.fullName}
+                </Link>
               ))}
             </div>
             <div className="flex items-center space-x-6">
@@ -162,24 +177,17 @@ export default function CourseDetail() {
               dangerouslySetInnerHTML={{__html: courseInfo?.description || ""}}
             ></p>
           </div>
-          {/* Requirements: FIX */}
+          {/* Skill level */}
           <div>
-            <h3 className="text-xl font-semibold mb-4">Requirements</h3>
-            <ul className="list-disc list-inside space-y-2">
-              <li>Computer</li>
-              <li>Internet connection</li>
-            </ul>
+            <h3 className="text-xl font-semibold mb-4">Course level</h3>
+            <p>{courseInfo?.skillLevel}</p>
           </div>
-          {/* Who is this course for: FIX */}
+          {/* Who is this course for*/}
           <div>
             <h3 className="text-xl font-semibold mb-4">
               Who is this course for ?
             </h3>
-            <ul className="list-disc list-inside space-y-2">
-              <li>Web Developer</li>
-              <li>Backend Developer</li>
-              <li>Fullstack Developer</li>
-            </ul>
+            <p>{courseInfo?.targetAudience}</p>
           </div>
           {/* Reviews */}
           <div>
@@ -197,7 +205,7 @@ export default function CourseDetail() {
         </div>
         {/* Course enroll */}
         <div className="w-1/3 card shadow rounded-lg">
-          <figure className="h-56">
+          <figure className="h-56 border-b border-b-slate-200">
             {courseInfo?.image && <img src={courseInfo.image} />}
             {!courseInfo?.image && (
               <div className="w-full h-full bg-slate-200"></div>
@@ -207,7 +215,7 @@ export default function CourseDetail() {
             {!isEnrolled ? (
               <>
                 <p className="text-2xl font-bold">
-                  {formatPrice(courseInfo?.sellingPrice)}
+                  {formatPrice(courseInfo?.sellingPrice, courseInfo?.currency)}
                 </p>
                 <button className="btn btn-primary" onClick={handleEnroll}>
                   Enroll this course
@@ -223,8 +231,7 @@ export default function CourseDetail() {
             )}
             <h3 className="font-semibold">This course includes:</h3>
             <ul className="list-disc list-inside space-y-2">
-              <li>... videos</li>
-              <li>... quizzes</li>
+              <li>...lessons</li>
               <li>Complete certification</li>
             </ul>
           </div>

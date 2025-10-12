@@ -103,6 +103,9 @@ export interface Course {
   lessons?: Lesson[];
   rating: number | null;
   language?: string;
+  skillLevel?: string;
+  targetAudience?: string;
+  learnerProfileDesc?: string;
   tags?: CourseTag[];
   labels?: CourseLabel[];
   instructors?: CourseInstructor[];

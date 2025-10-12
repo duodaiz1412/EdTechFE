@@ -67,10 +67,10 @@ export default function Courses() {
             <Link
               to={`/course/${course.slug}`}
               key={course.id}
-              className="card shadow hover:-translate-y-1 transition-all"
+              className="card shadow hover:-translate-y-1 transition-all overflow-hidden"
             >
-              <figure className="h-56">
-                {course.image && <img src={course.image} className="w-full" />}
+              <figure className="h-56 border-b border-b-slate-200">
+                {course.image && <img src={course.image} />}
                 {!course.image && (
                   <div className="w-full h-full bg-slate-200"></div>
                 )}
@@ -93,7 +93,7 @@ export default function Courses() {
                   <div className="badge badge-primary">Enrolled</div>
                 ) : (
                   <div className="font-bold space-x-1">
-                    {formatPrice(course.sellingPrice)}
+                    {formatPrice(course.sellingPrice, course.currency)}
                   </div>
                 )}
               </div>
