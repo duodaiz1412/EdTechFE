@@ -1,11 +1,15 @@
+import {commentServices} from "@/lib/services/comment.services";
+import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {Comment} from "@/types";
+import {useQuery} from "@tanstack/react-query";
 import {ArrowBigDown, ArrowBigUp, Reply, SquarePen, Trash2} from "lucide-react";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 interface LessonCommentItemProps {
   order: number;
   comment: Comment;
   isOwnComment: boolean;
+  isOwnUpvoted?: boolean;
   handleNewComment: (content: string, parentId?: string) => void;
   handleEditComment: (
     order: number,
@@ -14,24 +18,21 @@ interface LessonCommentItemProps {
     parentId?: string,
   ) => void;
   handleDeleteComment: (order: number, commentId: string) => void;
-  handleVote: (
-    order: number,
-    commentId: string,
-    type: "UPVOTE" | "DOWNVOTE",
-  ) => void;
-  replyTo?: Comment;
+  handleVote: (order: number, commentId: string, isUpvote: boolean) => void;
 }
 
 export default function LessonCommentItem({
   order,
   comment,
   isOwnComment,
+  isOwnUpvoted,
   handleNewComment,
   handleEditComment,
   handleDeleteComment,
   handleVote,
-  replyTo,
 }: LessonCommentItemProps) {
+  const [replyTo, setReplyTo] = useState<Comment>();
+
   const [isReplying, setIsReplying] = useState(false);
   const [replyComment, setReplyComment] = useState("");
 
@@ -40,6 +41,25 @@ export default function LessonCommentItem({
 
   const [isUpvoted, setIsUpvoted] = useState(false);
   const [isDownvoted, setIsDownvoted] = useState(false);
+
+  useEffect(() => {
+    setIsUpvoted((isOwnUpvoted != undefined && isOwnUpvoted) || false);
+    setIsDownvoted((isOwnUpvoted != undefined && !isOwnUpvoted) || false);
+  }, [isOwnUpvoted]);
+
+  useQuery({
+    queryKey: ["replyTo", comment.parentId],
+    queryFn: async () => {
+      const accessToken = await getAccessToken();
+      const response = await commentServices.getCommentById(
+        accessToken,
+        comment.parentId!,
+      );
+      setReplyTo(response);
+      return response;
+    },
+    enabled: !!comment.parentId,
+  });
 
   const handleReply = async (commentId: string) => {
     handleNewComment(replyComment, commentId);
@@ -53,21 +73,23 @@ export default function LessonCommentItem({
   };
 
   const handleUpvote = async () => {
-    handleVote(order, comment.id, "UPVOTE");
+    handleVote(order, comment.id, true);
     setIsUpvoted((prev) => !prev);
+    if (isDownvoted) setIsDownvoted(false);
   };
 
   const handleDownvote = async () => {
-    handleVote(order, comment.id, "DOWNVOTE");
+    handleVote(order, comment.id, false);
     setIsDownvoted((prev) => !prev);
+    if (isUpvoted) setIsUpvoted(false);
   };
 
   return (
-    <div id={`comment-${comment.id}`}>
+    <div>
       {/* Comment content box */}
       <div className="flex rounded-md border border-slate-300">
         {/* Name, avatar */}
-        <div className="w-1/6 p-4 flex flex-col items-center space-y-2 bg-slate-200">
+        <div className="w-1/6 py-4 px-2 flex flex-col items-center space-y-2 bg-slate-200">
           <div
             className={`avatar ${comment.authorImage ? "" : "avatar-placeholder"}`}
           >
@@ -83,22 +105,25 @@ export default function LessonCommentItem({
             )}
           </div>
           <p className="text-center font-semibold">{comment.authorName}</p>
+          {isOwnComment && (
+            <span className="badge badge-primary badge-sm">You</span>
+          )}
         </div>
         {/* Comment content */}
         <div className="w-5/6 p-4 space-y-4">
           {/* Time */}
           <span className="text-sm font-semibold">
-            {new Date(comment.modified!).toLocaleDateString("vi-VN")}
+            {new Date(comment.creation!).toLocaleString("vi-VN")}
           </span>
-          {/* Reply comment */}
+          {/* Reply to comment */}
           {replyTo && (
-            <a
-              href={`#comment-${replyTo.id}`}
-              className="block p-2 space-y-1 text-sm italic bg-slate-200 border-l-4 border-l-blue-500 rounded-md"
-            >
+            <div className="block py-2 px-3 space-y-1 text-sm italic bg-slate-200 border-l-4 border-l-blue-500 rounded-md">
+              <span className="text-xs text-slate-700">
+                {new Date(replyTo.creation!).toLocaleString("vi-VN")}
+              </span>
               <p className="font-semibold">{replyTo.authorName} said:</p>
               <p>{replyTo.content}</p>
-            </a>
+            </div>
           )}
           {/* Actual comment */}
           {!isEditing && <p>{comment.content}</p>}
@@ -141,7 +166,7 @@ export default function LessonCommentItem({
             <button onClick={handleUpvote}>
               <ArrowBigUp
                 size={20}
-                className={`${isUpvoted && "fill-current text-green-500"}`}
+                className={`${isUpvoted && "text-orange-500"}`}
               />
             </button>
             <span className="text-sm font-semibold">
@@ -150,7 +175,7 @@ export default function LessonCommentItem({
             <button onClick={handleDownvote}>
               <ArrowBigDown
                 size={20}
-                className={`${isDownvoted && "fill-current text-red-500"}`}
+                className={`${isDownvoted && "text-blue-500"}`}
               />
             </button>
           </div>

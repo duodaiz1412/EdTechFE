@@ -13,6 +13,7 @@ import {useAppSelector} from "@/redux/hooks";
 import {progressServices} from "@/lib/services/progress.services";
 import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
 import {useQuery} from "@tanstack/react-query";
+import CourseReviewItem from "./CourseLesson/Review/CourseReviewItem";
 
 export default function CourseDetail() {
   const {slug} = useParams();
@@ -40,13 +41,13 @@ export default function CourseDetail() {
     const fetchData = async () => {
       if (!slug) return;
 
+      // Get reviews
+      const reviews = await publicServices.getReviews(slug);
+      setReviews(reviews.content);
+
       // Get chapters and lessons
       const chapters = await publicServices.getChapters(slug);
       setChapters(chapters);
-
-      // Get reviews
-      const reviews = await publicServices.getReviews(slug);
-      setReviews(reviews);
 
       // Check if user is enrolled this course
       const enrolled = isCourseEnrolled(userData?.enrollments || [], slug);
@@ -196,7 +197,7 @@ export default function CourseDetail() {
             <div className="grid grid-cols-2 gap-6">
               {reviews.length > 0 ? (
                 reviews.map((review) => (
-                  <div key={review.id}>{review.comment}</div>
+                  <CourseReviewItem key={review.id} review={review} />
                 ))
               ) : (
                 <div>This course hasn't had review yet.</div>

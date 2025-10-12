@@ -1,32 +1,43 @@
 import {Comment} from "@/types";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import LessonCommentItem from "./LessonCommentItem";
-import {getRepliedComment} from "@/lib/utils/getRepliedComment";
 import {useParams} from "react-router-dom";
-import {useQuery} from "@tanstack/react-query";
 import {commentServices} from "@/lib/services/comment.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {useAppSelector} from "@/redux/hooks";
 
-export default function LessonCommentList() {
+export default function LessonCommentList({lessonId}: {lessonId?: string}) {
   const {lessonSlug} = useParams();
   const userData = useAppSelector((state) => state.user.data);
 
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState<Comment[]>([]);
+  const [userVotes, setUserVotes] = useState<{[key: string]: boolean}>({});
 
-  useQuery({
-    queryKey: ["comments", lessonSlug],
-    queryFn: async () => {
+  useEffect(() => {
+    const fetchData = async () => {
       const accessToken = await getAccessToken();
-      const response = await commentServices.getComments(
+      const comments = await commentServices.getComments(
         accessToken,
         lessonSlug,
       );
-      setComments(response.content);
-      return response;
-    },
-  });
+      setComments(comments.content.reverse());
+
+      if (lessonId) {
+        const votes = await commentServices.getUserVotes(
+          accessToken,
+          userData?.id,
+          lessonId || "",
+        );
+
+        votes.forEach((vote: any) => {
+          setUserVotes((prev) => ({...prev, [vote.commentId]: vote.isUpvote}));
+        });
+      }
+    };
+
+    fetchData();
+  }, [lessonSlug, lessonId, userData?.id]);
 
   const handleNewComment = async (content: string, parentId?: string) => {
     const accessToken = await getAccessToken();
@@ -36,7 +47,7 @@ export default function LessonCommentList() {
       content,
       parentId,
     );
-    setComments((prev) => [comment, ...prev]);
+    setComments((prev) => [...prev, comment]);
     setNewComment("");
   };
 
@@ -75,13 +86,13 @@ export default function LessonCommentList() {
   const handleVote = async (
     order: number,
     commentId: string,
-    type: "UPVOTE" | "DOWNVOTE",
+    isUpvote: boolean,
   ) => {
     const accessToken = await getAccessToken();
     const votedComment = await commentServices.voteComment(
       accessToken,
       commentId,
-      type,
+      isUpvote,
     );
     setComments((prevComments) => {
       const updatedComments = [...prevComments];
@@ -115,11 +126,11 @@ export default function LessonCommentList() {
           order={idx}
           comment={comment}
           isOwnComment={userData?.id === comment.authorId}
+          isOwnUpvoted={userVotes[comment.id] || undefined}
           handleNewComment={handleNewComment}
           handleEditComment={handleEditComment}
           handleDeleteComment={handleDeleteComment}
           handleVote={handleVote}
-          replyTo={getRepliedComment(comments, comment.parentId)}
         />
       ))}
     </div>

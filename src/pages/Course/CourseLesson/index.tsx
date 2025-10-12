@@ -119,7 +119,7 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
             />
             <div className="tab-content px-3 py-4">
               <h2 className="text-xl font-semibold mb-6">Comments</h2>
-              <LessonCommentList />
+              <LessonCommentList lessonId={lesson?.id} />
             </div>
 
             <input

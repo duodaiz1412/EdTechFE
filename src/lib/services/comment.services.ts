@@ -3,6 +3,15 @@ import axios from "axios";
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
 
 export const commentServices = {
+  async getCommentById(accessToken: string, commentId: string) {
+    const response = await axios.get(BASE_API + `/comments/${commentId}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return response.data;
+  },
+
   async getComments(accessToken?: string, slug?: string) {
     const response = await axios.get(
       BASE_API + `/lessons/slug/${slug}/comments`,
@@ -63,14 +72,22 @@ export const commentServices = {
     return response;
   },
 
-  async voteComment(
-    accessToken: string,
-    commentId: string,
-    type: "UPVOTE" | "DOWNVOTE",
-  ) {
+  async voteComment(accessToken: string, commentId: string, isUpvote: boolean) {
     const response = await axios.post(
       BASE_API + `/comments/${commentId}/vote`,
-      {voteType: type},
+      {isUpvote: isUpvote},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response.data;
+  },
+
+  async getUserVotes(accessToken: string, userId?: string, lessonId?: string) {
+    const response = await axios.get(
+      BASE_API + `/users/${userId}/lessons/${lessonId}/votes`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

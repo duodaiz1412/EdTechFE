@@ -17,15 +17,15 @@ export default function CourseReviewList() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const getAllReviews = await publicServices.getReviews(courseSlug!);
+      setReviews(getAllReviews.content);
+
       const accessToken = await getAccessToken();
       const getMyReview = await reviewServices.getMyReview(
         accessToken,
         courseSlug!,
       );
       setMyReview(getMyReview);
-
-      const getAllReviews = await publicServices.getReviews(courseSlug!);
-      setReviews(getAllReviews.content);
     };
 
     fetchData();
