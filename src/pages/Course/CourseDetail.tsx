@@ -101,6 +101,7 @@ export default function CourseDetail() {
               <ReadOnlyRating rating={courseInfo?.rating || 0} size="xs" />
               <span>({courseInfo?.enrollments || 0} students)</span>
             </div>
+            {/* Instructors */}
             <div>
               <span className="font-semibold">Create by: </span>
               {courseInfo?.instructors?.map((instructor) => (
@@ -204,7 +205,7 @@ export default function CourseDetail() {
           </div>
         </div>
         {/* Course enroll */}
-        <div className="w-1/3 card shadow rounded-lg">
+        <div className="w-1/3 card border border-slate-200 shadow-sm rounded-lg">
           <figure className="h-56 border-b border-b-slate-200">
             {courseInfo?.image && <img src={courseInfo.image} />}
             {!courseInfo?.image && (

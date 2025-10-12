@@ -151,6 +151,18 @@ export interface Quiz {
   questions?: QuizQuestion[];
 }
 
+export interface QuizSubmmission {
+  id?: string;
+  quizId?: string;
+  quizTitle?: string;
+  memberId?: string;
+  memberName?: string;
+  score?: number;
+  percentage?: number;
+  result?: string;
+  creation?: string;
+}
+
 export interface Lesson {
   id?: string;
   title?: string;

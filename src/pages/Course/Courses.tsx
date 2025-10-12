@@ -67,7 +67,7 @@ export default function Courses() {
             <Link
               to={`/course/${course.slug}`}
               key={course.id}
-              className="card shadow hover:-translate-y-1 transition-all overflow-hidden"
+              className="card border border-slate-200 shadow-sm hover:-translate-y-1 transition-all overflow-hidden"
             >
               <figure className="h-56 border-b border-b-slate-200">
                 {course.image && <img src={course.image} />}

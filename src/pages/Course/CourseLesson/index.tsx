@@ -6,7 +6,7 @@ import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {toast} from "react-toastify";
 import {motion} from "motion/react";
 import CourseLessonVideo from "./LessonType/CourseLessonVideo";
-import {CourseLessonQuiz} from "./LessonType/CourseLessonQuiz";
+import CourseLessonQuiz from "./LessonType/CourseLessonQuiz";
 import LessonCommentList from "./Comment/LessonCommentList";
 import CourseReviewList from "./Review/CourseReviewList";
 import CourseLessonArticle from "./LessonType/CourseLessonArticle";
@@ -22,7 +22,6 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
 
   useEffect(() => {
     if (!lesson) return;
-
     setIsCompleted(status);
 
     if (lesson.content) {
@@ -58,7 +57,7 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
             videoTitle={lesson?.title}
           />
         )}
-        {lessonType === "quiz" && <CourseLessonQuiz />}
+        {lessonType === "quiz" && <CourseLessonQuiz quiz={lesson?.quizDto} />}
         {lessonType === "article" && (
           <CourseLessonArticle content={lesson?.content || ""} />
         )}

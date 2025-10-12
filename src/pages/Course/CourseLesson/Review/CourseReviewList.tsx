@@ -66,10 +66,10 @@ export default function CourseReviewList() {
           </div>
           <div className="flex justify-center items-center space-x-4">
             <button onClick={() => setIsEditing(true)}>
-              <SquarePen size={24} className="text-blue-500" />
+              <SquarePen size={20} />
             </button>
             <button onClick={handleDelete}>
-              <Trash2 size={24} className="text-red-500" />
+              <Trash2 size={20} />
             </button>
           </div>
         </div>
