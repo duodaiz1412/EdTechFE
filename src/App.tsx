@@ -1,14 +1,17 @@
-import {BrowserRouter, Navigate, Outlet, Route, Routes} from "react-router-dom";
+import {BrowserRouter, Outlet, Route, Routes} from "react-router-dom";
 import {ToastContainer} from "react-toastify";
 import {useQuery} from "@tanstack/react-query";
 
 import {login} from "./redux/slice/userSlice.tsx";
-import {useAppDispatch, useAppSelector} from "./redux/hooks.ts";
+import {useAppDispatch} from "./redux/hooks.ts";
 import {userServices} from "./lib/services/user.services.ts";
 import {getAccessToken} from "./lib/utils/getAccessToken.ts";
 import {Role} from "./types/index.ts";
 
-import ProtectedRoute from "./components/ProtectedRoute.tsx";
+import ProtectedRoute, {
+  RoleProtectedRoute,
+  TypeProtectedRoute,
+} from "./components/ProtectedRoute.tsx";
 
 import AuthLayout from "./layout/AuthLayout";
 import Login from "./pages/Auth/Login";
@@ -42,7 +45,6 @@ import PublicProfile from "./pages/Profile/PublicProfile.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
-  const userInfo = useAppSelector((state) => state.user.data);
 
   useQuery({
     queryKey: ["userInfo"],
@@ -72,7 +74,7 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
-          {/* Auth layout: login, register */}
+          {/* Auth routes */}
           <Route
             element={
               <AuthLayout>
@@ -84,10 +86,10 @@ function App() {
             <Route path="/register" element={<Register />} />
           </Route>
           <Route path="/notify" element={<Notify />} />
-          <Route path="/auth/verify" element={<VerifyRedirect />} />
+          <Route path="/api/v1/auth/verify" element={<VerifyRedirect />} />
           <Route path="/verify" element={<Verify />} />
 
-          {/* Public layout */}
+          {/* Public routes */}
           <Route
             element={
               <MainLayout>
@@ -101,8 +103,9 @@ function App() {
             <Route path="/learning" element={<MyLearning />} />
           </Route>
 
+          {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
-            {/* Profile layout */}
+            {/* Profile & Settings */}
             <Route
               element={
                 <ProfileLayout>
@@ -110,31 +113,26 @@ function App() {
                 </ProfileLayout>
               }
             >
-              {/* Profile route */}
               <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+
               {/* Admin CMS routes */}
               <Route
                 path="/users"
                 element={
-                  userInfo?.type === "SYSTEM_USER" ? (
+                  <TypeProtectedRoute requiredType="SYSTEM_USER">
                     <UserList />
-                  ) : (
-                    <Navigate to="/" />
-                  )
+                  </TypeProtectedRoute>
                 }
               />
               <Route
                 path="/users/:userId"
                 element={
-                  userInfo?.type === "SYSTEM_USER" ? (
+                  <TypeProtectedRoute requiredType="SYSTEM_USER">
                     <UserDetail />
-                  ) : (
-                    <Navigate to="/" />
-                  )
+                  </TypeProtectedRoute>
                 }
               />
-              {/* Settings route */}
-              <Route path="/settings" element={<Settings />} />
             </Route>
 
             {/* Learner routes */}
@@ -145,57 +143,62 @@ function App() {
 
             {/* Instructor routes */}
             <Route path="/teaching" element={<BecomeInstructor />} />
+
             <Route
               element={
-                userInfo?.roles.includes("COURSE_CREATOR") ? (
+                <RoleProtectedRoute
+                  requiredRole="COURSE_CREATOR"
+                  redirectTo="/teaching"
+                >
                   <InstructorLayout>
                     <Outlet />
                   </InstructorLayout>
-                ) : (
-                  <Navigate to="/teaching" />
-                )
+                </RoleProtectedRoute>
               }
             >
               <Route path="/instructor" element={<InstructorCourse />} />
             </Route>
-            {/* Create course without sidebar */}
+
+            {/* Instructor - Create/Edit Course routes (without sidebar) */}
             <Route
               path="/instructor/courses/create"
               element={
-                userInfo?.roles.includes("COURSE_CREATOR") ? (
+                <RoleProtectedRoute
+                  requiredRole="COURSE_CREATOR"
+                  redirectTo="/teaching"
+                >
                   <CourseProvider>
                     <CreateCourse />
                   </CourseProvider>
-                ) : (
-                  <Navigate to="/teaching" />
-                )
+                </RoleProtectedRoute>
               }
             />
-            {/* Edit course without sidebar */}
             <Route
               path="/instructor/courses/:courseId/edit"
               element={
-                userInfo?.roles.includes("COURSE_CREATOR") ? (
+                <RoleProtectedRoute
+                  requiredRole="COURSE_CREATOR"
+                  redirectTo="/teaching"
+                >
                   <EditCourse />
-                ) : (
-                  <Navigate to="/teaching" />
-                )
+                </RoleProtectedRoute>
               }
             />
-            {/* Create lecture page */}
             <Route
               path="/instructor/courses/:courseId/edit/lecture/create"
               element={
-                userInfo?.roles.includes("COURSE_CREATOR") ? (
+                <RoleProtectedRoute
+                  requiredRole="COURSE_CREATOR"
+                  redirectTo="/teaching"
+                >
                   <CreateLecture />
-                ) : (
-                  <Navigate to="/teaching" />
-                )
+                </RoleProtectedRoute>
               }
             />
           </Route>
         </Routes>
       </BrowserRouter>
+
       <ToastContainer
         position="top-right"
         draggable
