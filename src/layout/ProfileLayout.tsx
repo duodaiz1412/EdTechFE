@@ -1,7 +1,11 @@
 import ProfileNavbar from "./components/Profile/ProfileNavbar";
 import ProfileSidebar from "./components/Profile/ProfileSidebar";
 
-export default function ProfileLayout({children}: {children: JSX.Element}) {
+interface ProfileLayoutProps {
+  children: JSX.Element;
+}
+
+export default function ProfileLayout({children}: ProfileLayoutProps) {
   return (
     <div>
       <ProfileSidebar />

@@ -1,10 +1,10 @@
 import CourseContentList from "@/pages/Course/CourseContent/CourseContentList";
-import {Chapter, LessonIndex} from "@/types";
+import {Chapter, LessonCurrent} from "@/types";
 import {useParams} from "react-router-dom";
 
 interface CourseSidebarProps {
   chapters?: Chapter[];
-  currentLesson?: LessonIndex;
+  currentLesson?: LessonCurrent;
 }
 
 export default function CourseSidebar({

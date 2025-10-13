@@ -3,7 +3,11 @@ import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {Quiz, QuizQuestion, QuizSubmmission} from "@/types";
 import {useState} from "react";
 
-export default function CourseLessonQuiz({quiz}: {quiz?: Quiz}) {
+interface CourseLessonQuizProps {
+  quiz?: Quiz;
+}
+
+export default function CourseLessonQuiz({quiz}: CourseLessonQuizProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
 

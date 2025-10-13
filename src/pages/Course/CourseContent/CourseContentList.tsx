@@ -1,10 +1,10 @@
-import {Chapter, LessonIndex} from "@/types";
+import {Chapter, LessonCurrent} from "@/types";
 import CourseContentItem from "./CourseContentItem";
 
 interface CourseContentListProps {
   courseSlug?: string;
   chapters?: Chapter[];
-  currentLesson?: LessonIndex;
+  currentLesson?: LessonCurrent;
 }
 
 export default function CourseContentList({
@@ -24,6 +24,7 @@ export default function CourseContentList({
             defaultChecked={currentLesson?.chapter === chapter.position}
             className="chapter-toggle"
           />
+          {/* Chapter info */}
           <div className="collapse-title bg-slate-100 space-x-2 flex items-center">
             <h2 className="font-semibold">
               Section {index + 1}: {chapter.title}
@@ -32,21 +33,22 @@ export default function CourseContentList({
               {chapter.lessons ? chapter.lessons.length : "0"} lessons
             </span>
           </div>
+          {/* Lessons in chapter */}
           <div className="collapse-content p-0">
             <div className="divide-solid divide-y">
-              {chapter.lessons ? (
+              {chapter.lessons &&
                 chapter.lessons.map((lesson) => (
                   <CourseContentItem
                     key={lesson.id}
                     lesson={lesson}
                     courseSlug={courseSlug}
                     isActive={
-                      !!currentLesson?.lesson?.slug &&
+                      Boolean(currentLesson?.lesson?.slug) &&
                       lesson.slug === currentLesson?.lesson?.slug
                     }
                   />
-                ))
-              ) : (
+                ))}
+              {!chapter.lessons && (
                 <span className="px-4">No content available</span>
               )}
             </div>

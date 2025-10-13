@@ -86,7 +86,7 @@ function App() {
             <Route path="/register" element={<Register />} />
           </Route>
           <Route path="/notify" element={<Notify />} />
-          <Route path="/api/v1/auth/verify" element={<VerifyRedirect />} />
+          <Route path="/auth/verify" element={<VerifyRedirect />} />
           <Route path="/verify" element={<Verify />} />
 
           {/* Public routes */}

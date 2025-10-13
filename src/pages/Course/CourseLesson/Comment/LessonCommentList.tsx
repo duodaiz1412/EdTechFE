@@ -6,7 +6,11 @@ import {commentServices} from "@/lib/services/comment.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {useAppSelector} from "@/redux/hooks";
 
-export default function LessonCommentList({lessonId}: {lessonId?: string}) {
+interface LessonCommentListProps {
+  lessonId?: string;
+}
+
+export default function LessonCommentList({lessonId}: LessonCommentListProps) {
   const {lessonSlug} = useParams();
   const userData = useAppSelector((state) => state.user.data);
 
@@ -21,6 +25,7 @@ export default function LessonCommentList({lessonId}: {lessonId?: string}) {
         accessToken,
         lessonSlug,
       );
+      // In order to show the oldest comment first
       setComments(comments.content.reverse());
 
       if (lessonId) {
@@ -30,6 +35,7 @@ export default function LessonCommentList({lessonId}: {lessonId?: string}) {
           lessonId || "",
         );
 
+        // Index user votes for each comment
         votes.forEach((vote: any) => {
           setUserVotes((prev) => ({...prev, [vote.commentId]: vote.isUpvote}));
         });

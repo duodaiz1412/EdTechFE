@@ -1,18 +1,20 @@
-import {Link, useNavigate, useParams} from "react-router-dom";
-import ReadOnlyRating from "@/components/ReadOnlyRating";
-import {Languages} from "lucide-react";
-import CourseContentList from "./CourseContent/CourseContentList";
-import {publicServices} from "@/lib/services/public.services";
-import {Chapter, Course, CourseLabel, CourseTag, Review} from "@/types";
 import {useEffect, useState} from "react";
-import {getAccessToken} from "@/lib/utils/getAccessToken";
+import {useQuery} from "@tanstack/react-query";
+import {Link, useParams} from "react-router-dom";
+
+import {Chapter, Course, CourseLabel, CourseTag, Review} from "@/types";
+import {publicServices} from "@/lib/services/public.services";
 import {enrollServices} from "@/lib/services/enroll.services";
+import {progressServices} from "@/lib/services/progress.services";
+import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {formatPrice} from "@/lib/utils/formatPrice";
+import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
+
 import {toast} from "react-toastify";
 import {useAppSelector} from "@/redux/hooks";
-import {progressServices} from "@/lib/services/progress.services";
-import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
-import {useQuery} from "@tanstack/react-query";
+import {Languages} from "lucide-react";
+import ReadOnlyRating from "@/components/ReadOnlyRating";
+import CourseContentList from "./CourseContent/CourseContentList";
 import CourseReviewItem from "./CourseLesson/Review/CourseReviewItem";
 
 export default function CourseDetail() {
@@ -25,10 +27,10 @@ export default function CourseDetail() {
 
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
   const userData = useAppSelector((state) => state.user.data);
-  const navigate = useNavigate();
 
   useQuery({
     queryKey: ["course-info", slug],
+    staleTime: Infinity,
     queryFn: async () => {
       if (!slug) return null;
       const course = await publicServices.getCourseBySlug(slug);
@@ -41,13 +43,13 @@ export default function CourseDetail() {
     const fetchData = async () => {
       if (!slug) return;
 
-      // Get reviews
-      const reviews = await publicServices.getReviews(slug);
-      setReviews(reviews.content);
-
       // Get chapters and lessons
       const chapters = await publicServices.getChapters(slug);
       setChapters(chapters);
+
+      // Get reviews
+      const reviews = await publicServices.getReviews(slug);
+      setReviews(reviews.content);
 
       // Check if user is enrolled this course
       const enrolled = isCourseEnrolled(userData?.enrollments || [], slug);
@@ -70,7 +72,6 @@ export default function CourseDetail() {
   const handleEnroll = async () => {
     if (!isAuthenticated) {
       toast.info("Login required");
-      navigate("/login");
     }
 
     const accessToken = await getAccessToken();
@@ -195,13 +196,10 @@ export default function CourseDetail() {
           <div>
             <h3 className="text-xl font-semibold mb-4">Reviews</h3>
             <div className="grid grid-cols-2 gap-6">
-              {reviews.length > 0 ? (
+              {reviews.length > 0 &&
                 reviews.map((review) => (
                   <CourseReviewItem key={review.id} review={review} />
-                ))
-              ) : (
-                <div>This course hasn't had review yet.</div>
-              )}
+                ))}
             </div>
           </div>
         </div>

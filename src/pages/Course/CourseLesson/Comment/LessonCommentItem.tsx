@@ -1,9 +1,12 @@
+import {useEffect, useState} from "react";
+import {useQuery} from "@tanstack/react-query";
+
+import {Comment} from "@/types";
 import {commentServices} from "@/lib/services/comment.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
-import {Comment} from "@/types";
-import {useQuery} from "@tanstack/react-query";
+
+import Avatar from "@/components/Avatar";
 import {ArrowBigDown, ArrowBigUp, Reply, SquarePen, Trash2} from "lucide-react";
-import {useEffect, useState} from "react";
 
 interface LessonCommentItemProps {
   order: number;
@@ -90,27 +93,14 @@ export default function LessonCommentItem({
       <div className="flex rounded-md border border-slate-300">
         {/* Name, avatar */}
         <div className="w-1/6 py-4 px-2 flex flex-col items-center space-y-2 bg-slate-200">
-          <div
-            className={`avatar ${comment.authorImage ? "" : "avatar-placeholder"}`}
-          >
-            {comment.authorImage && (
-              <div className="w-10 rounded-full">
-                <img src={comment.authorImage} />
-              </div>
-            )}
-            {!comment.authorImage && (
-              <div className="bg-neutral text-neutral-content w-10 rounded-full">
-                <span className="text-xl">{comment.authorName?.[0]}</span>
-              </div>
-            )}
-          </div>
+          <Avatar imageUrl={comment.authorImage} name={comment.authorName} />
           <p className="text-center font-semibold">{comment.authorName}</p>
           {isOwnComment && (
             <span className="badge badge-primary badge-sm">You</span>
           )}
         </div>
         {/* Comment content */}
-        <div className="w-5/6 p-4 space-y-4">
+        <div className="w-5/6 p-4 space-y-2">
           {/* Time */}
           <span className="text-sm font-semibold">
             {new Date(comment.creation!).toLocaleString("vi-VN")}
@@ -158,7 +148,7 @@ export default function LessonCommentItem({
                 </button>
               </>
             )}
-            {/* Reply comment */}
+            {/* Reply this comment */}
             <button onClick={() => setIsReplying(true)}>
               <Reply size={20} />
             </button>

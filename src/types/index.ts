@@ -183,7 +183,7 @@ export interface Chapter {
   lessons?: Lesson[];
 }
 
-export interface LessonIndex {
+export interface LessonCurrent {
   chapter?: number;
   lesson?: Lesson;
 }

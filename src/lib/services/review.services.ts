@@ -4,7 +4,7 @@ import {Review} from "@/types";
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
 
 export const reviewServices = {
-  async getMyReview(accessToken: string, slug: string): Promise<Review | null> {
+  async getMyReview(accessToken: string, slug: string): Promise<Review> {
     const response = await axios.get(
       BASE_API + `/courses/slug/${slug}/my-review`,
       {

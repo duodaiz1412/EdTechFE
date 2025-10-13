@@ -1,5 +1,5 @@
-import {MoveLeft} from "lucide-react";
 import {Link} from "react-router-dom";
+import {MoveLeft} from "lucide-react";
 
 interface AuthLayoutProps {
   children?: JSX.Element;
@@ -14,10 +14,11 @@ export default function AuthLayout({children}: AuthLayoutProps) {
           className="absolute top-6 left-6 flex items-center space-x-2 link link-hover"
         >
           <MoveLeft size={20} />
-          <span>Back to home</span>
+          <span>Back</span>
         </Link>
         {children}
       </main>
+
       <div className="w-1/2 h-full bg-slate-300"></div>
     </div>
   );

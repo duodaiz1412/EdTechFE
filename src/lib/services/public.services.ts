@@ -1,4 +1,4 @@
-import {Chapter, User} from "@/types";
+import {Chapter, Course, User} from "@/types";
 import axios from "axios";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1/public";
@@ -15,7 +15,7 @@ export const publicServices = {
     return response.data;
   },
 
-  async getCourseBySlug(slug: string) {
+  async getCourseBySlug(slug: string): Promise<Course> {
     const response = await axios.get(BASE_API + `/courses/${slug}`);
     return response.data;
   },

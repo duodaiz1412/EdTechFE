@@ -1,5 +1,6 @@
 import {useAppSelector} from "@/redux/hooks";
-import {Link} from "react-router-dom";
+
+import MyLearningItem from "./MyLearningItem";
 
 export default function MyLearning() {
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
@@ -8,7 +9,7 @@ export default function MyLearning() {
   if (!isAuthenticated) {
     return (
       <h2 className="text-center text-2xl font-bold mt-10">
-        Login or register to track your progress
+        Login to track your progress
       </h2>
     );
   }
@@ -16,29 +17,9 @@ export default function MyLearning() {
   return (
     <div className="w-full p-6">
       <h2 className="text-2xl font-semibold mb-10">My Learning</h2>
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-4 gap-6">
         {userData?.enrollments?.map((enroll) => (
-          <div key={enroll.id} className="card shadow">
-            <figure className="h-56">
-              <div className="w-full h-full bg-slate-200"></div>
-            </figure>
-            <div className="card-body space-y-2">
-              <h3 className="card-title">{enroll.courseTitle}</h3>
-              <progress
-                className="progress progress-primary w-full"
-                value={enroll.progress}
-                max="100"
-              ></progress>
-              <Link
-                to={`/course/${enroll.courseSlug}/learn/lesson/${enroll.currentLessonSlug}`}
-                className="btn btn-neutral"
-              >
-                {enroll.currentLessonSlug
-                  ? "Continue learning"
-                  : "Start learning"}
-              </Link>
-            </div>
-          </div>
+          <MyLearningItem key={enroll.id} enroll={enroll} />
         ))}
       </div>
     </div>

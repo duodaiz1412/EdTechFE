@@ -1,17 +1,20 @@
-import {Review} from "@/types";
 import {useEffect, useState} from "react";
+import {useParams} from "react-router-dom";
+
+import {Review} from "@/types";
+import {reviewServices} from "@/lib/services/review.services";
+import {publicServices} from "@/lib/services/public.services";
+import {getAccessToken} from "@/lib/utils/getAccessToken";
+
+import {SquarePen, Trash2} from "lucide-react";
+import Avatar from "@/components/Avatar";
+import ReadOnlyRating from "@/components/ReadOnlyRating";
 import CourseReviewItem from "./CourseReviewItem";
 import CourseMyReview from "./CourseMyReview";
-import {getAccessToken} from "@/lib/utils/getAccessToken";
-import {reviewServices} from "@/lib/services/review.services";
-import {useParams} from "react-router-dom";
-import {publicServices} from "@/lib/services/public.services";
-import ReadOnlyRating from "@/components/ReadOnlyRating";
-import {SquarePen, Trash2} from "lucide-react";
 
 export default function CourseReviewList() {
   const {courseSlug} = useParams();
-  const [myReview, setMyReview] = useState<Review | null>(null);
+  const [myReview, setMyReview] = useState<Review>();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -38,7 +41,7 @@ export default function CourseReviewList() {
     const accessToken = await getAccessToken();
     await reviewServices.deleteReview(accessToken, myReview!.id!);
     setReviews(reviews.filter((review) => review.id !== myReview!.id));
-    setMyReview(null);
+    setMyReview(undefined);
   };
 
   return (
@@ -53,11 +56,7 @@ export default function CourseReviewList() {
       {myReview && (
         <div className="p-4 rounded-lg bg-slate-200 flex">
           <div className="w-10">
-            <div className="avatar avatar-placeholder">
-              <div className="bg-neutral text-neutral-content w-10 rounded-full">
-                <span className="text-xl">{myReview.studentName?.[0]}</span>
-              </div>
-            </div>
+            <Avatar name={myReview.studentName} />
           </div>
           <div className="px-4 space-y-2 w-full">
             <p className="font-semibold">{myReview.studentName}</p>

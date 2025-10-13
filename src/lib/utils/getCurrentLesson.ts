@@ -1,9 +1,9 @@
-import {Chapter, LessonIndex} from "@/types";
+import {Chapter, LessonCurrent} from "@/types";
 
 export const getCurrentLesson = (
   chapters?: Chapter[],
   lessonSlug?: string | null,
-): LessonIndex => {
+): LessonCurrent => {
   let currentLesson = {lesson: chapters?.[0]?.lessons?.[0], chapter: 1};
 
   for (let i = 0; i < (chapters?.length ?? 0); i++) {

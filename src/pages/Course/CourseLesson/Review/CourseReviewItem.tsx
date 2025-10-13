@@ -1,7 +1,12 @@
-import ReadOnlyRating from "@/components/ReadOnlyRating";
 import {Review} from "@/types";
 
-export default function CourseReviewItem({review}: {review: Review}) {
+import ReadOnlyRating from "@/components/ReadOnlyRating";
+
+interface CourseReviewItemProps {
+  review: Review;
+}
+
+export default function CourseReviewItem({review}: CourseReviewItemProps) {
   return (
     <div className="p-4 rounded-lg bg-slate-200 flex">
       <div className="w-10">
