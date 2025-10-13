@@ -64,7 +64,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             className={cn(
               "w-full border border-gray-300 bg-white text-gray-900 rounded-lg",
               "placeholder:text-gray-400",
-              "focus:ring-2 focus:ring-gray-500 focus:border-transparent",
+              "focus:outline-none focus:ring-1 focus:ring-gray-300",
               "disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed",
               error && "border-red-500 focus:ring-red-500",
               leftIcon && "pl-10",

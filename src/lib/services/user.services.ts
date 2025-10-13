@@ -117,6 +117,7 @@
 
 import {User} from "@/types";
 import axios from "axios";
+import {authServices} from "./auth.services";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
 const USER_ENDPOINTS = {
@@ -167,6 +168,11 @@ export const userServices = {
         },
       },
     );
+
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (refreshToken) {
+      await authServices.refresh(refreshToken);
+    }
 
     return response;
   },

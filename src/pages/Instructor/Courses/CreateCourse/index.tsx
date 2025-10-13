@@ -1,43 +1,90 @@
 import {useNavigate} from "react-router";
+import {useCallback} from "react";
 import Button from "@/components/Button";
-import {useCourse} from "@/context/CourseContext";
+import {useCourseContext} from "@/context/CourseContext";
 import BasicInfoStep from "./steps/BasicInfoStep";
 import TimeStep from "./steps/TimeStep";
-import CategoryStep from "./steps/CategoryStep";
+import TagsLabelsStep from "./steps/TagsLabelsStep";
+import {toast} from "react-toastify";
 
 export default function CreateCourse() {
   const navigate = useNavigate();
-  const {currentStep, nextStep, prevStep, isStepValid, totalSteps} =
-    useCourse();
+  const {
+    // UI State
+    currentStep,
+    nextStep,
+    prevStep,
+    totalSteps,
+    stepTitles,
+    canProceed,
+    wizardState,
+    setWizardState,
+    formData,
+    // API Operations (from hook via context)
+    createCourse,
 
-  const handleSubmit = () => {
-    // TODO: Implement course creation API call
-    // For now, redirect to edit page with a mock course ID
-    const courseId = "new-course-" + Date.now();
-    navigate(`/instructor/courses/${courseId}/edit`);
-  };
+    // API State (from hook via context)
+    isLoading,
+    error,
+    clearError,
+  } = useCourseContext();
 
-  const renderStep = () => {
+  const handleSubmit = useCallback(async () => {
+    try {
+      setWizardState({isSubmitting: true});
+      clearError();
+
+      const courseId = await createCourse(formData);
+
+      if (courseId) {
+        toast.success("Course created successfully!");
+        navigate(`/instructor/courses/${courseId}/edit`);
+      } else {
+        toast.error("Failed to create course");
+      }
+    } catch {
+      toast.error("Error creating course");
+    } finally {
+      setWizardState({isSubmitting: false});
+    }
+  }, [createCourse, navigate, setWizardState, clearError, formData]);
+
+  const renderStep = useCallback(() => {
     switch (currentStep) {
       case 0:
         return <BasicInfoStep />;
       case 1:
-        return <CategoryStep />;
+        return <TagsLabelsStep />;
       case 2:
         return <TimeStep />;
       default:
         return null;
     }
-  };
+  }, [currentStep]);
+
+  const isSubmittingState = wizardState.isSubmitting || isLoading;
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
+      {/* Error display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4 mx-6 mt-4">
+          <p className="text-red-800">{error}</p>
+          <button
+            onClick={clearError}
+            className="text-red-600 hover:text-red-800 text-sm mt-2"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-gray-900">Edtech</h1>
           <span className="text-sm text-gray-500">
-            Step {currentStep + 1} of {totalSteps}
+            Step {currentStep + 1} of {totalSteps}: {stepTitles[currentStep]}
           </span>
         </div>
         <Button
@@ -47,6 +94,16 @@ export default function CreateCourse() {
         >
           Exit
         </Button>
+      </div>
+
+      {/* Progress indicator */}
+      <div className="px-6 py-2">
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div
+            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+            style={{width: `${((currentStep + 1) / totalSteps) * 100}%`}}
+          />
+        </div>
       </div>
 
       {/* Main Content */}
@@ -68,15 +125,15 @@ export default function CreateCourse() {
         {currentStep === totalSteps - 1 ? (
           <Button
             onClick={handleSubmit}
-            disabled={!isStepValid(currentStep)}
+            disabled={!canProceed || isSubmittingState}
             className="bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Create course
+            {isSubmittingState ? "Creating..." : "Create course"}
           </Button>
         ) : (
           <Button
             onClick={nextStep}
-            disabled={!isStepValid(currentStep)}
+            disabled={!canProceed}
             className="bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Continue

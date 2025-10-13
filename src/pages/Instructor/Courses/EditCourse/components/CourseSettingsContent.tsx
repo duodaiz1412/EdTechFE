@@ -1,17 +1,33 @@
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import Button from "@/components/Button";
 import {Heading3} from "@/components/Typography";
 import CommonSelect from "@/components/CommonSelect";
+import useCourse from "@/hooks/useCourse";
 
 export default function CourseSettingsContent() {
+  const {state: courseState} = useCourse();
+  const {course} = courseState;
+
   const enrollmentOptions = [
     {value: "public", label: "Public"},
     {value: "private", label: "Private"},
     {value: "unlisted", label: "Unlisted"},
   ];
+
   const [enrollment, setEnrollment] = useState("public");
   const [lastSavedEnrollment, setLastSavedEnrollment] = useState("public");
   const [dirty, setDirty] = useState(false);
+
+  // Fill form with course data when course is loaded
+  useEffect(() => {
+    if (course) {
+      // Map course status to enrollment type
+      const enrollmentType =
+        course.status === "PUBLISHED" ? "public" : "private";
+      setEnrollment(enrollmentType);
+      setLastSavedEnrollment(enrollmentType);
+    }
+  }, [course]);
 
   return (
     <div className="p-8">

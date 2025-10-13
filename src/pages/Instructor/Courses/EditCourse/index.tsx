@@ -1,20 +1,11 @@
-import {useState} from "react";
-import {useNavigate} from "react-router";
-import {ArrowLeft, Settings} from "lucide-react";
+import {useMemo, useEffect, useCallback} from "react";
+import {Outlet, useLocation, useNavigate, useParams} from "react-router";
+import {ArrowLeft, Settings, Loader2} from "lucide-react";
 import Button from "@/components/Button";
 import {Heading2} from "@/components/Typography";
 import Chip from "@/components/Chip";
-import IntendedLearnersContent from "./components/IntendedLearnersContent";
-import CurriculumContent from "./components/CurriculumContent";
-import CourseStructureContent from "./components/CourseStructureContent";
-import FilmEditContent from "./components/FilmEditContent";
-import CaptionContent from "./components/CaptionContent";
-import AccessibilityContent from "./components/AccessibilityContent";
-import LandingPageContent from "./components/LandingPageContent";
-import PricingContent from "./components/PricingContent";
-import PromotionsContent from "./components/PromotionsContent";
-import CourseMessagesContent from "./components/CourseMessagesContent";
-import CourseSettingsContent from "./components/CourseSettingsContent";
+import {useCourseContext} from "@/context/CourseContext";
+// import {toast} from "react-hot-toast";
 
 const navigationItems = [
   {
@@ -47,63 +38,60 @@ const navigationItems = [
 
 export default function EditCourse() {
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState("intended-learners");
+  const {courseId} = useParams();
+  const location = useLocation();
+  const {
+    // API Operations (from hook via context)
+    loadCourse,
 
-  const renderContent = () => {
-    let content;
-    switch (activeSection) {
-      case "intended-learners":
-        content = <IntendedLearnersContent />;
-        break;
-      case "settings":
-        content = <CourseSettingsContent />;
-        break;
-      case "course-structure":
-        content = <CourseStructureContent />;
-        break;
-      case "setup-test":
-        content = (
-          <div className="text-center text-gray-500">
-            Setup & test video content coming soon...
-          </div>
-        );
-        break;
-      case "film-edit":
-        content = <FilmEditContent />;
-        break;
-      case "curriculum":
-        content = <CurriculumContent />;
-        break;
-      case "caption":
-        content = <CaptionContent />;
-        break;
-      case "accessibility":
-        content = <AccessibilityContent />;
-        break;
-      case "landing-page":
-        content = <LandingPageContent />;
-        break;
-      case "pricing":
-        content = <PricingContent />;
-        break;
-      case "promotions":
-        content = <PromotionsContent />;
-        break;
-      case "messages":
-        content = <CourseMessagesContent />;
-        break;
-      default:
-        content = (
-          <div className="text-center text-gray-500">
-            Content for {activeSection} coming soon...
-          </div>
-        );
+    // API State (from hook via context)
+    state: courseState,
+    clearError,
+  } = useCourseContext();
+  const {course} = courseState;
+
+  const activeSection = useMemo(() => {
+    const match = location.pathname.match(/\/edit\/(.+)$/);
+    return match?.[1] ?? "intended-learners";
+  }, [location.pathname]);
+
+  // Load course data when component mounts
+  useEffect(() => {
+    if (courseId) {
+      loadCourse(courseId);
     }
-    return <div className="px-10 py-6">{content}</div>;
-  };
+  }, [courseId, loadCourse]);
+
+  // Clear errors when component unmounts
+  useEffect(() => {
+    return () => {
+      clearError();
+    };
+  }, [clearError]);
+
+  const handleBackToCourses = useCallback(() => {
+    navigate("/instructor");
+  }, [navigate]);
+
+  const handleSettings = useCallback(() => {
+    navigate(`/instructor/courses/${courseId}/edit/settings`);
+  }, [navigate, courseId]);
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Error display */}
+      {courseState.error && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4 mx-6 mt-4">
+          <p className="text-red-800">{courseState.error}</p>
+          <button
+            onClick={clearError}
+            className="text-red-600 hover:text-red-800 text-sm mt-2"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-white border-b px-6 py-4">
         <div className="flex items-center justify-between">
@@ -111,22 +99,38 @@ export default function EditCourse() {
             <Button
               variant="secondary"
               leftIcon={<ArrowLeft size={16} />}
-              onClick={() => navigate("/instructor")}
+              onClick={handleBackToCourses}
               className="text-gray-600 hover:text-gray-800"
             >
               Back to courses
             </Button>
             <div className="flex items-center gap-3">
-              <Heading2>Course name</Heading2>
-              <Chip variant="warning">Draft</Chip>
+              {courseState.isLoading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 size={20} className="animate-spin" />
+                  <Heading2>Loading...</Heading2>
+                </div>
+              ) : (
+                <>
+                  <Heading2>{course?.title || "Course name"}</Heading2>
+                  <Chip
+                    variant={
+                      course?.status === "PUBLISHED" ? "success" : "warning"
+                    }
+                  >
+                    {course?.status || "Draft"}
+                  </Chip>
+                </>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-3">
             <Button
               variant="secondary"
               leftIcon={<Settings size={16} />}
-              onClick={() => setActiveSection("settings")}
+              onClick={handleSettings}
               className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+              disabled={courseState.isLoading}
             >
               Settings
             </Button>
@@ -147,7 +151,11 @@ export default function EditCourse() {
                   {section.items.map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => setActiveSection(item.id)}
+                      onClick={() =>
+                        navigate(
+                          `/instructor/courses/${courseId}/edit/${item.id}`,
+                        )
+                      }
                       className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
                         activeSection === item.id
                           ? "bg-blue-50 text-blue-700 font-medium"
@@ -165,7 +173,18 @@ export default function EditCourse() {
 
         {/* Main Content */}
         <div className="flex-1 mt-4 mb-20 bg-white border border-[#D9D9D9] rounded-lg">
-          {renderContent()}
+          <div className="px-10 py-6">
+            {courseState.isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Loader2 size={24} className="animate-spin" />
+                  <span>Loading course...</span>
+                </div>
+              </div>
+            ) : (
+              <Outlet />
+            )}
+          </div>
         </div>
       </div>
     </div>

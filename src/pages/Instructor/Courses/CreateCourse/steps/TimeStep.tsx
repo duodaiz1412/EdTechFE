@@ -1,14 +1,16 @@
-import {useCourse} from "@/context/CourseContext";
+import {useCourseContext} from "@/context/CourseContext";
 
 const timeOptions = [
   {value: "0-2", label: "I'm very busy right now (0-2 hours)"},
   {value: "2-4", label: "I work on the side (2-4 hours)"},
   {value: "5+", label: "I have lots of flexibility (5+ hours)"},
   {value: "undecided", label: "I haven't decided yet if I have time"},
+  {value: "", label: "Skip this step (optional)"},
 ];
 
 export default function TimeStep() {
-  const {formData, updateFormData} = useCourse();
+  const {formData, updateFormData} = useCourseContext();
+
   return (
     <div className="text-center space-y-6">
       <div>
@@ -16,8 +18,8 @@ export default function TimeStep() {
           How much time can you spend creating your course per week?
         </h2>
         <p className="text-lg text-gray-600">
-          There's no wrong answer. We can help you achieve your goals even if
-          you don't have much time.
+          This is optional. We can help you achieve your goals even if you don't
+          have much time.
         </p>
       </div>
 

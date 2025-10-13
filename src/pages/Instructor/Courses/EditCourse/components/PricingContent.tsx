@@ -1,15 +1,48 @@
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import {Heading3} from "@/components/Typography";
 import Input from "@/components/Input";
 import CommonSelect from "@/components/CommonSelect";
 import Button from "@/components/Button";
+import {useCourseContext} from "@/context/CourseContext";
+import {toast} from "react-toastify";
 
 export default function PricingContent() {
-  const [pricingData, setPricingData] = useState({
-    currency: "vnd",
-    originalPrice: "1.000.000",
-    sellingPrice: "600.000",
-  });
+  const {
+    // Form data from context
+    formData,
+    updateFormData,
+
+    // API State (from hook via context)
+    state: courseState,
+    updateCourse,
+    isLoading,
+    error,
+  } = useCourseContext();
+  const {course} = courseState;
+
+  // Local state for UI-specific data (currency, prices)
+  const [currency, setCurrency] = useState("vnd");
+  const [originalPrice, setOriginalPrice] = useState("0");
+  const [sellingPrice, setSellingPrice] = useState("0");
+
+  // Fill form with course data when course is loaded (only once)
+  useEffect(() => {
+    if (course && formData.originalPrice === 0) {
+      // Only update if formData is empty (first load)
+      updateFormData({
+        currency: course.currency || "vnd",
+        originalPrice: course.coursePrice || 0,
+        sellingPrice: course.sellingPrice || 0,
+      });
+    }
+  }, [course, formData.originalPrice, updateFormData]);
+
+  // Sync local state with formData
+  useEffect(() => {
+    setCurrency(formData.currency || "vnd");
+    setOriginalPrice(formData.originalPrice?.toString() || "0");
+    setSellingPrice(formData.sellingPrice?.toString() || "0");
+  }, [formData.currency, formData.originalPrice, formData.sellingPrice]);
 
   const currencyOptions = [
     {value: "vnd", label: "VND"},
@@ -19,12 +52,37 @@ export default function PricingContent() {
   ];
 
   const handleInputChange = (field: string, value: string) => {
-    setPricingData((prev) => ({...prev, [field]: value}));
+    updateFormData({[field]: value} as any);
   };
 
-  const handleSave = () => {
-    // TODO: Implement save functionality
-    alert("Pricing saved!");
+  const handleSave = async () => {
+    if (!course?.id) {
+      toast.error("No course selected");
+      return;
+    }
+
+    try {
+      const updateData = {
+        title: formData.title,
+        description: formData.description,
+        price: formData.price,
+        currency: formData.currency,
+        coursePrice: formData.originalPrice,
+        sellingPrice: formData.sellingPrice,
+        tag: formData.tag || [],
+        label: formData.label || [],
+      };
+
+      const success = await updateCourse(course.id, updateData);
+
+      if (success) {
+        toast.success("Pricing saved successfully!");
+      } else {
+        toast.error("Failed to save pricing");
+      }
+    } catch {
+      toast.error("Error saving pricing");
+    }
   };
 
   const formatPrice = (price: string) => {
@@ -38,7 +96,15 @@ export default function PricingContent() {
     value: string,
   ) => {
     const formattedPrice = formatPrice(value);
-    handleInputChange(field, formattedPrice);
+    const numericValue = parseInt(formattedPrice.replace(/\./g, "")) || 0;
+
+    if (field === "originalPrice") {
+      setOriginalPrice(formattedPrice);
+      updateFormData({originalPrice: numericValue});
+    } else {
+      setSellingPrice(formattedPrice);
+      updateFormData({sellingPrice: numericValue});
+    }
   };
 
   return (
@@ -47,11 +113,19 @@ export default function PricingContent() {
         <Heading3>Course Pricing</Heading3>
         <Button
           onClick={handleSave}
-          className="bg-gray-800 text-white hover:bg-gray-700"
+          disabled={isLoading}
+          className="bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Save
+          {isLoading ? "Saving..." : "Save"}
         </Button>
       </div>
+
+      {/* Error display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+          <p className="text-red-800">{error}</p>
+        </div>
+      )}
 
       <div className="max-w-md space-y-6">
         <div>
@@ -59,8 +133,11 @@ export default function PricingContent() {
             Currency
           </label>
           <CommonSelect
-            value={pricingData.currency}
-            onChange={(value) => handleInputChange("currency", value)}
+            value={currency}
+            onChange={(value) => {
+              setCurrency(value);
+              handleInputChange("currency", value);
+            }}
             options={currencyOptions}
             placeholder="Select currency"
             className="w-full"
@@ -72,7 +149,7 @@ export default function PricingContent() {
             Original price
           </label>
           <Input
-            value={pricingData.originalPrice}
+            value={originalPrice}
             onChange={(e) => handlePriceChange("originalPrice", e.target.value)}
             placeholder="Enter original price"
             className="w-full"
@@ -84,7 +161,7 @@ export default function PricingContent() {
             Selling price
           </label>
           <Input
-            value={pricingData.sellingPrice}
+            value={sellingPrice}
             onChange={(e) => handlePriceChange("sellingPrice", e.target.value)}
             placeholder="Enter selling price"
             className="w-full"
@@ -100,13 +177,13 @@ export default function PricingContent() {
             <div className="flex justify-between">
               <span className="text-gray-600">Original Price:</span>
               <span className="font-medium">
-                {pricingData.originalPrice} {pricingData.currency.toUpperCase()}
+                {originalPrice} {currency.toUpperCase()}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Selling Price:</span>
               <span className="font-medium text-green-600">
-                {pricingData.sellingPrice} {pricingData.currency.toUpperCase()}
+                {sellingPrice} {currency.toUpperCase()}
               </span>
             </div>
             <div className="border-t pt-2">
@@ -114,15 +191,11 @@ export default function PricingContent() {
                 <span className="text-gray-600">Discount:</span>
                 <span className="font-medium text-red-600">
                   {(() => {
-                    const original = parseInt(
-                      pricingData.originalPrice.replace(/\./g, ""),
-                    );
-                    const selling = parseInt(
-                      pricingData.sellingPrice.replace(/\./g, ""),
-                    );
+                    const original = parseInt(originalPrice.replace(/\./g, ""));
+                    const selling = parseInt(sellingPrice.replace(/\./g, ""));
                     const discount = original - selling;
                     return discount > 0
-                      ? `${discount.toLocaleString("vi-VN")} ${pricingData.currency.toUpperCase()}`
+                      ? `${discount.toLocaleString("vi-VN")} ${currency.toUpperCase()}`
                       : "0 VND";
                   })()}
                 </span>
