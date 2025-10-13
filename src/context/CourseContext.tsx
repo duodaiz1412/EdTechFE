@@ -7,6 +7,7 @@ import {
   ReactNode,
 } from "react";
 import useCourse from "@/hooks/useCourse";
+import { ICourse } from "@/lib/services/course.services";
 
 export interface Chapter {
   id: string;
@@ -88,7 +89,7 @@ interface CourseContextType {
 
   // API operations (from hook)
   createCourse: (formData?: CourseFormData) => Promise<string | null>;
-  loadCourse: (courseId: string) => Promise<void>;
+  loadCourse: (courseId: string) => Promise<ICourse | null>;
   updateCourse: (courseId: string, data: any) => Promise<boolean>;
   publishCourse: (courseId: string) => Promise<boolean>;
   deleteCourse: (courseId: string) => Promise<boolean>;
@@ -96,7 +97,7 @@ interface CourseContextType {
   createChapter: (
     courseId: string,
     chapterData: {title: string; summary?: string},
-  ) => Promise<boolean>;
+  ) => Promise<Chapter | null>;
   deleteChapter: (chapterId: string) => Promise<boolean>;
 
   // Lesson operations

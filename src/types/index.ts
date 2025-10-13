@@ -53,7 +53,7 @@ export const HTTP_STATUS = {
 export interface Role {
   id?: string;
   userId?: string;
-  name?: string;
+  role?: string;
 }
 
 export interface User {

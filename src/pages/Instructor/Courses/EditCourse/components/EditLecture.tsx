@@ -42,6 +42,7 @@ export default function EditLecture() {
   const {
     createLesson,
     updateLesson,
+    loadCourse,
     state: {isSubmitting},
   } = useCourse();
 
@@ -120,16 +121,24 @@ export default function EditLecture() {
 
           if (success) {
             toast.success("Lecture updated successfully!");
+            // Reload course data to get updated lesson
+            if (courseId) {
+              await loadCourse(courseId);
+            }
             navigate(`/instructor/courses/${courseId}/edit/curriculum`);
           } else {
             toast.error("Failed to update lecture");
           }
         } else {
           // Create new lesson
-          const newLessonId = await createLesson(entityId);
+          const newLesson = await createLesson(entityId);
 
-          if (newLessonId) {
+          if (newLesson) {
             toast.success("Lecture created successfully!");
+            // Reload course data to get new lesson
+            if (courseId) {
+              await loadCourse(courseId);
+            }
             navigate(`/instructor/courses/${courseId}/edit/curriculum`);
           } else {
             toast.error("Failed to create lecture");
@@ -367,6 +376,7 @@ export default function EditLecture() {
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-2">
             <Button
+              type="button"
               variant="secondary"
               onClick={() =>
                 navigate(`/instructor/courses/${courseId}/edit/curriculum`)

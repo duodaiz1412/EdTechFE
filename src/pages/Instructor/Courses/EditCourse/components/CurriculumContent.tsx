@@ -4,7 +4,7 @@ import {useNavigate, useParams} from "react-router";
 import Button from "@/components/Button";
 import {Heading3} from "@/components/Typography";
 import Input from "@/components/Input";
-import ChapterList, {Chapter} from "./ChapterList";
+import ChapterList from "./ChapterList";
 import {CourseItem} from "@/context/CourseContext";
 import Modal from "@/components/Modal";
 import DeleteModal from "@/components/DeleteModal";
@@ -39,34 +39,13 @@ export default function CurriculumContent() {
 
   useEffect(() => {
     if (course && (formData.chapters?.length || 0) === 0) {
-      // For now, use default chapters if no course data
-      const defaultChapters: Chapter[] = [
-        {
-          id: "default-1",
-          title: "Chapter name",
-          summary: "Default chapter",
-          slug: "chapter-name",
-          position: 1,
-          lessons: [
-            {
-              id: "1",
-              title: "Lecture name",
-              slug: "lecture-name",
-              content: "",
-              videoUrl: null,
-              fileUrl: null,
-              quizDto: null,
-            },
-          ],
-        },
-      ];
       // Validate and clean course chapters data
       const courseChapters = course.chapters || [];
       const validChapters = courseChapters.map((chapter: any) => ({
         ...chapter,
         lessons:
           chapter.lessons?.map((lesson: any) => ({
-            id: lesson.id || Date.now().toString(),
+            id: lesson.id,
             title: lesson.title || null,
             slug: lesson.slug || null,
             content: lesson.content || null,
@@ -78,7 +57,7 @@ export default function CurriculumContent() {
       }));
 
       updateFormData({
-        chapters: validChapters.length > 0 ? validChapters : defaultChapters,
+        chapters: validChapters,
       });
     }
   }, [course, formData.chapters?.length, updateFormData]);
@@ -96,22 +75,14 @@ export default function CurriculumContent() {
         summary: newChapterSummary,
       };
 
-      const success = await createChapter(course.id, chapterData);
+      const createdChapter = await createChapter(course.id, chapterData);
 
-      if (success) {
-        // Update local form data with new chapter
+      if (createdChapter) {
+        // Update local form data with chapter from API response
         const currentChapters = formData.chapters || [];
-        const nextPosition = currentChapters.length + 1;
-        const newChapter: Chapter = {
-          id: `temp-${Date.now()}`, // Temporary ID until we get real ID from API
-          title: newChapterTitle,
-          summary: newChapterSummary,
-          slug: newChapterTitle.toLowerCase().replace(/\s+/g, "-"),
-          position: nextPosition,
-          lessons: [],
-        };
+        const updatedChapters = [...currentChapters, createdChapter as any];
         updateFormData({
-          chapters: [...currentChapters, newChapter],
+          chapters: updatedChapters,
         });
 
         toast.success("Chapter created successfully!");
@@ -139,25 +110,6 @@ export default function CurriculumContent() {
     const currentChapters = formData.chapters || [];
     updateFormData({
       chapters: currentChapters.filter((chapter) => chapter.id !== chapterId),
-    });
-  };
-
-  // Course item functions
-  const addCourseItem = (chapterId: string) => {
-    const currentChapters = formData.chapters || [];
-    const newItem: CourseItem = {
-      title: "New Lesson",
-      content: "",
-      videoUrl: null,
-      fileUrl: null,
-      quizDto: null,
-    };
-    updateFormData({
-      chapters: currentChapters.map((chapter) =>
-        chapter.id === chapterId
-          ? {...chapter, lessons: [...(chapter.lessons || []), newItem]}
-          : chapter,
-      ),
     });
   };
 
@@ -197,28 +149,14 @@ export default function CurriculumContent() {
     });
   };
 
-  const handleAddItem = (chapterId: string) => {
-    addCourseItem(chapterId);
-  };
-
-  const handleLessonCreated = (lessonId: string, chapterId?: string) => {
+  const handleLessonCreated = (lesson: any, chapterId?: string) => {
     // Add the new lesson to the specified chapter
     const currentChapters = formData.chapters || [];
-    if (chapterId) {
-      const newLesson: CourseItem = {
-        id: lessonId,
-        title: null,
-        slug: null,
-        content: null,
-        videoUrl: null,
-        fileUrl: null,
-        quizDto: null,
-      };
-
+    if (chapterId && lesson) {
       updateFormData({
         chapters: currentChapters.map((chapter) =>
           chapter.id === chapterId
-            ? {...chapter, lessons: [...(chapter.lessons || []), newLesson]}
+            ? {...chapter, lessons: [...(chapter.lessons || []), lesson]}
             : chapter,
         ),
       });
@@ -346,7 +284,6 @@ export default function CurriculumContent() {
           chapters={formData.chapters || []}
           onEditChapter={handleEditChapter}
           onDeleteChapter={handleDeleteChapter}
-          onAddItem={handleAddItem}
           onEditItem={handleEditItem}
           onDeleteItem={handleDeleteItem}
           onLessonCreated={handleLessonCreated}

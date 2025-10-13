@@ -31,6 +31,8 @@ const COURSE_ENDPOINTS = {
     BASE_API + `/instructor/chapters/${chapterId}`,
   DELETE_CHAPTER: (chapterId: string) =>
     BASE_API + `/instructor/chapters/${chapterId}`,
+  GET_CHAPTER_BY_ID: (chapterId: string) =>
+    BASE_API + `/instructor/chapters/${chapterId}`,
 
   // Lesson endpoints
   CREATE_LESSON: (chapterId: string) =>
@@ -48,6 +50,17 @@ const COURSE_ENDPOINTS = {
   // Progress tracking
   MARK_LESSON_COMPLETED: (lessonId: string) =>
     BASE_API + `/lessons/${lessonId}/progress`,
+
+  // Quiz endpoints
+  CREATE_QUIZ: BASE_API + "/instructor/quizzes",
+  UPDATE_QUIZ: (quizId: string) => BASE_API + `/instructor/quizzes/${quizId}`,
+  DELETE_QUIZ: (quizId: string) => BASE_API + `/instructor/quizzes/${quizId}`,
+  ADD_QUESTIONS_TO_QUIZ: (quizId: string) =>
+    BASE_API + `/instructor/quizzes/${quizId}/questions`,
+  UPDATE_QUESTION: (questionId: string) =>
+    BASE_API + `/instructor/questions/${questionId}`,
+  GET_COURSE_QUIZ_SUBMISSIONS: (courseId: string) =>
+    BASE_API + `/instructor/courses/${courseId}/quiz-submissions`,
   GET_COURSE_PROGRESS: (courseId: string) =>
     BASE_API + `/courses/${courseId}/my-progress`,
 } as const;
@@ -505,6 +518,83 @@ export const courseServices = {
     );
     return response;
   },
+
+  // Quiz services
+  async createQuiz(quizData: any, accessToken: string) {
+    const response = await axios.post(
+      COURSE_ENDPOINTS.CREATE_QUIZ,
+      quizData,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response;
+  },
+
+  async updateQuiz(quizId: string, quizData: any, accessToken: string) {
+    const response = await axios.put(
+      COURSE_ENDPOINTS.UPDATE_QUIZ(quizId),
+      quizData,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response;
+  },
+
+  async deleteQuiz(quizId: string, accessToken: string) {
+    const response = await axios.delete(
+      COURSE_ENDPOINTS.DELETE_QUIZ(quizId),
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response;
+  },
+
+  async addQuestionsToQuiz(quizId: string, questions: any[], accessToken: string) {
+    const response = await axios.post(
+      COURSE_ENDPOINTS.ADD_QUESTIONS_TO_QUIZ(quizId),
+      { questions },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response;
+  },
+
+  async updateQuestion(questionId: string, questionData: any, accessToken: string) {
+    const response = await axios.put(
+      COURSE_ENDPOINTS.UPDATE_QUESTION(questionId),
+      questionData,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response;
+  },
+
+  async getCourseQuizSubmissions(courseId: string, accessToken: string) {
+    const response = await axios.get(
+      COURSE_ENDPOINTS.GET_COURSE_QUIZ_SUBMISSIONS(courseId),
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response;
+  },
 };
 
 // Static class for easier usage
@@ -626,5 +716,30 @@ export class CourseService {
 
   static async getCourseProgress(courseId: string, accessToken: string) {
     return courseServices.getCourseProgress(courseId, accessToken);
+  }
+
+  // Quiz methods
+  static async createQuiz(quizData: any, accessToken: string) {
+    return courseServices.createQuiz(quizData, accessToken);
+  }
+
+  static async updateQuiz(quizId: string, quizData: any, accessToken: string) {
+    return courseServices.updateQuiz(quizId, quizData, accessToken);
+  }
+
+  static async deleteQuiz(quizId: string, accessToken: string) {
+    return courseServices.deleteQuiz(quizId, accessToken);
+  }
+
+  static async addQuestionsToQuiz(quizId: string, questions: any[], accessToken: string) {
+    return courseServices.addQuestionsToQuiz(quizId, questions, accessToken);
+  }
+
+  static async updateQuestion(questionId: string, questionData: any, accessToken: string) {
+    return courseServices.updateQuestion(questionId, questionData, accessToken);
+  }
+
+  static async getCourseQuizSubmissions(courseId: string, accessToken: string) {
+    return courseServices.getCourseQuizSubmissions(courseId, accessToken);
   }
 }

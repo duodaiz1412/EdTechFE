@@ -6,6 +6,7 @@ import {
   IChapterRequest,
   ILessonRequest,
 } from "@/lib/services/course.services";
+import {Chapter, CourseItem} from "@/context/CourseContext";
 
 // Types
 // Import CourseFormData từ context để tránh trùng lặp
@@ -32,7 +33,7 @@ export interface UseCourseReturn {
 
   // Course operations
   createCourse: (formData?: any) => Promise<string | null>;
-  loadCourse: (courseId: string) => Promise<void>;
+  loadCourse: (courseId: string) => Promise<ICourse | null>;
   getMyCourses: (
     page?: number,
     size?: number,
@@ -43,14 +44,19 @@ export interface UseCourseReturn {
   deleteCourse: (courseId: string) => Promise<boolean>;
 
   // Chapter operations
-  createChapter: (courseId: string, data: IChapterRequest) => Promise<boolean>;
+  createChapter: (courseId: string, data: IChapterRequest) => Promise<Chapter | null>;
   updateChapter: (chapterId: string, data: IChapterRequest) => Promise<boolean>;
   deleteChapter: (chapterId: string) => Promise<boolean>;
 
   // Lesson operations
-  createLesson: (chapterId: string) => Promise<string | null>;
+  createLesson: (chapterId: string) => Promise<CourseItem | null>;
   updateLesson: (lessonId: string, data: ILessonRequest) => Promise<boolean>;
   deleteLesson: (lessonId: string) => Promise<boolean>;
+
+  // Quiz operations
+  createQuiz: (quizData: any) => Promise<any>;
+  updateQuiz: (quizId: string, quizData: any) => Promise<boolean>;
+  deleteQuiz: (quizId: string) => Promise<boolean>;
 
   // Utility functions
   clearError: () => void;
@@ -154,7 +160,7 @@ const useCourse = (): UseCourseReturn => {
   );
 
   const loadCourse = useCallback(
-    async (courseId: string): Promise<void> => {
+    async (courseId: string): Promise<ICourse | null> => {
       try {
         setLoading(true);
         clearError();
@@ -169,8 +175,10 @@ const useCourse = (): UseCourseReturn => {
           accessToken,
         );
         setState((prev) => ({...prev, course: response.data}));
+        return response.data;
       } catch (err) {
         handleError(err, "loadCourse");
+        return null;
       } finally {
         setLoading(false);
       }
@@ -298,7 +306,7 @@ const useCourse = (): UseCourseReturn => {
 
   // Chapter operations
   const createChapter = useCallback(
-    async (courseId: string, data: IChapterRequest): Promise<boolean> => {
+    async (courseId: string, data: IChapterRequest): Promise<Chapter | null> => {
       try {
         setLoading(true);
         clearError();
@@ -308,11 +316,11 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        await CourseService.createChapter(courseId, data, accessToken);
-        return true;
+        const response = await CourseService.createChapter(courseId, data, accessToken);
+        return response.data;
       } catch (err) {
         handleError(err, "createChapter");
-        return false;
+        return null;
       } finally {
         setLoading(false);
       }
@@ -368,7 +376,7 @@ const useCourse = (): UseCourseReturn => {
 
   // Lesson operations
   const createLesson = useCallback(
-    async (chapterId: string): Promise<string | null> => {
+    async (chapterId: string): Promise<CourseItem | null> => {
       try {
         setLoading(true);
         clearError();
@@ -382,7 +390,7 @@ const useCourse = (): UseCourseReturn => {
           chapterId,
           accessToken,
         );
-        return response.data?.id || null;
+        return response.data;
       } catch (err) {
         handleError(err, "createLesson");
         return null;
@@ -439,6 +447,76 @@ const useCourse = (): UseCourseReturn => {
     [getAccessToken, handleError, setLoading, clearError],
   );
 
+  // Quiz operations
+  const createQuiz = useCallback(
+    async (quizData: any): Promise<any> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        const response = await CourseService.createQuiz(quizData, accessToken);
+        return response.data;
+      } catch (err) {
+        handleError(err, "createQuiz");
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  const updateQuiz = useCallback(
+    async (quizId: string, quizData: any): Promise<boolean> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        await CourseService.updateQuiz(quizId, quizData, accessToken);
+        return true;
+      } catch (err) {
+        handleError(err, "updateQuiz");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  const deleteQuiz = useCallback(
+    async (quizId: string): Promise<boolean> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        await CourseService.deleteQuiz(quizId, accessToken);
+        return true;
+      } catch (err) {
+        handleError(err, "deleteQuiz");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
   // Intended learners operations
   const updateIntendedLearners = useCallback(
     (data: Partial<IntendedLearnersData>) => {
@@ -472,6 +550,11 @@ const useCourse = (): UseCourseReturn => {
     createLesson,
     updateLesson,
     deleteLesson,
+
+    // Quiz operations
+    createQuiz,
+    updateQuiz,
+    deleteQuiz,
 
     // Utility functions
     clearError,

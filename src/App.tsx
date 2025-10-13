@@ -73,7 +73,7 @@ function App() {
           username: response.data.username,
           image: response.data.userImage || undefined,
           type: response.data.userType,
-          roles: response.data.roles.map((role: Role) => role.name),
+          roles: response.data.roles.map((role: Role) => role.role),
           enrollments: enrollments,
         }),
       );

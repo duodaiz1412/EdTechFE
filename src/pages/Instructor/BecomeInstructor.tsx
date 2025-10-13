@@ -13,6 +13,7 @@ export default function BecomeInstructor() {
   const userData = useAppSelector((state) => state.user.data);
 
   useEffect(() => {
+    console.log(userData);
     if (userData?.roles.includes("COURSE_CREATOR")) {
       navigate("/instructor");
     }

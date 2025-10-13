@@ -17,17 +17,15 @@ interface ChapterListProps {
   chapters: Chapter[];
   onEditChapter: (chapterId: string) => void;
   onDeleteChapter: (chapterId: string) => void;
-  onAddItem: (chapterId: string) => void;
   onEditItem: (chapterId: string, itemId: string) => void;
   onDeleteItem: (chapterId: string, itemId: string) => void;
-  onLessonCreated?: (lessonId: string, chapterId: string) => void;
+  onLessonCreated?: (lesson: any, chapterId: string) => void;
 }
 
 export default function ChapterList({
   chapters,
   onEditChapter,
   onDeleteChapter,
-  onAddItem,
   onEditItem,
   onDeleteItem,
   onLessonCreated,
@@ -76,9 +74,8 @@ export default function ChapterList({
 
           <NewItemAction
             chapterId={chapter?.id}
-            onAddItem={onAddItem}
-            onLessonCreated={(lessonId) =>
-              onLessonCreated?.(lessonId, chapter?.id || "")
+            onLessonCreated={(lesson) =>
+              onLessonCreated?.(lesson, chapter?.id || "")
             }
           />
         </div>
