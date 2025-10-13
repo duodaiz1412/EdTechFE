@@ -1,126 +1,231 @@
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import {Plus, Eye} from "lucide-react";
+import {useNavigate, useParams} from "react-router";
 import Button from "@/components/Button";
 import {Heading3} from "@/components/Typography";
 import Input from "@/components/Input";
 import ChapterList, {Chapter} from "./ChapterList";
-import {CourseItem} from "./ChapterItem";
+import {CourseItem} from "@/context/CourseContext";
 import Modal from "@/components/Modal";
 import DeleteModal from "@/components/DeleteModal";
+import {useCourseContext} from "@/context/CourseContext";
+import { toast } from "react-toastify";
+import NewChapterForm from "./NewChapterForm";
 
 // Types are imported from ChapterList/ChapterItem
 
 export default function CurriculumContent() {
-  const [chapters, setChapters] = useState<Chapter[]>([
-    {
-      id: 1,
-      title: "Chapter name",
-      items: [
-        {id: 1, type: "lecture", title: "Lecture name", status: "published"},
-        {id: 2, type: "quiz", title: "Quiz name", status: "draft"},
-        {id: 3, type: "assignment", title: "Assignment name", status: "draft"},
-        {id: 4, type: "coding", title: "Name", status: "draft"},
-      ],
-    },
-  ]);
+  const navigate = useNavigate();
+  const {courseId} = useParams();
+  const {
+    // Form data from context
+    formData,
+    updateFormData,
+    
+    // API State (from hook via context)
+    state: courseState,
+    createChapter,
+    deleteChapter,
+    deleteLesson,
+    isLoading,
+    error,
+  } = useCourseContext();
+  const {course} = courseState;
 
+  // Local state for UI-specific data (form inputs, modals)
   const [showNewChapterForm, setShowNewChapterForm] = useState(false);
   const [newChapterTitle, setNewChapterTitle] = useState("");
   const [newChapterSummary, setNewChapterSummary] = useState("");
 
+  useEffect(() => {
+    if (course && (formData.chapters?.length || 0) === 0) {
+      // For now, use default chapters if no course data
+      const defaultChapters: Chapter[] = [
+        {
+          id: "default-1",
+          title: "Chapter name",
+          summary: "Default chapter",
+          slug: "chapter-name",
+          position: 1,
+          lessons: [
+            {
+              id: "1",
+              title: "Lecture name",
+              slug: "lecture-name",
+              content: "",
+              videoUrl: null,
+              fileUrl: null,
+              quizDto: null,
+            },
+          ],
+        },
+      ];
+      // Validate and clean course chapters data
+      const courseChapters = course.chapters || [];
+      const validChapters = courseChapters.map((chapter: any) => ({
+        ...chapter,
+        lessons: chapter.lessons?.map((lesson: any) => ({
+          id: lesson.id || Date.now().toString(),
+          title: lesson.title || null,
+          slug: lesson.slug || null,
+          content: lesson.content || null,
+          videoUrl: lesson.videoUrl || null,
+          fileUrl: lesson.fileUrl || null,
+          quizDto: lesson.quizDto || null,
+          position: lesson.position || null,
+        })) || []
+      }));
+
+      updateFormData({
+        chapters: validChapters.length > 0 ? validChapters : defaultChapters,
+      });
+    }
+  }, [course, formData.chapters?.length, updateFormData]);
+
   // Chapter functions
-  const addChapter = () => {
-    if (newChapterTitle.trim()) {
-      const nextId = chapters.length
-        ? Math.max(...chapters.map((c) => c.id)) + 1
-        : 1;
-      const newChapter: Chapter = {
-        id: nextId,
+  const addChapter = async () => {
+    if (!newChapterTitle.trim() || !course?.id) {
+      toast.warning("Please enter a chapter title");
+      return;
+    }
+
+    try {
+      const chapterData = {
         title: newChapterTitle,
         summary: newChapterSummary,
-        items: [],
       };
-      setChapters((prev) => [...prev, newChapter]);
-      setNewChapterTitle("");
-      setNewChapterSummary("");
-      setShowNewChapterForm(false);
+
+      const success = await createChapter(course.id, chapterData);
+      
+      if (success) {
+        // Update local form data with new chapter
+        const currentChapters = formData.chapters || [];
+        const nextPosition = currentChapters.length + 1;
+        const newChapter: Chapter = {
+          id: `temp-${Date.now()}`, // Temporary ID until we get real ID from API
+          title: newChapterTitle,
+          summary: newChapterSummary,
+          slug: newChapterTitle.toLowerCase().replace(/\s+/g, '-'),
+          position: nextPosition,
+          lessons: [],
+        };
+        updateFormData({
+          chapters: [...currentChapters, newChapter]
+        });
+        
+        toast.success("Chapter created successfully!");
+        setNewChapterTitle("");
+        setNewChapterSummary("");
+        setShowNewChapterForm(false);
+      } else {
+        toast.error("Failed to create chapter");
+      }
+    } catch {
+      toast.error("Error creating chapter");
     }
   };
 
-  const updateChapter = (chapterId: number, title: string) => {
-    setChapters((prev) =>
-      prev.map((chapter) =>
+  const updateChapter = (chapterId: string, title: string) => {
+    const currentChapters = formData.chapters || [];
+    updateFormData({
+      chapters: currentChapters.map((chapter) =>
         chapter.id === chapterId ? {...chapter, title} : chapter,
       ),
-    );
+    });
   };
 
-  const removeChapter = (chapterId: number) => {
-    setChapters((prev) => prev.filter((chapter) => chapter.id !== chapterId));
+  const removeChapter = (chapterId: string) => {
+    const currentChapters = formData.chapters || [];
+    updateFormData({
+      chapters: currentChapters.filter((chapter) => chapter.id !== chapterId)
+    });
   };
 
   // Course item functions
-  const addCourseItem = (
-    chapterId: number,
-    type: CourseItem["type"],
-    title: string,
-  ) => {
+  const addCourseItem = (chapterId: string) => {
+    const currentChapters = formData.chapters || [];
     const newItem: CourseItem = {
-      id: Date.now(),
-      type,
-      title,
-      status: "draft",
+      title: "New Lesson",
+      content: "",
+      videoUrl: null,
+      fileUrl: null,
+      quizDto: null,
     };
-    setChapters((prev) =>
-      prev.map((chapter) =>
+    updateFormData({
+      chapters: currentChapters.map((chapter) =>
         chapter.id === chapterId
-          ? {...chapter, items: [...chapter.items, newItem]}
+          ? {...chapter, lessons: [...(chapter.lessons || []), newItem]}
           : chapter,
       ),
-    );
+    });
   };
 
   const updateCourseItem = (
-    chapterId: number,
-    itemId: number,
+    chapterId: string,
+    itemId: string,
     updates: Partial<CourseItem>,
   ) => {
-    setChapters((prev) =>
-      prev.map((chapter) =>
+    const currentChapters = formData.chapters || [];
+    updateFormData({
+      chapters: currentChapters.map((chapter) =>
         chapter.id === chapterId
           ? {
               ...chapter,
-              items: chapter.items.map((item) =>
+              lessons: (chapter.lessons || []).map((item) =>
                 item.id === itemId ? {...item, ...updates} : item,
               ),
             }
           : chapter,
       ),
-    );
+    });
   };
 
-  const removeCourseItem = (chapterId: number, itemId: number) => {
-    setChapters((prev) =>
-      prev.map((chapter) =>
+  const removeCourseItem = (chapterId: string, itemId: string) => {
+    const currentChapters = formData.chapters || [];
+    updateFormData({
+      chapters: currentChapters.map((chapter) =>
         chapter.id === chapterId
           ? {
               ...chapter,
-              items: chapter.items.filter((item) => item.id !== itemId),
+              lessons: (chapter.lessons || []).filter((item) => item.id !== itemId),
             }
           : chapter,
       ),
-    );
+    });
   };
 
-  const handleAddItem = (chapterId: number, type: CourseItem["type"]) => {
-    const title = prompt(`Enter ${type} title:`);
-    if (title?.trim()) {
-      addCourseItem(chapterId, type, title);
+  const handleAddItem = (chapterId: string) => {
+    addCourseItem(chapterId);
+  };
+
+  const handleLessonCreated = (lessonId: string, chapterId?: string) => {
+    // Add the new lesson to the specified chapter
+    const currentChapters = formData.chapters || [];
+    if (chapterId) {
+      const newLesson: CourseItem = {
+        id: lessonId,
+        title: null,
+        slug: null,
+        content: null,
+        videoUrl: null,
+        fileUrl: null,
+        quizDto: null,
+      };
+      
+      updateFormData({
+        chapters: currentChapters.map((chapter) =>
+          chapter.id === chapterId
+            ? {...chapter, lessons: [...(chapter.lessons || []), newLesson]}
+            : chapter,
+        ),
+      });
     }
+    toast.success("Lesson created successfully!");
   };
 
-  const handleEditChapter = (chapterId: number) => {
-    const chapter = chapters.find((c) => c.id === chapterId);
+  const handleEditChapter = (chapterId: string) => {
+    const currentChapters = formData.chapters || [];
+    const chapter = currentChapters.find((c) => c.id === chapterId);
     if (!chapter) return;
     const newTitle = prompt("Edit chapter title:", chapter.title);
     if (newTitle?.trim()) {
@@ -128,46 +233,89 @@ export default function CurriculumContent() {
     }
   };
 
-  const handleDeleteChapter = (chapterId: number) => {
-    const chapter = chapters.find((c) => c.id === chapterId);
+  const handleDeleteChapter = (chapterId: string) => {
+    const currentChapters = formData.chapters || [];
+    const chapter = currentChapters.find((c) => c.id === chapterId);
     if (!chapter) return;
-    if (
-      confirm(`Are you sure you want to delete chapter "${chapter.title}"?`)
-    ) {
-      removeChapter(chapterId);
-    }
+    setDeleteState({open: true, type: 'chapter', chapterId, itemId: null, title: chapter.title});
   };
 
   // Modals for editing/deleting items
   const [editItemState, setEditItemState] = useState<{
     open: boolean;
-    chapterId: number | null;
-    itemId: number | null;
+    chapterId: string | null;
+    itemId: string | null;
     title: string;
   }>({open: false, chapterId: null, itemId: null, title: ""});
-  const [deleteItemState, setDeleteItemState] = useState<{
+  const [deleteState, setDeleteState] = useState<{
     open: boolean;
-    chapterId: number | null;
-    itemId: number | null;
+    type: 'chapter' | 'lesson' | null;
+    chapterId: string | null;
+    itemId: string | null;
     title: string;
-  }>({open: false, chapterId: null, itemId: null, title: ""});
+  }>({open: false, type: null, chapterId: null, itemId: null, title: ""});
 
-  const handleEditItem = (chapterId: number, itemId: number) => {
-    const chapter = chapters.find((c) => c.id === chapterId);
-    const item = chapter?.items.find((i) => i.id === itemId);
-    if (!item) return;
-    setEditItemState({open: true, chapterId, itemId, title: item.title});
+  const handleEditItem = (_chapterId: string, itemId: string) => {
+    navigate(`/instructor/courses/${courseId}/edit/lecture/edit/${itemId}`);
   };
 
-  const handleDeleteItem = (chapterId: number, itemId: number) => {
-    const chapter = chapters.find((c) => c.id === chapterId);
-    const item = chapter?.items.find((i) => i.id === itemId);
+  const handleDeleteItem = (chapterId: string, itemId: string) => {
+    const currentChapters = formData.chapters || [];
+    const chapter = currentChapters.find((c) => c.id === chapterId);
+    const item = chapter?.lessons?.find((i) => i.id === itemId);
     if (!item) return;
-    setDeleteItemState({open: true, chapterId, itemId, title: item.title});
+    setDeleteState({open: true, type: 'lesson', chapterId, itemId, title: item.title || 'Untitled'});
   };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteState.chapterId) return;
+
+    try {
+      if (deleteState.type === 'chapter') {
+        const success = await deleteChapter(deleteState.chapterId);
+        
+        if (success) {
+          // Remove from local state
+          removeChapter(deleteState.chapterId);
+          toast.success("Chapter deleted successfully!");
+        } else {
+          toast.error("Failed to delete chapter");
+        }
+      } else if (deleteState.type === 'lesson' && deleteState.itemId) {
+        const success = await deleteLesson(deleteState.itemId);
+        
+        if (success) {
+          // Remove from local state
+          removeCourseItem(deleteState.chapterId, deleteState.itemId);
+          toast.success("Lesson deleted successfully!");
+        } else {
+          toast.error("Failed to delete lesson");
+        }
+      }
+    } catch {
+      const itemType = deleteState.type === 'chapter' ? 'chapter' : 'lesson';
+      toast.error(`Error deleting ${itemType}`);
+    } finally {
+      setDeleteState({
+        open: false,
+        type: null,
+        chapterId: null,
+        itemId: null,
+        title: "",
+      });
+    }
+  };
+
 
   return (
     <div className="">
+      {/* Error display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+          <p className="text-red-800">{error}</p>
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-6">
         <Heading3>Curriculum</Heading3>
         <Button
@@ -181,12 +329,13 @@ export default function CurriculumContent() {
 
       <div className="space-y-6">
         <ChapterList
-          chapters={chapters}
+          chapters={formData.chapters || []}
           onEditChapter={handleEditChapter}
           onDeleteChapter={handleDeleteChapter}
           onAddItem={handleAddItem}
           onEditItem={handleEditItem}
           onDeleteItem={handleDeleteItem}
+          onLessonCreated={handleLessonCreated}
         />
 
         {!showNewChapterForm ? (
@@ -199,53 +348,19 @@ export default function CurriculumContent() {
             Add new chapter
           </Button>
         ) : (
-          <div className="border border-gray-200 rounded-lg p-6 bg-white">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  New chapter:
-                </label>
-                <Input
-                  value={newChapterTitle}
-                  onChange={(e) => setNewChapterTitle(e.target.value)}
-                  placeholder="Chapter name"
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Chapter summary/goal:
-                </label>
-                <textarea
-                  value={newChapterSummary}
-                  onChange={(e) => setNewChapterSummary(e.target.value)}
-                  placeholder="Enter chapter summary or goal..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  rows={3}
-                />
-              </div>
-              <div className="flex justify-end gap-3">
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    setShowNewChapterForm(false);
-                    setNewChapterTitle("");
-                    setNewChapterSummary("");
-                  }}
-                  className="text-gray-600 hover:text-gray-800"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={addChapter}
-                  disabled={!newChapterTitle.trim()}
-                  className="bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Add chapter
-                </Button>
-              </div>
-            </div>
-          </div>
+          <NewChapterForm
+            title={newChapterTitle}
+            summary={newChapterSummary}
+            isLoading={isLoading}
+            onTitleChange={setNewChapterTitle}
+            onSummaryChange={setNewChapterSummary}
+            onSubmit={addChapter}
+            onCancel={() => {
+              setShowNewChapterForm(false);
+              setNewChapterTitle("");
+              setNewChapterSummary("");
+            }}
+          />
         )}
       </div>
 
@@ -303,26 +418,17 @@ export default function CurriculumContent() {
         />
       </Modal>
 
-      {/* Delete Item Modal */}
+      {/* Delete Modal */}
       <DeleteModal
-        open={deleteItemState.open}
-        title="Delete item"
-        message={`Are you sure you want to delete "${deleteItemState.title}"?`}
-        onClose={() => setDeleteItemState((prev) => ({...prev, open: false}))}
-        onConfirm={() => {
-          if (
-            deleteItemState.chapterId == null ||
-            deleteItemState.itemId == null
-          )
-            return;
-          removeCourseItem(deleteItemState.chapterId, deleteItemState.itemId);
-          setDeleteItemState({
-            open: false,
-            chapterId: null,
-            itemId: null,
-            title: "",
-          });
-        }}
+        open={deleteState.open}
+        title={`Delete ${deleteState.type}`}
+        message={
+          deleteState.type === 'chapter' 
+            ? `Are you sure you want to delete "${deleteState.title}"? This will also delete all lessons in this chapter. This action cannot be undone.`
+            : `Are you sure you want to delete "${deleteState.title}"? This action cannot be undone.`
+        }
+        onClose={() => setDeleteState((prev) => ({...prev, open: false}))}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );

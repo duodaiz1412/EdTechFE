@@ -1,8 +1,10 @@
 import Input from "@/components/Input";
-import {useCourse} from "@/context/CourseContext";
+import {useCourseContext} from "@/context/CourseContext";
 
 export default function BasicInfoStep() {
-  const {formData, updateFormData} = useCourse();
+  const {formData, updateFormData, validateField} = useCourseContext();
+  const titleError = validateField('title');
+
   return (
     <div className="text-center space-y-6">
       <div>
@@ -20,8 +22,11 @@ export default function BasicInfoStep() {
           value={formData.title}
           onChange={(e) => updateFormData({title: e.target.value})}
           placeholder="E.g: Learn Photoshop CS6 from scratch"
-          className="w-full text-center text-lg py-3"
+          className="w-full text-center text-lg py-3 focus:outline-none focus:ring-1 focus:border-gray-300"
         />
+        {titleError && (
+          <p className="text-red-500 text-sm mt-1 text-left">{titleError}</p>
+        )}
       </div>
     </div>
   );

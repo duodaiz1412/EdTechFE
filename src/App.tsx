@@ -35,9 +35,20 @@ import InstructorLayout from "./layout/InstructorLayout.tsx";
 import InstructorCourse from "./pages/Instructor/Courses/index.tsx";
 import CreateCourse from "./pages/Instructor/Courses/CreateCourse/index.tsx";
 import EditCourse from "./pages/Instructor/Courses/EditCourse/index.tsx";
-import CreateLecture from "./pages/Instructor/Courses/EditCourse/components/CreateLecture.tsx";
+import IntendedLearnersContent from "./pages/Instructor/Courses/EditCourse/components/IntendedLearnersContent.tsx";
+import CourseStructureContent from "./pages/Instructor/Courses/EditCourse/components/CourseStructureContent.tsx";
+import FilmEditContent from "./pages/Instructor/Courses/EditCourse/components/FilmEditContent.tsx";
+import CurriculumContent from "./pages/Instructor/Courses/EditCourse/components/CurriculumContent.tsx";
+import CaptionContent from "./pages/Instructor/Courses/EditCourse/components/CaptionContent.tsx";
+import AccessibilityContent from "./pages/Instructor/Courses/EditCourse/components/AccessibilityContent.tsx";
+import LandingPageContent from "./pages/Instructor/Courses/EditCourse/components/LandingPageContent.tsx";
+import PricingContent from "./pages/Instructor/Courses/EditCourse/components/PricingContent.tsx";
+import PromotionsContent from "./pages/Instructor/Courses/EditCourse/components/PromotionsContent.tsx";
+import CourseMessagesContent from "./pages/Instructor/Courses/EditCourse/components/CourseMessagesContent.tsx";
+import CourseSettingsContent from "./pages/Instructor/Courses/EditCourse/components/CourseSettingsContent.tsx";
 import {CourseProvider} from "./context/CourseContext.tsx";
 import BecomeInstructor from "./pages/Instructor/BecomeInstructor.tsx";
+import EditLecture from "./pages/Instructor/Courses/EditCourse/components/EditLecture.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -81,7 +92,7 @@ function App() {
             <Route path="/register" element={<Register />} />
           </Route>
           <Route path="/notify" element={<Notify />} />
-          <Route path="/api/v1/auth/verify" element={<VerifyRedirect />} />
+          <Route path="/auth/verify" element={<VerifyRedirect />} />
           <Route path="/verify" element={<Verify />} />
 
           {/* Public routes */}
@@ -185,18 +196,36 @@ function App() {
                   requiredRole="COURSE_CREATOR"
                   redirectTo="/teaching"
                 >
-                  <EditCourse />
+                  <CourseProvider>
+                    <EditCourse />
+                  </CourseProvider>
                 </RoleProtectedRoute>
               }
-            />
+            >
+              <Route index element={<IntendedLearnersContent />} />
+              <Route path="intended-learners" element={<IntendedLearnersContent />} />
+              <Route path="course-structure" element={<CourseStructureContent />} />
+              <Route path="setup-test" element={<div className="text-center text-gray-500">Setup & test video content coming soon...</div>} />
+              <Route path="film-edit" element={<FilmEditContent />} />
+              <Route path="curriculum" element={<CurriculumContent />} />
+              <Route path="caption" element={<CaptionContent />} />
+              <Route path="accessibility" element={<AccessibilityContent />} />
+              <Route path="landing-page" element={<LandingPageContent />} />
+              <Route path="pricing" element={<PricingContent />} />
+              <Route path="promotions" element={<PromotionsContent />} />
+              <Route path="messages" element={<CourseMessagesContent />} />
+              <Route path="settings" element={<CourseSettingsContent />} />
+            </Route>
             <Route
-              path="/instructor/courses/:courseId/edit/lecture/create"
+              path="/instructor/courses/:courseId/edit/lecture/edit/:lessonId"
               element={
                 <RoleProtectedRoute
                   requiredRole="COURSE_CREATOR"
                   redirectTo="/teaching"
                 >
-                  <CreateLecture />
+                  <CourseProvider>
+                    <EditLecture />
+                  </CourseProvider>
                 </RoleProtectedRoute>
               }
             />
