@@ -53,6 +53,9 @@ import BecomeInstructor from "./pages/Instructor/BecomeInstructor.tsx";
 import {enrollServices} from "./lib/services/enroll.services.ts";
 import PublicProfile from "./pages/Profile/PublicProfile.tsx";
 import EditLecture from "./pages/Instructor/Courses/EditCourse/components/EditLecture.tsx";
+import EditVideoLecture from "./pages/Instructor/Courses/EditCourse/components/EditVideoLecture.tsx";
+import EditArticleLecture from "./pages/Instructor/Courses/EditCourse/components/EditArticleLecture.tsx";
+import EditQuizLecture from "./pages/Instructor/Courses/EditCourse/components/EditQuizLecture.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -225,6 +228,7 @@ function App() {
               <Route path="messages" element={<CourseMessagesContent />} />
               <Route path="settings" element={<CourseSettingsContent />} />
             </Route>
+            {/* Edit existing lecture */}
             <Route
               path="/instructor/courses/:courseId/edit/lecture/edit/:lessonId"
               element={
@@ -234,6 +238,51 @@ function App() {
                 >
                   <CourseProvider>
                     <EditLecture />
+                  </CourseProvider>
+                </RoleProtectedRoute>
+              }
+            />
+            
+            {/* Edit video lecture */}
+            <Route
+              path="/instructor/courses/:courseId/edit/lecture/video/:lessonId"
+              element={
+                <RoleProtectedRoute
+                  requiredRole="COURSE_CREATOR"
+                  redirectTo="/teaching"
+                >
+                  <CourseProvider>
+                    <EditVideoLecture />
+                  </CourseProvider>
+                </RoleProtectedRoute>
+              }
+            />
+            
+            {/* Edit article lecture */}
+            <Route
+              path="/instructor/courses/:courseId/edit/lecture/article/:lessonId"
+              element={
+                <RoleProtectedRoute
+                  requiredRole="COURSE_CREATOR"
+                  redirectTo="/teaching"
+                >
+                  <CourseProvider>
+                    <EditArticleLecture />
+                  </CourseProvider>
+                </RoleProtectedRoute>
+              }
+            />
+            
+            {/* Edit quiz lecture */}
+            <Route
+              path="/instructor/courses/:courseId/edit/lecture/quiz/:lessonId"
+              element={
+                <RoleProtectedRoute
+                  requiredRole="COURSE_CREATOR"
+                  redirectTo="/teaching"
+                >
+                  <CourseProvider>
+                    <EditQuizLecture />
                   </CourseProvider>
                 </RoleProtectedRoute>
               }

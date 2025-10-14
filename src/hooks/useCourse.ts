@@ -173,7 +173,7 @@ const useCourse = (): UseCourseReturn => {
         const response = await CourseService.getCourseForInstructor(
           courseId,
           accessToken,
-        );
+        )
         setState((prev) => ({...prev, course: response.data}));
         return response.data;
       } catch (err) {

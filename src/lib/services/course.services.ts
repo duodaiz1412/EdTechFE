@@ -91,6 +91,13 @@ export interface ILessonRequest {
   description?: string;
   content?: string;
   videoUrl?: string;
+  quizDto?: {
+    questions: {
+      question: string;
+      options: string[];
+      correctAnswer: number;
+    }[];
+  } | null;
 }
 
 export interface CourseFilters {

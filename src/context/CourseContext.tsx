@@ -37,8 +37,8 @@ export interface CourseFormData {
   timeCommitment: string;
   tag: {name: string}[];
   label: {name: string}[];
-  thumbnailUrl?: string;
-  videoUrl?: string;
+  image?: string;
+  videoLink?: string;
   // Landing page specific fields
   subtitle?: string;
   language?: string;
@@ -126,8 +126,8 @@ const initialFormData: CourseFormData = {
   timeCommitment: "",
   tag: [],
   label: [],
-  thumbnailUrl: undefined,
-  videoUrl: undefined,
+  image: undefined,
+  videoLink: undefined,
   subtitle: "",
   language: "vietnamese",
   currency: "vnd",

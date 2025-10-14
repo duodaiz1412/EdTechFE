@@ -1,11 +1,13 @@
 import {useState, useEffect} from "react";
-import {X, Upload, Eye} from "lucide-react";
+import {X, Eye} from "lucide-react";
 import Button from "@/components/Button";
 import {Heading3} from "@/components/Typography";
 import Input from "@/components/Input";
 import CommonSelect from "@/components/CommonSelect";
 import Chip from "@/components/Chip";
+import FileUpload from "@/components/FileUpload";
 import {useCourseContext} from "@/context/CourseContext";
+import {UploadPurpose} from "@/types/upload.types";
 import {toast} from "react-toastify";
 
 export default function LandingPageContent() {
@@ -25,8 +27,8 @@ export default function LandingPageContent() {
   // Local state for UI-specific data (files, temporary inputs)
   const [newTag, setNewTag] = useState("");
   const [newSubject, setNewSubject] = useState("");
-  const [courseImage, setCourseImage] = useState<File | null>(null);
-  const [promotionalVideo, setPromotionalVideo] = useState<File | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+  const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string | null>(null);
 
   // Fill form with course data when course is loaded (only once)
   useEffect(() => {
@@ -43,9 +45,12 @@ export default function LandingPageContent() {
         sellingPrice: course.sellingPrice || 0,
         tag: course.tags?.map((tag: any) => ({name: tag.name})) || [],
         label: course.labels?.map((label: any) => ({name: label.name})) || [],
+        image: course.image || "",
+        videoLink: course.videoLink || "",
       });
     }
-  }, [course]);
+  }, [course, formData.title, updateFormData]);
+
 
   const languageOptions = [
     {value: "vietnamese", label: "Vietnamese"},
@@ -58,15 +63,22 @@ export default function LandingPageContent() {
     updateFormData({[field]: value} as any);
   };
 
-  const handleFileChange = (
-    field: "courseImage" | "promotionalVideo",
-    file: File | null,
-  ) => {
-    if (field === "courseImage") {
-      setCourseImage(file);
-    } else {
-      setPromotionalVideo(file);
-    }
+  const handleImageUploadSuccess = (url: string) => {
+    setUploadedImageUrl(url);
+    toast.success("Ảnh khóa học đã được upload thành công!");
+  };
+
+  const handleVideoUploadSuccess = (url: string) => {
+    setUploadedVideoUrl(url);
+    toast.success("Video quảng cáo đã được upload thành công!");
+  };
+
+  const handleImageUploadError = (error: string) => {
+    toast.error(`Lỗi upload ảnh: ${error}`);
+  };
+
+  const handleVideoUploadError = (error: string) => {
+    toast.error(`Lỗi upload video: ${error}`);
   };
 
   const addTag = () => {
@@ -143,12 +155,18 @@ export default function LandingPageContent() {
         sellingPrice: formData.sellingPrice,
         tag: formData.tag,
         label: formData.label,
+        // Thêm URLs của ảnh và video đã upload nếu có
+        ...(uploadedImageUrl && { image: uploadedImageUrl }),
+        ...(uploadedVideoUrl && { videoLink: uploadedVideoUrl }),
       };
 
       const success = await updateCourse(course.id, updateData);
 
       if (success) {
         toast.success("Course landing page saved successfully!");
+        // Reset upload states sau khi save thành công
+        setUploadedImageUrl(null);
+        setUploadedVideoUrl(null);
       } else {
         toast.error("Failed to save course landing page");
       }
@@ -344,85 +362,30 @@ export default function LandingPageContent() {
         </div>
 
         {/* Course Image */}
-        <div>
-          <h4 className="text-lg font-semibold text-gray-900 mb-4">
-            Course Image
-          </h4>
-          <div className="flex gap-6">
-            <div className="w-64 h-40 bg-gray-200 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-              {courseImage ? (
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">{courseImage.name}</p>
-                </div>
-              ) : (
-                <div className="text-center text-gray-500">
-                  <Upload size={32} className="mx-auto mb-2" />
-                  <p className="text-sm">Upload course image</p>
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) =>
-                  handleFileChange("courseImage", e.target.files?.[0] || null)
-                }
-                className="hidden"
-                id="course-image-upload"
-              />
-              <label
-                htmlFor="course-image-upload"
-                className="block w-full px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
-              >
-                Upload an image
-              </label>
-            </div>
-          </div>
-        </div>
+        {course?.id && (
+          <FileUpload
+            title="Course Image"
+            accept="image/*"
+            purpose={UploadPurpose.COURSE_THUMBNAIL}
+            courseId={course.id}
+            src={course.image}
+            onUploadSuccess={handleImageUploadSuccess}
+            onUploadError={handleImageUploadError}
+          />
+        )}
 
         {/* Promotional Video */}
-        <div>
-          <h4 className="text-lg font-semibold text-gray-900 mb-4">
-            Promotional Video
-          </h4>
-          <div className="flex gap-6">
-            <div className="w-64 h-40 bg-gray-200 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-              {promotionalVideo ? (
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">
-                    {promotionalVideo.name}
-                  </p>
-                </div>
-              ) : (
-                <div className="text-center text-gray-500">
-                  <Upload size={32} className="mx-auto mb-2" />
-                  <p className="text-sm">Upload promotional video</p>
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <input
-                type="file"
-                accept="video/*"
-                onChange={(e) =>
-                  handleFileChange(
-                    "promotionalVideo",
-                    e.target.files?.[0] || null,
-                  )
-                }
-                className="hidden"
-                id="promotional-video-upload"
-              />
-              <label
-                htmlFor="promotional-video-upload"
-                className="block w-full px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
-              >
-                Upload a video
-              </label>
-            </div>
-          </div>
-        </div>
+        {course?.id && (
+          <FileUpload
+            title="Promotional Video"
+            accept="video/*"
+            purpose={UploadPurpose.LESSON_VIDEO}
+            courseId={course.id}
+            src={course.videoLink}
+            onUploadSuccess={handleVideoUploadSuccess}
+            onUploadError={handleVideoUploadError}
+          />
+        )}
       </div>
     </div>
   );

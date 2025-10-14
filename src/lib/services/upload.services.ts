@@ -70,13 +70,16 @@ export const uploadFileToMinIO = async (
       },
     });
 
-    // Trả về path từ lessons/ trở đi (bỏ domain, bucket name và query parameters)
+    // Trả về path tương đối từ bucket root (bỏ query parameters)
     const cleanUrl = presignedUrl.split("?")[0]; // Loại bỏ query parameters
     const url = new URL(cleanUrl);
     const pathname = url.pathname.substring(1); // Bỏ dấu / đầu tiên
-    // Tìm vị trí của "lessons/" và lấy phần từ đó trở đi
-    const lessonsIndex = pathname.indexOf("lessons/");
-    return lessonsIndex !== -1 ? pathname.substring(lessonsIndex) : pathname;
+    // Tìm vị trí của bucket name và lấy phần từ đó trở đi
+    const bucketName = "edtech-content";
+    const bucketIndex = pathname.indexOf(bucketName + "/");
+    const relativePath = bucketIndex !== -1 ? pathname.substring(bucketIndex + bucketName.length + 1) : pathname;
+    // Trả về path tương đối từ bucket root
+    return relativePath;
   } catch {
     toast.error("Không thể upload file");
     throw new Error("Không thể upload file");

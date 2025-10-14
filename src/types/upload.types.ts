@@ -35,3 +35,17 @@ export interface UseUploadFileOptions {
   onSuccess?: (url: string) => void;
   onError?: (error: string) => void;
 }
+
+export interface TranscodeRequest {
+  file: File;
+  entityId: string;
+  purpose: UploadPurpose;
+}
+
+export interface Job {
+  id: string;
+  entityId: string;
+  entityType: string;
+  status: string;
+  jobType: string;
+}
