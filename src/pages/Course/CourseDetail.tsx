@@ -12,7 +12,7 @@ import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
 
 import {toast} from "react-toastify";
 import {useAppSelector} from "@/redux/hooks";
-import {Languages} from "lucide-react";
+import {Check, Languages} from "lucide-react";
 import ReadOnlyRating from "@/components/ReadOnlyRating";
 import CourseContentList from "./CourseContent/CourseContentList";
 import CourseReviewItem from "./CourseLesson/Review/CourseReviewItem";
@@ -30,7 +30,6 @@ export default function CourseDetail() {
 
   useQuery({
     queryKey: ["course-info", slug],
-    staleTime: Infinity,
     queryFn: async () => {
       if (!slug) return null;
       const course = await publicServices.getCourseBySlug(slug);
@@ -134,22 +133,12 @@ export default function CourseDetail() {
             <div className="card-body">
               <div className="card-title mb-4">What you'll learn</div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center space-x-2">
-                  <span>✓</span>
-                  <span>Course content 1</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span>✓</span>
-                  <span>Course content 2</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span>✓</span>
-                  <span>Course content 3</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span>✓</span>
-                  <span>Course content 4</span>
-                </div>
+                {[1, 2, 3, 4].map((item) => (
+                  <div className="flex items-center space-x-2">
+                    <Check size={16} />
+                    <span>Course content {item}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -229,11 +218,6 @@ export default function CourseDetail() {
                 Continue learning
               </Link>
             )}
-            <h3 className="font-semibold">This course includes:</h3>
-            <ul className="list-disc list-inside space-y-2">
-              <li>...lessons</li>
-              <li>Complete certification</li>
-            </ul>
           </div>
         </div>
       </div>

@@ -15,7 +15,7 @@ export default function MyLearningItem({enroll}: MyLearningItemProps) {
       <div className="card-body space-y-2">
         <h3 className="card-title">{enroll.courseTitle}</h3>
         <progress
-          className="progress progress-primary w-full"
+          className="progress progress-neutral w-full"
           value={enroll.progress}
           max="100"
         ></progress>

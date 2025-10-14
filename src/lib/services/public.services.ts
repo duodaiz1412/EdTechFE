@@ -1,5 +1,6 @@
-import {Chapter, Course, User} from "@/types";
 import axios from "axios";
+
+import {Chapter, Course, User} from "@/types";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1/public";
 

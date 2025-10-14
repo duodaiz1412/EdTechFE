@@ -35,9 +35,7 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
     }
   }, [status, lesson]);
 
-  const handleComplete = async (lessonTitle?: string) => {
-    setIsCompleted(true);
-
+  const handleComplete = async () => {
     const accessToken = await getAccessToken();
     const response = await progressServices.completeLesson(
       lesson?.slug,
@@ -45,7 +43,9 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
     );
 
     if (response.status === 200) {
-      toast.success(`${lessonTitle} completed!`);
+      setIsCompleted(true);
+    } else {
+      toast.error("Can't complete this lesson now");
     }
   };
 
@@ -57,11 +57,20 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
           <CourseLessonVideo
             videoUrl={lesson?.videoUrl}
             videoTitle={lesson?.title}
+            completeLesson={handleComplete}
           />
         )}
-        {lessonType === "quiz" && <CourseLessonQuiz quiz={lesson?.quizDto} />}
+        {lessonType === "quiz" && (
+          <CourseLessonQuiz
+            quiz={lesson?.quizDto}
+            completeLesson={handleComplete}
+          />
+        )}
         {lessonType === "article" && (
-          <CourseLessonArticle content={lesson?.content || ""} />
+          <CourseLessonArticle
+            content={lesson?.content || ""}
+            completeLesson={handleComplete}
+          />
         )}
       </div>
 
@@ -79,10 +88,7 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
             </motion.span>
           )}
           {!isCompleted && (
-            <button
-              className="btn btn-neutral"
-              onClick={() => handleComplete(lesson?.title)}
-            >
+            <button className="btn btn-neutral" onClick={handleComplete}>
               Mark as completed
             </button>
           )}

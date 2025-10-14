@@ -5,9 +5,13 @@ import {useState} from "react";
 
 interface CourseLessonQuizProps {
   quiz?: Quiz;
+  completeLesson?: () => void;
 }
 
-export default function CourseLessonQuiz({quiz}: CourseLessonQuizProps) {
+export default function CourseLessonQuiz({
+  quiz,
+  completeLesson,
+}: CourseLessonQuizProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
 
@@ -41,6 +45,9 @@ export default function CourseLessonQuiz({quiz}: CourseLessonQuizProps) {
     setIsDoing(false);
     setHaveResult(true);
     setResult(response);
+    if (completeLesson) {
+      completeLesson();
+    }
   };
 
   const resetQuiz = () => {

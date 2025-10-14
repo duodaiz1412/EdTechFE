@@ -1,6 +1,6 @@
 import {useParams} from "react-router-dom";
-import {useEffect, useState} from "react";
-import {useQuery} from "@tanstack/react-query";
+import {useCallback, useEffect, useState} from "react";
+// import {useQuery} from "@tanstack/react-query";
 import {useAppSelector} from "@/redux/hooks";
 
 import {Chapter, Lesson, LessonCurrent, Progress} from "@/types";
@@ -26,39 +26,33 @@ export default function CourseLayout() {
   const [lesson, setLesson] = useState<Lesson>();
   const {courseSlug, lessonSlug} = useParams();
 
-  useQuery({
-    queryKey: ["chapters"],
-    staleTime: Infinity,
-    queryFn: async () => {
-      const getChapters = await publicServices.getChapters(
-        courseSlug as string,
-      );
-      setChapters(getChapters);
-      return getChapters;
-    },
-  });
+  const fetchChapters = useCallback(async () => {
+    const getChapters = await publicServices.getChapters(courseSlug as string);
+    setChapters(getChapters);
+    setCurrentLesson(getCurrentLesson(getChapters, lessonSlug));
+    setIsEnrolled(isCourseEnrolled(userData?.enrollments, courseSlug));
+  }, [courseSlug, lessonSlug, userData]);
+
+  const fetchProgress = useCallback(async () => {
+    const accessToken = await getAccessToken();
+    const getProgress = await progressServices.getProgress(
+      courseSlug as string,
+      accessToken,
+    );
+    setProgress(getProgress);
+  }, [courseSlug]);
+
+  const fetchLesson = useCallback(async () => {
+    const accessToken = await getAccessToken();
+    const getLesson = await learnerServices.getLesson(accessToken, lessonSlug);
+    setLesson(getLesson);
+  }, [lessonSlug]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const accessToken = await getAccessToken();
-
-      const getProgress = await progressServices.getProgress(
-        courseSlug as string,
-        accessToken,
-      );
-      setProgress(getProgress);
-      setCurrentLesson(getCurrentLesson(chapters, lessonSlug));
-      setIsEnrolled(isCourseEnrolled(userData?.enrollments, courseSlug));
-
-      const getLesson = await learnerServices.getLesson(
-        accessToken,
-        lessonSlug,
-      );
-      setLesson(getLesson);
-    };
-
-    fetchData();
-  }, [courseSlug, lessonSlug, chapters, userData]);
+    fetchChapters();
+    fetchProgress();
+    fetchLesson();
+  }, [fetchChapters, fetchProgress, fetchLesson]);
 
   return (
     <div>

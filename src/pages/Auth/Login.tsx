@@ -13,7 +13,7 @@ export default function Login() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      toast.success("You have already logged in");
+      toast.success("Logged in");
       navigate("/");
     }
   }, [isAuthenticated, navigate]);
@@ -30,12 +30,12 @@ export default function Login() {
 
     // Validation
     if (!email.trim()) {
-      toast.error("Vui lòng nhập email");
+      toast.error("Please enter your email");
       return;
     }
 
     if (!validateEmail(email)) {
-      toast.error("Email không hợp lệ");
+      toast.error("Invalid email");
       return;
     }
 
@@ -47,19 +47,19 @@ export default function Login() {
       if (response.status === 200) {
         navigate("/notify", {state: {email}});
       } else {
-        toast.error("Không thể gửi link đăng nhập");
+        toast.error("Can't send verfication link");
       }
     } catch (error: any) {
       if (error.response) {
         const message =
           error.response.data?.message || error.response.data?.error;
-        toast.error(message || "Có lỗi xảy ra. Vui lòng thử lại");
+        toast.error(message || "Error occurred. Please try again");
       } else if (error.request) {
         toast.error(
-          "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng",
+          "Can't connect to server. Please check your internet connection",
         );
       } else {
-        toast.error("Có lỗi xảy ra. Vui lòng thử lại");
+        toast.error("Error occurred. Please try again");
       }
     } finally {
       setIsLoading(false);
@@ -89,10 +89,10 @@ export default function Login() {
         {isLoading ? (
           <>
             <span className="loading loading-spinner loading-sm"></span>
-            Đang gửi...
+            Sending verification link...
           </>
         ) : (
-          "Tiếp tục"
+          "Continue"
         )}
       </button>
       <p className="text-center space-x-2">

@@ -1,5 +1,6 @@
-import {Quiz, QuizSubmmission} from "@/types";
 import axios from "axios";
+
+import {Quiz, QuizSubmmission} from "@/types";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
 
