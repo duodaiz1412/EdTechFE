@@ -1,26 +1,25 @@
+import {useQuery} from "@tanstack/react-query";
 import {useAppDispatch, useAppSelector} from "@/redux/hooks";
 
-import MyLearningItem from "./MyLearningItem";
-import {useEffect} from "react";
+import {login} from "@/redux/slice/userSlice";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {enrollServices} from "@/lib/services/enroll.services";
-import {login} from "@/redux/slice/userSlice";
+import MyLearningItem from "./MyLearningItem";
 
 export default function MyLearning() {
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
   const userData = useAppSelector((state) => state.user.data);
   const dispatch = useAppDispatch();
 
-  useEffect(() => {
-    const fetchData = async () => {
+  useQuery({
+    queryKey: ["enrollments"],
+    queryFn: async () => {
       const accessToken = await getAccessToken();
-      const enrollments = await enrollServices.getEnrollments(accessToken);
-
-      dispatch(login({...userData, enrollments: enrollments}));
-    };
-
-    fetchData();
-  }, [dispatch, userData]);
+      const response = await enrollServices.getEnrollments(accessToken);
+      dispatch(login({...userData, enrollments: response}));
+      return response;
+    },
+  });
 
   if (!isAuthenticated) {
     return (
@@ -34,9 +33,10 @@ export default function MyLearning() {
     <div className="w-full p-6">
       <h2 className="text-2xl font-semibold mb-10">My Learning</h2>
       <div className="grid grid-cols-4 gap-6">
-        {userData?.enrollments?.map((enroll) => (
-          <MyLearningItem key={enroll.id} enroll={enroll} />
-        ))}
+        {userData?.enrollments &&
+          userData?.enrollments?.map((enroll) => (
+            <MyLearningItem key={enroll.id} enroll={enroll} />
+          ))}
       </div>
     </div>
   );
