@@ -1,4 +1,4 @@
-import {useParams} from "react-router-dom";
+import {useParams, useSearchParams} from "react-router-dom";
 import {useEffect, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {useAppSelector} from "@/redux/hooks";
@@ -25,6 +25,8 @@ export default function CourseLayout() {
   const [currentLesson, setCurrentLesson] = useState<LessonCurrent>();
   const [lesson, setLesson] = useState<Lesson>();
   const {courseSlug, lessonSlug} = useParams();
+  const [searchParams] = useSearchParams();
+  const isPreview = searchParams.get("preview") === "1";
 
   useQuery({
     queryKey: ["chapters"],
@@ -70,7 +72,7 @@ export default function CourseLayout() {
 
       <div className="fixed top-16 bottom-0 left-0 right-0 flex">
         <main className="w-3/4 h-full overflow-y-scroll">
-          {!isEnrolled && (
+          {!isEnrolled && !isPreview && (
             <div className="w-full h-full bg-slate-200 flex flex-col space-y-6 items-center justify-center text-slate-500">
               <Lock size={48} />
               <h3 className="text-lg font-semibold">
@@ -78,7 +80,7 @@ export default function CourseLayout() {
               </h3>
             </div>
           )}
-          {isEnrolled && (
+          {(isEnrolled || isPreview) && (
             <CourseLesson
               lesson={lesson}
               status={isLessonCompleted(lesson?.id, progress)}

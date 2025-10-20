@@ -17,7 +17,6 @@ interface ChapterListProps {
   chapters: Chapter[];
   onEditChapter: (chapterId: string) => void;
   onDeleteChapter: (chapterId: string) => void;
-  onEditItem: (chapterId: string, itemId: string) => void;
   onDeleteItem: (chapterId: string, itemId: string) => void;
   onLessonCreated?: (lesson: any, chapterId: string) => void;
 }
@@ -26,7 +25,6 @@ export default function ChapterList({
   chapters,
   onEditChapter,
   onDeleteChapter,
-  onEditItem,
   onDeleteItem,
   onLessonCreated,
 }: ChapterListProps) {
@@ -66,7 +64,6 @@ export default function ChapterList({
                 key={item.id}
                 chapterId={chapter?.id || ""}
                 item={item}
-                onEdit={onEditItem}
                 onDelete={onDeleteItem}
               />
             ))}

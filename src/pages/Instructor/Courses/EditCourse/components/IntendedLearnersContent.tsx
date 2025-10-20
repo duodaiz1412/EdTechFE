@@ -1,4 +1,4 @@
-import {useEffect} from "react";
+import {useEffect, useCallback, useRef} from "react";
 import {Plus, Trash2} from "lucide-react";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
@@ -11,7 +11,6 @@ export default function IntendedLearnersContent() {
     // Form data from context
     formData,
     updateFormData,
-
     // API State (from hook via context)
     state: courseState,
     updateCourse,
@@ -20,22 +19,41 @@ export default function IntendedLearnersContent() {
   } = useCourseContext();
   const {course} = courseState;
 
+  const parseStringToArray = useCallback(
+    (str: string | null | undefined): string[] => {
+      if (!str || str.trim() === "") return [""];
+      const items = str
+        .split("\n")
+        .filter((item: string) => item.trim() !== "");
+      return items.length > 0 ? items : [""];
+    },
+    [],
+  );
+
+  // Sử dụng useRef để track xem đã sync course data chưa
+  const hasSyncedRef = useRef(false);
+  const lastCourseIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (course && (formData.shortIntroduction?.length || 0) === 0) {
-      // Only update if formData is empty (first load)
-      updateFormData({
-        shortIntroduction: course.shortIntroduction
-          ? course.shortIntroduction.split("\n").filter((item) => item.trim())
-          : [],
-        requirements: course.skillLevel
-          ? course.skillLevel.split("\n").filter((item) => item.trim())
-          : [],
-        targetAudience: course.targetAudience
-          ? course.targetAudience.split("\n").filter((item) => item.trim())
-          : [],
-      });
+    if (course && course.id) {
+      // Reset sync flag khi course thay đổi
+      if (lastCourseIdRef.current !== course.id) {
+        hasSyncedRef.current = false;
+        lastCourseIdRef.current = course.id;
+      }
+
+      // Chỉ sync một lần cho mỗi course
+      if (!hasSyncedRef.current) {
+        updateFormData({
+          shortIntroduction: parseStringToArray(course.shortIntroduction),
+          requirements: parseStringToArray(course.skillLevel),
+          targetAudience: parseStringToArray(course.targetAudience),
+        });
+
+        hasSyncedRef.current = true;
+      }
     }
-  }, [course, formData.shortIntroduction?.length, updateFormData]);
+  }, [course, updateFormData, parseStringToArray]);
 
   const addItem = (
     field: keyof Pick<
@@ -84,15 +102,16 @@ export default function IntendedLearnersContent() {
     }
 
     try {
+      const arrayToString = (arr: string[] | undefined): string => {
+        if (!arr || arr.length === 0) return "";
+        const filtered = arr.filter((item) => item.trim() !== "");
+        return filtered.length > 0 ? filtered.join("\n") : "";
+      };
+
       const updateData = {
-        title: formData.title,
-        description: formData.description,
-        price: formData.price,
-        shortIntroduction: (formData.shortIntroduction || []).join("\n"),
-        skillLevel: (formData.requirements || []).join("\n"),
-        targetAudience: (formData.targetAudience || []).join("\n"),
-        tag: formData.tag || [],
-        label: formData.label || [],
+        shortIntroduction: arrayToString(formData.shortIntroduction),
+        skillLevel: arrayToString(formData.requirements),
+        targetAudience: arrayToString(formData.targetAudience),
       };
 
       const success = await updateCourse(course.id, updateData);
@@ -116,7 +135,9 @@ export default function IntendedLearnersContent() {
         </div>
       )}
 
-      <Heading3 className="mb-6">Intended Learners</Heading3>
+      <div className="flex justify-between items-center mb-6">
+        <Heading3>Intended Learners</Heading3>
+      </div>
 
       <div className="space-y-8">
         {/* What will students learn */}

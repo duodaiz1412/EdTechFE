@@ -1,6 +1,6 @@
 import {useState, useEffect} from "react";
 import {Plus, Eye} from "lucide-react";
-import {useNavigate, useParams} from "react-router";
+import {useNavigate} from "react-router";
 import Button from "@/components/Button";
 import {Heading3} from "@/components/Typography";
 import Input from "@/components/Input";
@@ -16,7 +16,6 @@ import NewChapterForm from "./NewChapterForm";
 
 export default function CurriculumContent() {
   const navigate = useNavigate();
-  const {courseId} = useParams();
   const {
     // Form data from context
     formData,
@@ -149,6 +148,25 @@ export default function CurriculumContent() {
     });
   };
 
+  const handlePreview = () => {
+    const courseSlug = course?.slug;
+    const chapters = formData.chapters || [];
+    const firstLessonWithSlug = chapters
+      .flatMap((c: any) => c.lessons || [])
+      .find((l: any) => !!l?.slug);
+
+    if (!courseSlug) {
+      toast.warning("Course slug is missing");
+      return;
+    }
+    if (!firstLessonWithSlug?.slug) {
+      toast.warning("No lesson to preview");
+      return;
+    }
+    // Navigate to preview course page using the cloned components
+    navigate(`/instructor/courses/${course?.id}/preview/lesson/${firstLessonWithSlug.slug}`);
+  };
+
   const handleLessonCreated = (lesson: any, chapterId?: string) => {
     // Add the new lesson to the specified chapter
     const currentChapters = formData.chapters || [];
@@ -201,10 +219,6 @@ export default function CurriculumContent() {
     itemId: string | null;
     title: string;
   }>({open: false, type: null, chapterId: null, itemId: null, title: ""});
-
-  const handleEditItem = (_chapterId: string, itemId: string) => {
-    navigate(`/instructor/courses/${courseId}/edit/lecture/edit/${itemId}`);
-  };
 
   const handleDeleteItem = (chapterId: string, itemId: string) => {
     const currentChapters = formData.chapters || [];
@@ -274,6 +288,7 @@ export default function CurriculumContent() {
           variant="secondary"
           leftIcon={<Eye size={16} />}
           className="bg-gray-800 text-white hover:bg-gray-700"
+          onClick={handlePreview}
         >
           Preview
         </Button>
@@ -284,7 +299,6 @@ export default function CurriculumContent() {
           chapters={formData.chapters || []}
           onEditChapter={handleEditChapter}
           onDeleteChapter={handleDeleteChapter}
-          onEditItem={handleEditItem}
           onDeleteItem={handleDeleteItem}
           onLessonCreated={handleLessonCreated}
         />

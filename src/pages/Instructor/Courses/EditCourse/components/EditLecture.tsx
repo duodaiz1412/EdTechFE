@@ -36,6 +36,7 @@ export default function EditLecture() {
     // API State (from hook via context)
     error,
     formData,
+    syncCourseToFormData,
   } = useCourseContext();
 
   // Sử dụng trực tiếp hook useCourse để có createLesson và updateLesson
@@ -123,7 +124,10 @@ export default function EditLecture() {
             toast.success("Lecture updated successfully!");
             // Reload course data to get updated lesson
             if (courseId) {
-              await loadCourse(courseId);
+              const updatedCourse = await loadCourse(courseId);
+              if (updatedCourse) {
+                syncCourseToFormData(updatedCourse);
+              }
             }
             navigate(`/instructor/courses/${courseId}/edit/curriculum`);
           } else {
@@ -137,7 +141,10 @@ export default function EditLecture() {
             toast.success("Lecture created successfully!");
             // Reload course data to get new lesson
             if (courseId) {
-              await loadCourse(courseId);
+              const updatedCourse = await loadCourse(courseId);
+              if (updatedCourse) {
+                syncCourseToFormData(updatedCourse);
+              }
             }
             navigate(`/instructor/courses/${courseId}/edit/curriculum`);
           } else {

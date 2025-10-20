@@ -21,16 +21,15 @@ export default function PricingContent() {
   const {course} = courseState;
 
   // Local state for UI-specific data (currency, prices)
-  const [currency, setCurrency] = useState("vnd");
+  const [currency, setCurrency] = useState("VND");
   const [originalPrice, setOriginalPrice] = useState("0");
   const [sellingPrice, setSellingPrice] = useState("0");
 
   // Fill form with course data when course is loaded (only once)
   useEffect(() => {
     if (course && formData.originalPrice === 0) {
-      // Only update if formData is empty (first load)
       updateFormData({
-        currency: course.currency || "vnd",
+        currency: course.currency || "VND",
         originalPrice: course.coursePrice || 0,
         sellingPrice: course.sellingPrice || 0,
       });
@@ -39,16 +38,16 @@ export default function PricingContent() {
 
   // Sync local state with formData
   useEffect(() => {
-    setCurrency(formData.currency || "vnd");
+    setCurrency(formData.currency || "VND");
     setOriginalPrice(formData.originalPrice?.toString() || "0");
     setSellingPrice(formData.sellingPrice?.toString() || "0");
   }, [formData.currency, formData.originalPrice, formData.sellingPrice]);
 
   const currencyOptions = [
-    {value: "vnd", label: "VND"},
-    {value: "usd", label: "USD"},
-    {value: "eur", label: "EUR"},
-    {value: "gbp", label: "GBP"},
+    {value: "VND", label: "VND"},
+    {value: "USD", label: "USD"},
+    {value: "EUR", label: "EUR"},
+    {value: "GBP", label: "GBP"},
   ];
 
   const handleInputChange = (field: string, value: string) => {

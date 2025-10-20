@@ -14,7 +14,6 @@ import {UploadPurpose} from "@/types/upload.types";
 
 interface ArticleLectureFormValues {
   title: string;
-  description: string;
   content: string;
   fileUrl?: string;
   articleFile: File | null;
@@ -27,6 +26,7 @@ export default function EditArticleLecture() {
   const {
     error,
     formData,
+    syncCourseToFormData,
   } = useCourseContext();
 
   const {
@@ -57,7 +57,6 @@ export default function EditArticleLecture() {
 
   const validationSchema = Yup.object({
     title: Yup.string().trim().required("Title is required"),
-    description: Yup.string().trim(),
     content: Yup.string().test(
       "content-required",
       "Content is required",
@@ -72,7 +71,6 @@ export default function EditArticleLecture() {
   const formik = useFormik<ArticleLectureFormValues>({
     initialValues: {
       title: "",
-      description: "",
       content: "",
       fileUrl: "",
       articleFile: null,
@@ -90,17 +88,19 @@ export default function EditArticleLecture() {
           // Edit existing lesson
           const success = await updateLesson(lessonId, {
             title: formik.values.title,
-            description: formik.values.description,
             content: formik.values.content,
             // fileUrl: formik.values.fileUrl, // Not supported in ILessonRequest
             videoUrl: undefined, // Clear video data
-            quizDto: null, // Clear quiz data
+            quizId: undefined, // Clear quiz data
           });
 
           if (success) {
             toast.success("Article lecture updated successfully!");
             if (courseId) {
-              await loadCourse(courseId);
+              const updatedCourse = await loadCourse(courseId);
+              if (updatedCourse) {
+                syncCourseToFormData(updatedCourse);
+              }
             }
             navigate(`/instructor/courses/${courseId}/edit/curriculum`);
           } else {
@@ -113,7 +113,10 @@ export default function EditArticleLecture() {
           if (newLesson) {
             toast.success("Article lecture created successfully!");
             if (courseId) {
-              await loadCourse(courseId);
+              const updatedCourse = await loadCourse(courseId);
+              if (updatedCourse) {
+                syncCourseToFormData(updatedCourse);
+              }
             }
             navigate(`/instructor/courses/${courseId}/edit/curriculum`);
           } else {
@@ -138,7 +141,6 @@ export default function EditArticleLecture() {
       if (lesson) {
         formik.setValues({
           title: lesson.title || "",
-          description: "",
           content: lesson.content || "",
           fileUrl: lesson.fileUrl || "",
           articleFile: null,
@@ -204,21 +206,6 @@ export default function EditArticleLecture() {
             )}
           </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={formik.values.description}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="Describe your article lesson"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
-              rows={4}
-            />
-          </div>
 
           {/* Content Editor */}
           <div>

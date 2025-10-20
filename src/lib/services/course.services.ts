@@ -79,6 +79,9 @@ export interface ICourseRequest {
   currency?: string;
   coursePrice?: number;
   sellingPrice?: number;
+  targetAudience?: string;
+  skillLevel?: string;
+  learnerProfileDesc?: string;
 }
 
 export interface IChapterRequest {
@@ -88,16 +91,9 @@ export interface IChapterRequest {
 
 export interface ILessonRequest {
   title: string;
-  description?: string;
   content?: string;
   videoUrl?: string;
-  quizDto?: {
-    questions: {
-      question: string;
-      options: string[];
-      correctAnswer: number;
-    }[];
-  } | null;
+  quizId?: string;
 }
 
 export interface CourseFilters {
@@ -152,7 +148,7 @@ export interface ICourse {
 export interface IChapter {
   id: string;
   title: string;
-  description?: string;
+  summary?: string;
   position: number;
   lessons: ILesson[];
 }
@@ -160,10 +156,8 @@ export interface IChapter {
 export interface ILesson {
   id: string;
   title: string;
-  description?: string;
   content?: string;
   videoUrl?: string;
-  type: "video" | "article" | "video_slide";
   position: number;
   slug: string;
   duration?: number;

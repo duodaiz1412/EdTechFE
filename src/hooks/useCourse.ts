@@ -1,12 +1,17 @@
 import {useState, useCallback, useMemo} from "react";
 import {
-  CourseService,
+  InstructorService as CourseService,
   ICourseRequest,
   ICourse,
   IChapterRequest,
   ILessonRequest,
-} from "@/lib/services/course.services";
+  IBatch,
+  IBatchRequest,
+  IQuizQuestion,
+  IQuizSubmission,
+} from "@/lib/services/instructor.services";
 import {Chapter, CourseItem} from "@/context/CourseContext";
+import { convertUrlToRelatuvePath } from "@/lib/utils";
 
 // Types
 // Import CourseFormData từ context để tránh trùng lặp
@@ -14,6 +19,18 @@ export interface IntendedLearnersData {
   learningObjectives: string[];
   requirements: string[];
   targetAudience: string[];
+}
+
+export interface EnrollmentData {
+  id: string;
+  course: ICourse;
+  enrolledAt: string;
+  progress: number;
+  student: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export interface CourseState {
@@ -57,6 +74,32 @@ export interface UseCourseReturn {
   createQuiz: (quizData: any) => Promise<any>;
   updateQuiz: (quizId: string, quizData: any) => Promise<boolean>;
   deleteQuiz: (quizId: string) => Promise<boolean>;
+  addQuestionsToQuiz: (quizId: string, questions: any[]) => Promise<boolean>;
+  updateQuestion: (questionId: string, questionData: any) => Promise<boolean>;
+  deleteQuestion: (questionId: string) => Promise<boolean>;
+  getQuizQuestions: (quizId: string) => Promise<IQuizQuestion[]>;
+  getCourseQuizSubmissions: (courseId: string) => Promise<IQuizSubmission[]>;
+
+  // Lesson Management APIs
+  getLessonById: (lessonId: string) => Promise<any>;
+
+  // Enrollment Management APIs
+  getCourseEnrollments: (courseId: string) => Promise<EnrollmentData[]>;
+  removeEnrollment: (enrollmentId: string) => Promise<boolean>;
+
+  // Course Instructor Management APIs
+  addInstructorToCourse: (courseId: string, instructorId: string) => Promise<boolean>;
+  removeInstructorFromCourse: (courseId: string, instructorId: string) => Promise<boolean>;
+
+  // Batch Management APIs
+  createBatch: (batchData: IBatchRequest) => Promise<IBatch | null>;
+  updateBatch: (batchId: string, batchData: IBatchRequest) => Promise<boolean>;
+  deleteBatch: (batchId: string) => Promise<boolean>;
+  getMyBatches: (page?: number, size?: number, status?: string) => Promise<IBatch[]>;
+  getBatchById: (batchId: string) => Promise<IBatch | null>;
+  publishBatch: (batchId: string) => Promise<boolean>;
+  addInstructorToBatch: (batchId: string, instructorId: string) => Promise<boolean>;
+  removeInstructorFromBatch: (batchId: string, instructorId: string) => Promise<boolean>;
 
   // Utility functions
   clearError: () => void;
@@ -231,9 +274,34 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
+        // First, get the current course data
+        const currentCourseResponse = await CourseService.getCourseForInstructor(
+          courseId,
+          accessToken,
+        );
+        const currentCourse = currentCourseResponse.data;
+        // Merge current course data with new data (only update fields that are provided)
+        const mergedData: ICourseRequest = {
+          title: data.title !== undefined ? data.title : currentCourse.title,
+          description: data.description !== undefined ? data.description : currentCourse.description,
+          price: data.price !== undefined ? data.price : (currentCourse.coursePrice || 0),
+          tag: data.tag !== undefined ? data.tag : currentCourse.tags?.map((tag: {name: string}) => ({name: tag.name})),
+          label: data.label !== undefined ? data.label : currentCourse.labels?.map((label: {name: string}) => ({name: label.name})),
+          // Chỉ sử dụng field names mà backend expect để tránh lỗi field quá dài
+          image: data.image !== undefined ? data.image : (data.thumbnailUrl !== undefined ? data.thumbnailUrl : convertUrlToRelatuvePath(currentCourse.image)),
+          videoLink: data.videoLink !== undefined ? data.videoLink : (data.videoUrl !== undefined ? data.videoUrl : currentCourse.videoLink),
+          shortIntroduction: data.shortIntroduction !== undefined ? data.shortIntroduction : currentCourse.shortIntroduction,
+          language: data.language !== undefined ? data.language : currentCourse.language,
+          currency: data.currency !== undefined ? data.currency : currentCourse.currency,
+          coursePrice: data.coursePrice !== undefined ? data.coursePrice : currentCourse.coursePrice,
+          sellingPrice: data.sellingPrice !== undefined ? data.sellingPrice : currentCourse.sellingPrice,
+          targetAudience: data.targetAudience !== undefined ? data.targetAudience : currentCourse.targetAudience,
+          skillLevel: data.skillLevel !== undefined ? data.skillLevel : currentCourse.skillLevel,
+          learnerProfileDesc: data.learnerProfileDesc !== undefined ? data.learnerProfileDesc : currentCourse.learnerProfileDesc,
+        };
         const response = await CourseService.updateCourse(
           courseId,
-          data,
+          mergedData,
           accessToken,
         );
         setState((prev) => ({...prev, course: response.data}));
@@ -517,12 +585,431 @@ const useCourse = (): UseCourseReturn => {
     [getAccessToken, handleError, setLoading, clearError],
   );
 
+  const addQuestionsToQuiz = useCallback(
+    async (quizId: string, questions: any[]): Promise<boolean> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        await CourseService.addQuestionsToQuiz(quizId, questions, accessToken);
+        return true;
+      } catch (err) {
+        handleError(err, "addQuestionsToQuiz");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  const updateQuestion = useCallback(
+    async (questionId: string, questionData: any): Promise<boolean> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        await CourseService.updateQuestion(questionId, questionData, accessToken);
+        return true;
+      } catch (err) {
+        handleError(err, "updateQuestion");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
   // Intended learners operations
   const updateIntendedLearners = useCallback(
     (data: Partial<IntendedLearnersData>) => {
       setIntendedLearners((prev) => ({...prev, ...data}));
     },
     [],
+  );
+
+  // Lesson Management APIs
+  const getLessonById = useCallback(
+    async (lessonId: string): Promise<any> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        const response = await CourseService.getLessonById(lessonId, accessToken);
+        return response.data;
+      } catch (err) {
+        handleError(err, "getLessonById");
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  // Quiz Management APIs
+  const getQuizQuestions = useCallback(
+    async (quizId: string): Promise<IQuizQuestion[]> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        const response = await CourseService.getQuizQuestions(quizId, accessToken);
+        return response.data || [];
+      } catch (err) {
+        handleError(err, "getQuizQuestions");
+        return [];
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  const deleteQuestion = useCallback(
+    async (questionId: string): Promise<boolean> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        const response = await CourseService.deleteQuestion(questionId, accessToken);
+        return response.status === 204;
+      } catch (err) {
+        handleError(err, "deleteQuestion");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  const getCourseQuizSubmissions = useCallback(
+    async (courseId: string): Promise<IQuizSubmission[]> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        const response = await CourseService.getCourseQuizSubmissions(courseId, accessToken);
+        return response.data || [];
+      } catch (err) {
+        handleError(err, "getCourseQuizSubmissions");
+        return [];
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  // Enrollment Management APIs
+  const getCourseEnrollments = useCallback(
+    async (courseId: string): Promise<EnrollmentData[]> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        const response = await CourseService.getCourseEnrollments(courseId, accessToken);
+        return response.data || [];
+      } catch (err) {
+        handleError(err, "getCourseEnrollments");
+        return [];
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  const removeEnrollment = useCallback(
+    async (enrollmentId: string): Promise<boolean> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        await CourseService.removeEnrollment(enrollmentId, accessToken);
+        return true;
+      } catch (err) {
+        handleError(err, "removeEnrollment");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  // Course Instructor Management APIs
+  const addInstructorToCourse = useCallback(
+    async (courseId: string, instructorId: string): Promise<boolean> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        await CourseService.addInstructorToCourse(courseId, instructorId, accessToken);
+        return true;
+      } catch (err) {
+        handleError(err, "addInstructorToCourse");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  const removeInstructorFromCourse = useCallback(
+    async (courseId: string, instructorId: string): Promise<boolean> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        await CourseService.removeInstructorFromCourse(courseId, instructorId, accessToken);
+        return true;
+      } catch (err) {
+        handleError(err, "removeInstructorFromCourse");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  // Batch Management APIs
+  const createBatch = useCallback(
+    async (batchData: IBatchRequest): Promise<IBatch | null> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        const response = await CourseService.createBatch(batchData, accessToken);
+        return response.data;
+      } catch (err) {
+        handleError(err, "createBatch");
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  const updateBatch = useCallback(
+    async (batchId: string, batchData: IBatchRequest): Promise<boolean> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        await CourseService.updateBatch(batchId, batchData, accessToken);
+        return true;
+      } catch (err) {
+        handleError(err, "updateBatch");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  const deleteBatch = useCallback(
+    async (batchId: string): Promise<boolean> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        await CourseService.deleteBatch(batchId, accessToken);
+        return true;
+      } catch (err) {
+        handleError(err, "deleteBatch");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  const getMyBatches = useCallback(
+    async (page: number = 0, size: number = 10, status?: string): Promise<IBatch[]> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        const response = await CourseService.getMyBatches(accessToken, page, size, status);
+        return response.data.content || response.data || [];
+      } catch (err) {
+        handleError(err, "getMyBatches");
+        return [];
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  const getBatchById = useCallback(
+    async (batchId: string): Promise<IBatch | null> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        const response = await CourseService.getBatchById(batchId, accessToken);
+        return response.data;
+      } catch (err) {
+        handleError(err, "getBatchById");
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  const publishBatch = useCallback(
+    async (batchId: string): Promise<boolean> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        await CourseService.publishBatch(batchId, accessToken);
+        return true;
+      } catch (err) {
+        handleError(err, "publishBatch");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  const addInstructorToBatch = useCallback(
+    async (batchId: string, instructorId: string): Promise<boolean> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        await CourseService.addInstructorToBatch(batchId, instructorId, accessToken);
+        return true;
+      } catch (err) {
+        handleError(err, "addInstructorToBatch");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
+
+  const removeInstructorFromBatch = useCallback(
+    async (batchId: string, instructorId: string): Promise<boolean> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        await CourseService.removeInstructorFromBatch(batchId, instructorId, accessToken);
+        return true;
+      } catch (err) {
+        handleError(err, "removeInstructorFromBatch");
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
   );
 
   return {
@@ -555,6 +1042,32 @@ const useCourse = (): UseCourseReturn => {
     createQuiz,
     updateQuiz,
     deleteQuiz,
+    addQuestionsToQuiz,
+    updateQuestion,
+    deleteQuestion,
+    getQuizQuestions,
+    getCourseQuizSubmissions,
+
+    // Lesson Management APIs
+    getLessonById,
+
+    // Enrollment Management APIs
+    getCourseEnrollments,
+    removeEnrollment,
+
+    // Course Instructor Management APIs
+    addInstructorToCourse,
+    removeInstructorFromCourse,
+
+    // Batch Management APIs
+    createBatch,
+    updateBatch,
+    deleteBatch,
+    getMyBatches,
+    getBatchById,
+    publishBatch,
+    addInstructorToBatch,
+    removeInstructorFromBatch,
 
     // Utility functions
     clearError,

@@ -20,6 +20,16 @@ export default function Notify() {
               don't see it, you may need to check your spam folder.
             </p>
             <p className="p-2">You can close this page now.</p>
+            <div className="pt-2">
+              <a
+                href="https://mail.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
+              >
+                Open Gmail
+              </a>
+            </div>
           </div>
         </div>
       </div>

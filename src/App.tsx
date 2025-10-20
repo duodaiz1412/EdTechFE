@@ -37,6 +37,7 @@ import InstructorLayout from "./layout/InstructorLayout.tsx";
 import InstructorCourse from "./pages/Instructor/Courses/index.tsx";
 import CreateCourse from "./pages/Instructor/Courses/CreateCourse/index.tsx";
 import EditCourse from "./pages/Instructor/Courses/EditCourse/index.tsx";
+import PreviewCourse from "./pages/Instructor/Courses/PreviewCourse/index.tsx";
 import IntendedLearnersContent from "./pages/Instructor/Courses/EditCourse/components/IntendedLearnersContent.tsx";
 import CourseStructureContent from "./pages/Instructor/Courses/EditCourse/components/CourseStructureContent.tsx";
 import FilmEditContent from "./pages/Instructor/Courses/EditCourse/components/FilmEditContent.tsx";
@@ -100,7 +101,6 @@ function App() {
             <Route path="/register" element={<Register />} />
           </Route>
           <Route path="/notify" element={<Notify />} />
-          <Route path="/auth/verify" element={<VerifyRedirect />} />
           <Route path="/auth/verify" element={<VerifyRedirect />} />
           <Route path="/verify" element={<Verify />} />
 
@@ -189,6 +189,32 @@ function App() {
               }
             />
             <Route
+              path="/instructor/courses/:courseId/preview"
+              element={
+                <RoleProtectedRoute
+                  requiredRole="COURSE_CREATOR"
+                  redirectTo="/teaching"
+                >
+                  <CourseProvider>
+                    <PreviewCourse />
+                  </CourseProvider>
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/instructor/courses/:courseId/preview/lesson/:lessonSlug"
+              element={
+                <RoleProtectedRoute
+                  requiredRole="COURSE_CREATOR"
+                  redirectTo="/teaching"
+                >
+                  <CourseProvider>
+                    <PreviewCourse />
+                  </CourseProvider>
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
               path="/instructor/courses/:courseId/edit"
               element={
                 <RoleProtectedRoute
@@ -227,66 +253,13 @@ function App() {
               <Route path="promotions" element={<PromotionsContent />} />
               <Route path="messages" element={<CourseMessagesContent />} />
               <Route path="settings" element={<CourseSettingsContent />} />
+
+              {/* Nested lecture edit routes using the same CourseProvider */}
+              <Route path="lecture/edit/:lessonId" element={<EditLecture />} />
+              <Route path="lecture/video/:lessonId" element={<EditVideoLecture />} />
+              <Route path="lecture/article/:lessonId" element={<EditArticleLecture />} />
+              <Route path="lecture/quiz/:quizId" element={<EditQuizLecture />} />
             </Route>
-            {/* Edit existing lecture */}
-            <Route
-              path="/instructor/courses/:courseId/edit/lecture/edit/:lessonId"
-              element={
-                <RoleProtectedRoute
-                  requiredRole="COURSE_CREATOR"
-                  redirectTo="/teaching"
-                >
-                  <CourseProvider>
-                    <EditLecture />
-                  </CourseProvider>
-                </RoleProtectedRoute>
-              }
-            />
-            
-            {/* Edit video lecture */}
-            <Route
-              path="/instructor/courses/:courseId/edit/lecture/video/:lessonId"
-              element={
-                <RoleProtectedRoute
-                  requiredRole="COURSE_CREATOR"
-                  redirectTo="/teaching"
-                >
-                  <CourseProvider>
-                    <EditVideoLecture />
-                  </CourseProvider>
-                </RoleProtectedRoute>
-              }
-            />
-            
-            {/* Edit article lecture */}
-            <Route
-              path="/instructor/courses/:courseId/edit/lecture/article/:lessonId"
-              element={
-                <RoleProtectedRoute
-                  requiredRole="COURSE_CREATOR"
-                  redirectTo="/teaching"
-                >
-                  <CourseProvider>
-                    <EditArticleLecture />
-                  </CourseProvider>
-                </RoleProtectedRoute>
-              }
-            />
-            
-            {/* Edit quiz lecture */}
-            <Route
-              path="/instructor/courses/:courseId/edit/lecture/quiz/:lessonId"
-              element={
-                <RoleProtectedRoute
-                  requiredRole="COURSE_CREATOR"
-                  redirectTo="/teaching"
-                >
-                  <CourseProvider>
-                    <EditQuizLecture />
-                  </CourseProvider>
-                </RoleProtectedRoute>
-              }
-            />
           </Route>
         </Routes>
       </BrowserRouter>

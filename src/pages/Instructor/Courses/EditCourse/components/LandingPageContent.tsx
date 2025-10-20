@@ -6,6 +6,7 @@ import Input from "@/components/Input";
 import CommonSelect from "@/components/CommonSelect";
 import Chip from "@/components/Chip";
 import FileUpload from "@/components/FileUpload";
+import ReactPlayer from "react-player";
 import {useCourseContext} from "@/context/CourseContext";
 import {UploadPurpose} from "@/types/upload.types";
 import {toast} from "react-toastify";
@@ -27,8 +28,8 @@ export default function LandingPageContent() {
   // Local state for UI-specific data (files, temporary inputs)
   const [newTag, setNewTag] = useState("");
   const [newSubject, setNewSubject] = useState("");
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
-  const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string | null>(null);
+  const [youtubeUrl, setYoutubeUrl] = useState<string>("");
+  const [debouncedYoutubeUrl, setDebouncedYoutubeUrl] = useState<string>("");
 
   // Fill form with course data when course is loaded (only once)
   useEffect(() => {
@@ -48,8 +49,25 @@ export default function LandingPageContent() {
         image: course.image || "",
         videoLink: course.videoLink || "",
       });
+      setYoutubeUrl(course.videoLink || "");
     }
   }, [course, formData.title, updateFormData]);
+
+  // Sync YouTube URL với course data khi course thay đổi
+  useEffect(() => {
+    if (course?.videoLink) {
+      setYoutubeUrl(course.videoLink);
+    }
+  }, [course?.videoLink]);
+
+  // Debounce YouTube URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedYoutubeUrl(youtubeUrl);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [youtubeUrl]);
 
 
   const languageOptions = [
@@ -64,21 +82,12 @@ export default function LandingPageContent() {
   };
 
   const handleImageUploadSuccess = (url: string) => {
-    setUploadedImageUrl(url);
+    updateFormData({ image: url });
     toast.success("Ảnh khóa học đã được upload thành công!");
-  };
-
-  const handleVideoUploadSuccess = (url: string) => {
-    setUploadedVideoUrl(url);
-    toast.success("Video quảng cáo đã được upload thành công!");
   };
 
   const handleImageUploadError = (error: string) => {
     toast.error(`Lỗi upload ảnh: ${error}`);
-  };
-
-  const handleVideoUploadError = (error: string) => {
-    toast.error(`Lỗi upload video: ${error}`);
   };
 
   const addTag = () => {
@@ -155,18 +164,20 @@ export default function LandingPageContent() {
         sellingPrice: formData.sellingPrice,
         tag: formData.tag,
         label: formData.label,
-        // Thêm URLs của ảnh và video đã upload nếu có
-        ...(uploadedImageUrl && { image: uploadedImageUrl }),
-        ...(uploadedVideoUrl && { videoLink: uploadedVideoUrl }),
+        ...(formData.image && { 
+          thumbnailUrl: formData.image,
+          image: formData.image 
+        }),
+        ...(formData.videoLink && { 
+          videoUrl: formData.videoLink,
+          videoLink: formData.videoLink 
+        }),
       };
 
       const success = await updateCourse(course.id, updateData);
 
       if (success) {
         toast.success("Course landing page saved successfully!");
-        // Reset upload states sau khi save thành công
-        setUploadedImageUrl(null);
-        setUploadedVideoUrl(null);
       } else {
         toast.error("Failed to save course landing page");
       }
@@ -191,6 +202,17 @@ export default function LandingPageContent() {
             variant="secondary"
             leftIcon={<Eye size={16} />}
             className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+      onClick={() => {
+        if (!course?.id) {
+          toast.warning("Course ID is missing");
+          return;
+        }
+        if (!course?.slug) {
+          toast.warning("Course slug is missing. Please save the course first.");
+          return;
+        }
+        window.open(`/course/${course.slug}`, '_blank');
+      }}
           >
             Preview
           </Button>
@@ -374,18 +396,41 @@ export default function LandingPageContent() {
           />
         )}
 
-        {/* Promotional Video */}
-        {course?.id && (
-          <FileUpload
-            title="Promotional Video"
-            accept="video/*"
-            purpose={UploadPurpose.LESSON_VIDEO}
-            courseId={course.id}
-            src={course.videoLink}
-            onUploadSuccess={handleVideoUploadSuccess}
-            onUploadError={handleVideoUploadError}
+        {/* Promotional Video - YouTube URL */}
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Promotional Video
+          </label>
+          <Input
+            value={youtubeUrl}
+            onChange={(e) => {
+              setYoutubeUrl(e.target.value);
+              // Cập nhật vào formData để sync với context
+              updateFormData({ videoLink: e.target.value });
+            }}
+            placeholder="https://www.youtube.com/watch?v=..."
+            className="w-full"
           />
-        )}
+          {debouncedYoutubeUrl && (
+            <div className="aspect-video w-full bg-black rounded overflow-hidden">
+              <ReactPlayer
+              src={debouncedYoutubeUrl}
+              width="100%"
+              height="100%"
+              controls
+              config={{
+                youtube: {
+                  rel: 0,
+                  cc_load_policy: 1,
+                },
+              }}
+            />
+            </div>
+          )}
+          <p className="text-xs text-gray-500">
+            Dán link YouTube để hiển thị video quảng cáo trên trang landing
+          </p>
+        </div>
       </div>
     </div>
   );

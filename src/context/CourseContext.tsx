@@ -6,8 +6,14 @@ import {
   useMemo,
   ReactNode,
 } from "react";
-import useCourse from "@/hooks/useCourse";
-import { ICourse } from "@/lib/services/course.services";
+import useCourse, { EnrollmentData } from "@/hooks/useCourse";
+import { 
+  ICourse, 
+  IBatch, 
+  IBatchRequest, 
+  IQuizQuestion, 
+  IQuizSubmission
+} from "@/lib/services/instructor.services";
 
 export interface Chapter {
   id: string;
@@ -62,12 +68,30 @@ export interface CourseWizardState {
   errors: Record<string, string>;
 }
 
+// Batch Management Types
+export interface BatchFormData {
+  title: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+  maxStudents?: number;
+  courseId: string;
+}
+
+export interface BatchWizardState {
+  currentStep: number;
+  isSubmitting: boolean;
+  errors: Record<string, string>;
+}
+
+
 interface CourseContextType {
   // Form data
   formData: CourseFormData;
   setFormData: (data: CourseFormData) => void;
   updateFormData: (updates: Partial<CourseFormData>) => void;
   resetFormData: () => void;
+  syncCourseToFormData: (course: ICourse) => void;
 
   // Wizard state
   wizardState: CourseWizardState;
@@ -102,6 +126,47 @@ interface CourseContextType {
 
   // Lesson operations
   deleteLesson: (lessonId: string) => Promise<boolean>;
+  getLessonById: (lessonId: string) => Promise<any>;
+
+  // Quiz operations
+  createQuiz: (quizData: any) => Promise<any>;
+  updateQuiz: (quizId: string, quizData: any) => Promise<boolean>;
+  deleteQuiz: (quizId: string) => Promise<boolean>;
+  addQuestionsToQuiz: (quizId: string, questions: any[]) => Promise<boolean>;
+  updateQuestion: (questionId: string, questionData: any) => Promise<boolean>;
+  deleteQuestion: (questionId: string) => Promise<boolean>;
+
+  // Quiz Management APIs
+  getQuizQuestions: (quizId: string) => Promise<IQuizQuestion[]>;
+  getCourseQuizSubmissions: (courseId: string) => Promise<IQuizSubmission[]>;
+
+  // Enrollment Management APIs
+  getCourseEnrollments: (courseId: string) => Promise<EnrollmentData[]>;
+  removeEnrollment: (enrollmentId: string) => Promise<boolean>;
+
+  // Course Instructor Management APIs
+  addInstructorToCourse: (courseId: string, instructorId: string) => Promise<boolean>;
+  removeInstructorFromCourse: (courseId: string, instructorId: string) => Promise<boolean>;
+
+  // Batch Management APIs
+  createBatch: (batchData: IBatchRequest) => Promise<IBatch | null>;
+  updateBatch: (batchId: string, batchData: IBatchRequest) => Promise<boolean>;
+  deleteBatch: (batchId: string) => Promise<boolean>;
+  getMyBatches: (page?: number, size?: number, status?: string) => Promise<IBatch[]>;
+  getBatchById: (batchId: string) => Promise<IBatch | null>;
+  publishBatch: (batchId: string) => Promise<boolean>;
+  addInstructorToBatch: (batchId: string, instructorId: string) => Promise<boolean>;
+  removeInstructorFromBatch: (batchId: string, instructorId: string) => Promise<boolean>;
+
+  // Batch Form Data
+  batchFormData: BatchFormData;
+  setBatchFormData: (data: BatchFormData) => void;
+  updateBatchFormData: (updates: Partial<BatchFormData>) => void;
+  resetBatchFormData: () => void;
+
+  // Batch Wizard State
+  batchWizardState: BatchWizardState;
+  setBatchWizardState: (updates: Partial<BatchWizardState>) => void;
 
   // API state
   isLoading: boolean;
@@ -130,7 +195,7 @@ const initialFormData: CourseFormData = {
   videoLink: undefined,
   subtitle: "",
   language: "vietnamese",
-  currency: "vnd",
+  currency: "VND",
   originalPrice: 0,
   sellingPrice: 0,
   shortIntroduction: [],
@@ -146,6 +211,21 @@ const initialWizardState: CourseWizardState = {
   errors: {},
 };
 
+const initialBatchFormData: BatchFormData = {
+  title: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+  maxStudents: 0,
+  courseId: "",
+};
+
+const initialBatchWizardState: BatchWizardState = {
+  currentStep: 0,
+  isSubmitting: false,
+  errors: {},
+};
+
 interface CourseProviderProps {
   children: ReactNode;
 }
@@ -154,6 +234,10 @@ export function CourseProvider({children}: CourseProviderProps) {
   const [formData, setFormData] = useState<CourseFormData>(initialFormData);
   const [wizardState, setWizardState] =
     useState<CourseWizardState>(initialWizardState);
+  
+  // Batch Management State
+  const [batchFormData, setBatchFormData] = useState<BatchFormData>(initialBatchFormData);
+  const [batchWizardState, setBatchWizardState] = useState<BatchWizardState>(initialBatchWizardState);
 
   // Sử dụng hook để lấy API operations
   const {
@@ -165,6 +249,32 @@ export function CourseProvider({children}: CourseProviderProps) {
     createChapter: createChapterAPI,
     deleteChapter: deleteChapterAPI,
     deleteLesson: deleteLessonAPI,
+    
+    // Quiz operations
+    createQuiz,
+    updateQuiz,
+    deleteQuiz,
+    addQuestionsToQuiz,
+    updateQuestion,
+    deleteQuestion,
+    
+    // New APIs from hook
+    getLessonById,
+    getQuizQuestions,
+    getCourseQuizSubmissions,
+    getCourseEnrollments,
+    removeEnrollment,
+    addInstructorToCourse,
+    removeInstructorFromCourse,
+    createBatch,
+    updateBatch,
+    deleteBatch,
+    getMyBatches,
+    getBatchById,
+    publishBatch,
+    addInstructorToBatch,
+    removeInstructorFromBatch,
+    
     state,
     clearError: clearErrorAPI,
   } = useCourse();
@@ -190,6 +300,81 @@ export function CourseProvider({children}: CourseProviderProps) {
     setFormData(initialFormData);
     setWizardState(initialWizardState);
   }, []);
+
+  // Sync course data to form data
+  const syncCourseToFormData = useCallback((course: ICourse) => {
+    if (!course) return;
+    
+    const chapters: Chapter[] = course.chapters?.map((chapter: any) => ({
+      id: chapter.id,
+      title: chapter.title,
+      summary: chapter.summary,
+      slug: chapter.slug,
+      position: chapter.position,
+      lessons: chapter.lessons?.map((lesson: any) => ({
+        id: lesson.id,
+        title: lesson.title,
+        slug: lesson.slug,
+        content: lesson.content,
+        videoUrl: lesson.videoUrl,
+        fileUrl: lesson.fileUrl,
+        quizDto: lesson.quizDto,
+        position: lesson.position,
+      })) || [],
+    })) || [];
+
+    setFormData(prev => ({
+      ...prev,
+      title: course.title || '',
+      description: course.description || '',
+      price: course.coursePrice || 0,
+      category: course.skillLevel || '',
+      timeCommitment: course.learnerProfileDesc || '',
+      tag: course.tags?.map(tag => ({ name: tag.name })) || [],
+      label: course.labels?.map(label => ({ name: label.name })) || [],
+      image: course.image || undefined,
+      videoLink: course.videoLink || undefined,
+      subtitle: course.shortIntroduction || undefined,
+      language: course.language || undefined,
+      currency: course.currency || "VND",
+      originalPrice: course.coursePrice || undefined,
+      sellingPrice: course.sellingPrice || undefined,
+      shortIntroduction: course.shortIntroduction ? [course.shortIntroduction] : [],
+      requirements: [],
+      targetAudience: course.targetAudience ? [course.targetAudience] : [],
+      chapters: chapters,
+      enrollment: course.enrollments?.toString() || undefined,
+    }));
+  }, []);
+
+  // Wrapper: load course then sync into formData so UI luôn lấy dữ liệu mới nhất
+  const loadCourse = useCallback(
+    async (courseId: string): Promise<ICourse | null> => {
+      const course = await loadCourseAPI(courseId);
+      if (course) {
+        syncCourseToFormData(course);
+      }
+      return course;
+    },
+    [loadCourseAPI, syncCourseToFormData],
+  );
+
+  // Batch Form Data Management
+  const updateBatchFormData = useCallback((updates: Partial<BatchFormData>) => {
+    setBatchFormData((prev) => ({...prev, ...updates}));
+  }, []);
+
+  const resetBatchFormData = useCallback(() => {
+    setBatchFormData(initialBatchFormData);
+    setBatchWizardState(initialBatchWizardState);
+  }, []);
+
+  const updateBatchWizardState = useCallback(
+    (updates: Partial<BatchWizardState>) => {
+      setBatchWizardState((prev) => ({...prev, ...updates}));
+    },
+    [],
+  );
 
   // Update wizard state
   const updateWizardState = useCallback(
@@ -298,12 +483,14 @@ export function CourseProvider({children}: CourseProviderProps) {
     }
   }, [currentStep, validateField]);
 
+
   const value: CourseContextType = {
     // Form data
     formData,
     setFormData,
     updateFormData,
     resetFormData,
+    syncCourseToFormData,
 
     // Wizard state
     wizardState,
@@ -325,13 +512,56 @@ export function CourseProvider({children}: CourseProviderProps) {
 
     // API operations (from hook)
     createCourse: createCourseAPI,
-    loadCourse: loadCourseAPI,
+    loadCourse,
     updateCourse: updateCourseAPI,
     publishCourse: publishCourseAPI,
     deleteCourse: deleteCourseAPI,
     createChapter: createChapterAPI,
     deleteChapter: deleteChapterAPI,
     deleteLesson: deleteLessonAPI,
+
+    // Quiz operations
+    createQuiz,
+    updateQuiz,
+    deleteQuiz,
+    addQuestionsToQuiz,
+    updateQuestion,
+    deleteQuestion,
+
+    // Lesson Management APIs
+    getLessonById,
+
+    // Quiz Management APIs
+    getQuizQuestions,
+    getCourseQuizSubmissions,
+
+    // Enrollment Management APIs
+    getCourseEnrollments,
+    removeEnrollment,
+
+    // Course Instructor Management APIs
+    addInstructorToCourse,
+    removeInstructorFromCourse,
+
+    // Batch Management APIs
+    createBatch,
+    updateBatch,
+    deleteBatch,
+    getMyBatches,
+    getBatchById,
+    publishBatch,
+    addInstructorToBatch,
+    removeInstructorFromBatch,
+
+    // Batch Form Data
+    batchFormData,
+    setBatchFormData,
+    updateBatchFormData,
+    resetBatchFormData,
+
+    // Batch Wizard State
+    batchWizardState,
+    setBatchWizardState: updateBatchWizardState,
 
     // API state
     isLoading,
