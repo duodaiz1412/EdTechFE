@@ -48,12 +48,12 @@ export default function Register() {
           onChange={(e) => setEmail(e.target.value)}
         />
       </label>
-      <button type="submit" className="btn btn-lg btn-primary w-full">
+      <button type="submit" className="btn btn-lg btn-neutral w-full">
         Register
       </button>
       <p className="text-center space-x-2">
         <span>Already have an account?</span>
-        <Link to="/login" className="link link-primary">
+        <Link to="/login" className="link link-neutral">
           Login
         </Link>
       </p>

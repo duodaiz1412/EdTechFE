@@ -83,7 +83,7 @@ export default function Login() {
       </label>
       <button
         type="submit"
-        className="btn btn-lg btn-primary w-full"
+        className="btn btn-lg btn-neutral w-full"
         disabled={isLoading}
       >
         {isLoading ? (
@@ -97,7 +97,7 @@ export default function Login() {
       </button>
       <p className="text-center space-x-2">
         <span>Don't have an account?</span>
-        <Link to="/register" className="link link-primary">
+        <Link to="/register" className="link link-neutral">
           Register
         </Link>
       </p>

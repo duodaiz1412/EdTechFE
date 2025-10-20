@@ -1,9 +1,9 @@
 import {Link} from "react-router-dom";
 
-import {Enrollment} from "@/types";
+import {CourseEnrollment} from "@/types";
 
 interface MyLearningItemProps {
-  enroll: Enrollment;
+  enroll: CourseEnrollment;
 }
 
 export default function MyLearningItem({enroll}: MyLearningItemProps) {

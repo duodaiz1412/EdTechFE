@@ -74,7 +74,7 @@ export default function Courses() {
             >
               {/* Course image */}
               <figure className="h-56 border-b border-b-slate-200">
-                {course.image && <img src={course.image} />}
+                {course.image && <img className="w-full" src={course.image} />}
                 {!course.image && (
                   <div className="w-full h-full bg-slate-200"></div>
                 )}

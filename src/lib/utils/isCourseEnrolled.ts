@@ -1,7 +1,7 @@
-import {Enrollment} from "@/types";
+import {CourseEnrollment} from "@/types";
 
 export const isCourseEnrolled = (
-  enrollments?: Enrollment[],
+  enrollments?: CourseEnrollment[],
   courseSlug?: string,
 ) => {
   return (

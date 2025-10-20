@@ -94,6 +94,7 @@ export interface Course {
   image?: string;
   videoLink?: string;
   status?: "DRAFT" | "PUBLISHED";
+  paidCourse?: boolean;
   coursePrice?: number;
   sellingPrice?: number;
   currency?: string;
@@ -111,10 +112,10 @@ export interface Course {
   instructors?: CourseInstructor[];
 }
 
-export interface Enrollment {
+export interface CourseEnrollment {
   id?: string;
   memberId?: string;
-  memberNam?: string;
+  memberName?: string;
   courseId?: string;
   courseTitle?: string;
   courseSlug?: string;
@@ -124,7 +125,8 @@ export interface Enrollment {
   currentLessonId?: string;
   currentLessonTitle?: string;
   currentLessonSlug?: string;
-  enrolledAt?: string;
+  creation?: string;
+  modified?: string;
 }
 
 export interface QuizQuestion {
@@ -242,4 +244,32 @@ export interface Review {
   isApproved?: boolean;
   creation?: string;
   modified?: string;
+}
+
+export interface Order {
+  id?: string;
+  orderCode?: string;
+  studentId?: string;
+  studentName?: string;
+  instructorId?: string;
+  instructorName?: string;
+  courseId?: string;
+  courseTitle?: string;
+  batchId?: string;
+  batchTitle?: string;
+  paymentId?: string;
+  paymentUrl: string;
+  qrCode?: string;
+  accountNumber?: string;
+  amount?: number;
+  currency?: string;
+  status?: string;
+  description?: string;
+  returnUrl: string;
+  cancelUrl: string;
+  paidAt?: string;
+  failedAt?: string;
+  webhookReceived?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }

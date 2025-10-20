@@ -12,12 +12,15 @@ import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
 
 import {toast} from "react-toastify";
 import {useAppSelector} from "@/redux/hooks";
-import {Check, Languages} from "lucide-react";
+import {Languages} from "lucide-react";
 import ReadOnlyRating from "@/components/ReadOnlyRating";
 import CourseContentList from "./CourseContent/CourseContentList";
 import CourseReviewItem from "./CourseLesson/Review/CourseReviewItem";
 
+import {usePayOS} from "@payos/payos-checkout";
+
 export default function CourseDetail() {
+  // Data states
   const {slug} = useParams();
   const [courseInfo, setCourseInfo] = useState<Course>();
   const [chapters, setChapters] = useState<Chapter[]>([]);
@@ -25,9 +28,27 @@ export default function CourseDetail() {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [currentLessonSlug, setCurrentLessonSlug] = useState("");
 
+  // Redux states
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
   const userData = useAppSelector((state) => state.user.data);
 
+  // Payment states
+  const [isPaying, setIsPaying] = useState(false);
+  const defaultPayOSConfig = {
+    RETURN_URL: window.location.href,
+    ELEMENT_ID: "embedded-payment-container",
+    CHECKOUT_URL: "",
+    embedded: true,
+    onSuccess: () => {
+      toast.success("Payment successful");
+      setIsEnrolled(true);
+      setIsPaying(false);
+    },
+  };
+  const [payOSConfig, setPayOSConfig] = useState(defaultPayOSConfig);
+  const {open, exit} = usePayOS(payOSConfig);
+
+  // Fetch course info
   useQuery({
     queryKey: ["course-info", slug],
     queryFn: async () => {
@@ -38,6 +59,7 @@ export default function CourseDetail() {
     },
   });
 
+  // Fetch chapters, reviews, enrollment status, progress
   useEffect(() => {
     const fetchData = async () => {
       if (!slug) return;
@@ -58,10 +80,7 @@ export default function CourseDetail() {
       if (enrolled) {
         const accessToken = await getAccessToken();
         const progress = await progressServices.getProgress(slug, accessToken);
-
-        setCurrentLessonSlug(
-          progress.currentLessonSlug || chapters?.[0]?.lessons?.[0]?.slug || "",
-        );
+        setCurrentLessonSlug(progress.currentLessonSlug || "");
       }
     };
 
@@ -74,17 +93,44 @@ export default function CourseDetail() {
     }
 
     const accessToken = await getAccessToken();
-    const courseId = courseInfo?.id;
 
-    const response = await enrollServices.enrollCourse(
-      courseId as string,
-      accessToken,
-    );
-    if (response.status === 201) {
-      setIsEnrolled(true);
-      toast.success("Enroll course successfully");
+    if (!courseInfo?.paidCourse) {
+      const response = await enrollServices.enrollFreeCourse(
+        slug || "",
+        accessToken,
+      );
+      if (response.status === 201) {
+        setIsEnrolled(true);
+        toast.success("Enroll course successfully");
+      }
+    } else {
+      setIsPaying(true);
+      const order = await enrollServices.enrollPaidCourse(
+        slug || "",
+        accessToken,
+      );
+      if (order) {
+        setPayOSConfig((oldConfig) => ({
+          ...oldConfig,
+          CHECKOUT_URL: order.paymentUrl,
+          RETURN_URL: order.returnUrl,
+          CANCEL_URL: order.cancelUrl,
+        }));
+      }
     }
   };
+
+  const handleCancelPayment = () => {
+    setIsPaying(false);
+    setPayOSConfig(defaultPayOSConfig);
+    exit();
+  };
+
+  useEffect(() => {
+    if (isPaying && payOSConfig.CHECKOUT_URL != "") {
+      open();
+    }
+  }, [payOSConfig, open, isPaying]);
 
   return (
     <div className="w-full max-w-[1380px] mx-auto">
@@ -121,23 +167,9 @@ export default function CourseDetail() {
               </div>
               <div className="flex space-x-2">
                 {courseInfo?.labels?.map((label: CourseLabel) => (
-                  <span key={label.id} className="badge badge-primary">
+                  <span key={label.id} className="badge bg-blue-600 text-white">
                     {label.name}
                   </span>
-                ))}
-              </div>
-            </div>
-          </div>
-          {/* What you will learn: FIX */}
-          <div className="card border border-slate-200">
-            <div className="card-body">
-              <div className="card-title mb-4">What you'll learn</div>
-              <div className="grid grid-cols-2 gap-4">
-                {[1, 2, 3, 4].map((item) => (
-                  <div className="flex items-center space-x-2">
-                    <Check size={16} />
-                    <span>Course content {item}</span>
-                  </div>
                 ))}
               </div>
             </div>
@@ -148,7 +180,11 @@ export default function CourseDetail() {
               Explore related topics
             </h3>
             {courseInfo?.tags?.map((tag: CourseTag) => (
-              <Link to={`/?tags=${tag.name}`} key={tag.id} className="btn mr-4">
+              <Link
+                to={`/?tags=${tag.name}`}
+                key={tag.id}
+                className="btn rounded-lg mr-4"
+              >
                 {tag.name}
               </Link>
             ))}
@@ -193,32 +229,58 @@ export default function CourseDetail() {
           </div>
         </div>
         {/* Course enroll */}
-        <div className="w-1/3 card border border-slate-200 shadow-sm rounded-lg">
-          <figure className="h-56 border-b border-b-slate-200">
-            {courseInfo?.image && <img src={courseInfo.image} />}
-            {!courseInfo?.image && (
-              <div className="w-full h-full bg-slate-200"></div>
-            )}
-          </figure>
-          <div className="card-body space-y-2">
-            {!isEnrolled ? (
-              <>
-                <p className="text-2xl font-bold">
-                  {formatPrice(courseInfo?.sellingPrice, courseInfo?.currency)}
-                </p>
-                <button className="btn btn-primary" onClick={handleEnroll}>
-                  Enroll this course
-                </button>
-              </>
-            ) : (
-              <Link
-                to={`/course/${courseInfo?.slug}/learn/lesson/${currentLessonSlug}`}
-                className="btn btn-neutral"
-              >
-                Continue learning
-              </Link>
-            )}
+        <div className="w-1/3 space-y-4">
+          <div className="card border border-slate-200 shadow-sm rounded-lg">
+            <figure className="h-56 border-b border-b-slate-200">
+              {courseInfo?.image && (
+                <img className="w-full" src={courseInfo.image} />
+              )}
+              {!courseInfo?.image && (
+                <div className="w-full h-full bg-slate-200"></div>
+              )}
+            </figure>
+            <div className="card-body space-y-2">
+              {!isEnrolled ? (
+                <>
+                  <p className="text-2xl font-bold">
+                    {courseInfo?.paidCourse &&
+                      formatPrice(
+                        courseInfo?.sellingPrice,
+                        courseInfo?.currency,
+                      )}
+                    {!courseInfo?.paidCourse && "Free Course"}
+                  </p>
+                  <button className="btn btn-neutral" onClick={handleEnroll}>
+                    Enroll this course
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to={`/course/${courseInfo?.slug}/learn/lesson/${currentLessonSlug || chapters?.[0]?.lessons?.[0]?.slug}`}
+                  className="btn btn-neutral"
+                >
+                  Continue learning
+                </Link>
+              )}
+              {courseInfo?.videoLink && (
+                <button className="btn btn-outline">Preview this course</button>
+              )}
+            </div>
           </div>
+        </div>
+      </div>
+      {/* QR Modal */}
+      <div
+        className={`fixed top-0 left-0 right-0 bottom-0 z-50 bg-[rgba(0,0,0,0.5)] flex justify-center items-center ${!isPaying && "hidden"}`}
+      >
+        <div className="flex flex-col items-center space-y-4 bg-white opacity-100 rounded-lg p-4">
+          <div id="embedded-payment-container" className="w-96 h-96"></div>
+          <p className="text-xl font-semibold">
+            Total: {formatPrice(courseInfo?.sellingPrice, courseInfo?.currency)}
+          </p>
+          <button className="btn btn-outline" onClick={handleCancelPayment}>
+            Cancel
+          </button>
         </div>
       </div>
     </div>

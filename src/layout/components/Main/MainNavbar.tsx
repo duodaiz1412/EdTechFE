@@ -24,7 +24,7 @@ export default function MainNavbar() {
           <Link to="/register" className="btn btn-ghost">
             Register
           </Link>
-          <Link to="/login" className="btn bg-primary text-white">
+          <Link to="/login" className="btn bg-neutral rounded-lg text-white">
             Login
           </Link>
         </div>

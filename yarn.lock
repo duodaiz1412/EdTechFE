@@ -887,6 +887,11 @@
     "@parcel/watcher-win32-ia32" "2.5.1"
     "@parcel/watcher-win32-x64" "2.5.1"
 
+"@payos/payos-checkout@^1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@payos/payos-checkout/-/payos-checkout-1.0.8.tgz#ccf1938542e2f86afa0fb288988e71bdad7e2a7e"
+  integrity sha512-9h2sZ/QeOIsOR3+6LDswDMYPfRGQ9kXiWJC4yrWFbpAzUYoI3gH84oFRHlAmx4CRFh2SCBKE1Q2pdzJ1atPRCA==
+
 "@pkgjs/parseargs@^0.11.0":
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
