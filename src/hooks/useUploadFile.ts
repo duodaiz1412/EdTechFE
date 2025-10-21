@@ -81,7 +81,7 @@ export const useUploadFile = (options?: UseUploadFileOptions) => {
         const errorMessage =
           error instanceof Error
             ? error.message
-            : "Có lỗi xảy ra khi upload file";
+            : "Error occurred while uploading file";
 
         setState((prev) => ({
           ...prev,
@@ -167,7 +167,7 @@ export const useUploadFile = (options?: UseUploadFileOptions) => {
         const errorMessage =
           error instanceof Error
             ? error.message
-            : "Có lỗi xảy ra khi upload video";
+            : "Error occurred while uploading video";
 
         setState((prev) => ({
           ...prev,

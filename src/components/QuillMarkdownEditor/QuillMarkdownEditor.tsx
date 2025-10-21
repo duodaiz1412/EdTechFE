@@ -16,7 +16,7 @@ export default function QuillMarkdownEditor({
   value,
   onChange,
   onBlur,
-  placeholder = "Nhập nội dung bài giảng...",
+  placeholder = "Enter lesson content...",
   className = "",
   rows = 5,
 }: QuillMarkdownEditorProps) {

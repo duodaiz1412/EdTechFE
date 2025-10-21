@@ -90,10 +90,70 @@ export default function EditQuizLecture() {
     );
   };
 
+  // Validate quiz before saving
+  const validateQuiz = () => {
+    if (!quizTitle.trim()) {
+      toast.error("Quiz title is required");
+      return false;
+    }
+
+    if (questions.length === 0) {
+      toast.error("At least one question is required");
+      return false;
+    }
+
+    // Check each question
+    for (let i = 0; i < questions.length; i++) {
+      const question = questions[i];
+
+      // Check if question text is empty
+      if (!question.question.trim()) {
+        toast.error(`Question ${i + 1}: Question text is required`);
+        return false;
+      }
+
+      // Check if correct answer is selected
+      if (!question.correctAnswer.trim()) {
+        toast.error(`Question ${i + 1}: Please select a correct answer`);
+        return false;
+      }
+
+      // Check if correct answer exists in options
+      if (!question.options.includes(question.correctAnswer)) {
+        toast.error(
+          `Question ${i + 1}: Selected correct answer must be one of the options`,
+        );
+        return false;
+      }
+
+      // Check if all options are filled
+      const emptyOptions = question.options.filter((opt) => !opt.trim());
+      if (emptyOptions.length > 0) {
+        toast.error(`Question ${i + 1}: All answer options must be filled`);
+        return false;
+      }
+
+      // Check minimum options
+      if (question.options.length < 2) {
+        toast.error(
+          `Question ${i + 1}: At least 2 answer options are required`,
+        );
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   // Save quiz
   const handleSaveQuiz = async () => {
-    if (!quizId || !quizTitle.trim()) {
-      toast.error("Quiz title is required");
+    if (!quizId) {
+      toast.error("Quiz ID is required");
+      return;
+    }
+
+    // Validate quiz before saving
+    if (!validateQuiz()) {
       return;
     }
 
@@ -139,8 +199,8 @@ export default function EditQuizLecture() {
             toast.error(
               `Failed to update question: ${currentQuestion.question.substring(0, 30)}...`,
             );
-          return;
-        }
+            return;
+          }
           hasChanges = true;
         }
       }
@@ -192,12 +252,12 @@ export default function EditQuizLecture() {
         if (quizQuestions?.length > 0) {
           const loadedQuestions = quizQuestions.map((q: any) => {
             return {
-            id: q.id,
-            question: q.question,
-            options: parseOptionsFromBackend(q.options),
-            correctAnswer: q.correctAnswer,
-            explanation: q.explanation || "",
-            marks: q.marks || 1,
+              id: q.id,
+              question: q.question,
+              options: parseOptionsFromBackend(q.options),
+              correctAnswer: q.correctAnswer,
+              explanation: q.explanation || "",
+              marks: q.marks || 1,
             };
           });
           setQuestions(loadedQuestions);
@@ -229,12 +289,12 @@ export default function EditQuizLecture() {
 
       // Create empty question to send to API
       const emptyQuestion = {
-      question: "",
+        question: "",
         options: JSON.stringify([{option: ""}, {option: ""}]),
-      correctAnswer: "",
-      explanation: "",
-      marks: 1,
-    };
+        correctAnswer: "",
+        explanation: "",
+        marks: 1,
+      };
 
       // Call API to add question
       const success = await addQuestionsToQuiz(quizId, [emptyQuestion]);
@@ -339,12 +399,12 @@ export default function EditQuizLecture() {
   ) => {
     setQuestions(
       questions.map((q) => {
-      if (q.id === questionId) {
-        const newOptions = [...q.options];
-        newOptions[optionIndex] = value;
-        return {...q, options: newOptions};
-      }
-      return q;
+        if (q.id === questionId) {
+          const newOptions = [...q.options];
+          newOptions[optionIndex] = value;
+          return {...q, options: newOptions};
+        }
+        return q;
       }),
     );
   };
@@ -362,16 +422,16 @@ export default function EditQuizLecture() {
   const removeOption = (questionId: string, optionIndex: number) => {
     setQuestions(
       questions.map((q) => {
-      if (q.id === questionId) {
-        const optionToRemove = q.options[optionIndex];
-        const filtered = q.options.filter((_, idx) => idx !== optionIndex);
+        if (q.id === questionId) {
+          const optionToRemove = q.options[optionIndex];
+          const filtered = q.options.filter((_, idx) => idx !== optionIndex);
           const nextCorrect =
             q.correctAnswer === optionToRemove
               ? filtered[0] || ""
               : q.correctAnswer;
           return {...q, options: filtered, correctAnswer: nextCorrect};
-      }
-      return q;
+        }
+        return q;
       }),
     );
   };
@@ -398,7 +458,7 @@ export default function EditQuizLecture() {
         <div className="text-center mb-8">
           <Heading3 className="text-2xl font-bold text-gray-900 mb-2">
             {quizId ? "Edit Quiz Lecture" : "Create Quiz Lecture"}
-        </Heading3>
+          </Heading3>
           <p className="text-gray-600">
             Create engaging quiz questions to test your students' knowledge
           </p>
@@ -423,21 +483,10 @@ export default function EditQuizLecture() {
 
           {/* Questions */}
           <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">
                 Questions <span className="text-red-500">*</span>
               </label>
-              <Button
-                type="button"
-                variant="secondary"
-                size="md"
-                leftIcon={<Plus size={18} />}
-                onClick={addQuestion}
-                disabled={isLoadingQuestions}
-                className="bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 disabled:opacity-50 shadow-md hover:shadow-lg transition-all duration-200 border-0"
-              >
-                {isLoadingQuestions ? "Adding Question..." : "Add New Question"}
-              </Button>
             </div>
 
             {isLoadingQuestions ? (
@@ -487,8 +536,8 @@ export default function EditQuizLecture() {
                           {index + 1}
                         </div>
                         <h4 className="text-lg font-semibold text-gray-900">
-                        Question {index + 1}
-                      </h4>
+                          Question {index + 1}
+                        </h4>
                       </div>
                       <Button
                         type="button"
@@ -505,47 +554,56 @@ export default function EditQuizLecture() {
 
                     {/* Question Content */}
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-                    {/* Question Text */}
+                      {/* Question Text */}
                       <div className="lg:col-span-3">
                         <label className="block text-sm font-semibold text-gray-700 mb-3">
                           Question Text <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        value={question.question}
-                        onChange={(e) =>
-                          updateQuestion(
-                            question.id,
-                            "question",
-                            e.target.value,
-                          )
-                        }
-                        placeholder="Enter your question here..."
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-400"
-                        rows={3}
-                      />
-                    </div>
+                        </label>
+                        <textarea
+                          value={question.question}
+                          onChange={(e) =>
+                            updateQuestion(
+                              question.id,
+                              "question",
+                              e.target.value,
+                            )
+                          }
+                          placeholder="Enter your question here..."
+                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-gray-900 placeholder-gray-400 ${
+                            !question.question.trim()
+                              ? "border-red-300 bg-red-50"
+                              : "border-gray-300"
+                          }`}
+                          rows={3}
+                        />
+                        {!question.question.trim() && (
+                          <p className="mt-1 text-xs text-red-600">
+                            Question text is required
+                          </p>
+                        )}
+                      </div>
 
-                    {/* Marks */}
+                      {/* Marks */}
                       <div className="lg:col-span-1">
                         <label className="block text-sm font-semibold text-gray-700 mb-3">
                           Points
-                      </label>
+                        </label>
                         <div className="relative">
-                      <Input
-                        type="number"
-                        min="1"
+                          <Input
+                            type="number"
+                            min="1"
                             max="100"
-                        value={question.marks}
-                        onChange={(e) =>
-                          updateQuestion(
-                            question.id,
-                            "marks",
-                            parseInt(e.target.value) || 1,
-                          )
-                        }
+                            value={question.marks}
+                            onChange={(e) =>
+                              updateQuestion(
+                                question.id,
+                                "marks",
+                                parseInt(e.target.value) || 1,
+                              )
+                            }
                             placeholder="1"
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      />
+                          />
                           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                             <span className="text-gray-400 text-sm">pts</span>
                           </div>
@@ -566,12 +624,12 @@ export default function EditQuizLecture() {
                             optionIndex={optionIndex}
                             isSelected={question.correctAnswer === option}
                             onSelect={() =>
-                                updateQuestion(
-                                  question.id,
-                                  "correctAnswer",
-                                  option,
-                                )
-                              }
+                              updateQuestion(
+                                question.id,
+                                "correctAnswer",
+                                option,
+                              )
+                            }
                             onOptionChange={(value) =>
                               updateOption(question.id, optionIndex, value)
                             }
@@ -584,17 +642,34 @@ export default function EditQuizLecture() {
                           />
                         ))}
 
+                        {/* Validation messages */}
+                        {!question.correctAnswer.trim() && (
+                          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md">
+                            <p className="text-xs text-red-600">
+                              Please select a correct answer
+                            </p>
+                          </div>
+                        )}
+
+                        {question.options.some((opt) => !opt.trim()) && (
+                          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md">
+                            <p className="text-xs text-red-600">
+                              All answer options must be filled
+                            </p>
+                          </div>
+                        )}
+
                         <div className="flex justify-center pt-2">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
                             leftIcon={<Plus size={16} />}
-                          onClick={() => addOption(question.id)}
+                            onClick={() => addOption(question.id)}
                             className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 border-purple-200"
-                        >
+                          >
                             Add Another Option
-                        </Button>
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -623,6 +698,23 @@ export default function EditQuizLecture() {
                     </div>
                   </div>
                 ))}
+
+                {/* Add Question Button - Now at the bottom */}
+                <div className="flex justify-center pt-6">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="md"
+                    leftIcon={<Plus size={18} />}
+                    onClick={addQuestion}
+                    disabled={isLoadingQuestions}
+                    className="bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 disabled:opacity-50 shadow-md hover:shadow-lg transition-all duration-200 border-0"
+                  >
+                    {isLoadingQuestions
+                      ? "Adding Question..."
+                      : "Add New Question"}
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -634,31 +726,40 @@ export default function EditQuizLecture() {
               added
             </div>
             <div className="flex items-center gap-4">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() =>
-                navigate(`/instructor/courses/${courseId}/edit/curriculum`)
-              }
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() =>
+                  navigate(`/instructor/courses/${courseId}/edit/curriculum`)
+                }
                 className="px-6 py-2 text-gray-600 hover:text-gray-800 border-gray-300 hover:border-gray-400"
-            >
-              Cancel
-            </Button>
-            <Button
+              >
+                Cancel
+              </Button>
+              <Button
                 type="button"
                 onClick={handleSaveQuiz}
-              disabled={
-                  !quizTitle.trim() || isSubmitting || isLoadingQuestions
+                disabled={
+                  !quizTitle.trim() ||
+                  questions.length === 0 ||
+                  questions.some(
+                    (q) =>
+                      !q.question.trim() ||
+                      !q.correctAnswer.trim() ||
+                      q.options.some((opt) => !opt.trim()),
+                  ) ||
+                  isSubmitting ||
+                  isLoadingQuestions
                 }
                 className="px-8 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 border-0"
-            >
-              {isSubmitting
+              >
+                {isSubmitting
                   ? "Saving Quiz..."
-                : isLoadingQuestions
-                  ? "Loading..."
-                  : "Save Quiz"}
-            </Button>
-          </div>
+                  : isLoadingQuestions
+                    ? "Loading..."
+                    : "Save Quiz"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

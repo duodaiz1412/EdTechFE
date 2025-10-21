@@ -10,10 +10,10 @@ import {toast} from "react-toastify";
 import {useUploadFile} from "@/hooks/useUploadFile";
 import useCourse from "@/hooks/useCourse";
 import {UploadPurpose} from "@/types/upload.types";
+import MuxPlayer from "@mux/mux-player-react/lazy";
 
 interface VideoLectureFormValues {
   title: string;
-  description: string;
   videoFile: File | null;
   videoUrl?: string;
 }
@@ -42,8 +42,6 @@ export default function EditVideoLecture() {
   } = useUploadFile({
     onSuccess: (jobId) => {
       toast.success("Video queued for transcoding successfully!");
-      // Video URL sẽ được cập nhật sau khi transcoding hoàn thành
-      // Hiện tại chỉ lưu job ID để tracking
       formik.setFieldValue("videoUrl", `transcoding:${jobId}`);
     },
     onError: (error) => {
@@ -53,16 +51,19 @@ export default function EditVideoLecture() {
 
   const validationSchema = Yup.object({
     title: Yup.string().trim().required("Title is required"),
-    description: Yup.string().trim(),
     videoFile: Yup.mixed<File>().nullable(),
     videoUrl: Yup.string().test(
       "video-url-required",
       "Video is required",
       function (value) {
-        // Cho phép edit video hiện có (có videoUrl) hoặc upload video mới (có videoFile)
-        const hasVideoUrl = !!(value && value.trim().length > 0 && !value.startsWith('transcoding:'));
+        // Allow editing existing video (has videoUrl) or uploading new video (has videoFile)
+        const hasVideoUrl = !!(
+          value &&
+          value.trim().length > 0 &&
+          !value.startsWith("transcoding:")
+        );
         const hasVideoFile = !!this.parent.videoFile;
-        const isTranscoding = !!(value && value.startsWith('transcoding:'));
+        const isTranscoding = !!(value && value.startsWith("transcoding:"));
         return hasVideoUrl || hasVideoFile || isTranscoding;
       },
     ),
@@ -71,7 +72,6 @@ export default function EditVideoLecture() {
   const formik = useFormik<VideoLectureFormValues>({
     initialValues: {
       title: "",
-      description: "",
       videoFile: null,
       videoUrl: "",
     },
@@ -83,25 +83,27 @@ export default function EditVideoLecture() {
       }
 
       try {
-        // Nếu có file mới được chọn, upload trước
+        // If new file is selected, upload first
         if (formik.values.videoFile) {
           try {
             toast.info("Uploading video...");
-            await uploadVideo(formik.values.videoFile, lessonId, UploadPurpose.LESSON_VIDEO);
-
+            await uploadVideo(
+              formik.values.videoFile,
+              lessonId,
+              UploadPurpose.LESSON_VIDEO,
+            );
           } catch {
             toast.error("Failed to upload video");
             return;
           }
         }
-
-        const success = await updateLesson(lessonId, {
+        const updatedLesson = await updateLesson(lessonId, {
           title: formik.values.title,
           content: undefined, // Clear article content
           quizId: undefined, // Clear quiz data
         });
 
-        if (success) {
+        if (updatedLesson) {
           toast.success("Video lecture updated successfully!");
           const updatedCourse = await loadCourse(courseId!);
           if (updatedCourse) {
@@ -129,7 +131,6 @@ export default function EditVideoLecture() {
       if (lesson) {
         formik.setValues({
           title: lesson.title || "",
-          description: "",
           videoFile: null,
           videoUrl: lesson.videoUrl || "",
         });
@@ -138,11 +139,10 @@ export default function EditVideoLecture() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId]);
 
-
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     formik.setFieldValue("videoFile", file);
-    // Reset upload state khi chọn file mới
+    // Reset upload state when selecting new file
     resetUploadState();
   };
 
@@ -186,32 +186,16 @@ export default function EditVideoLecture() {
             )}
           </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={formik.values.description}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              placeholder="Describe your video lesson"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              rows={4}
-            />
-          </div>
-
           {/* Video Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Video File <span className="text-red-500">*</span>
             </label>
 
-            {/* Hiển thị video hiện có nếu có */}
+            {/* Display current video if available */}
             {formik.values.videoUrl && !formik.values.videoFile && (
               <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                {formik.values.videoUrl.startsWith('transcoding:') ? (
+                {formik.values.videoUrl.startsWith("transcoding:") ? (
                   <div>
                     <p className="text-sm font-medium text-blue-900 mb-2">
                       Video is being processed:
@@ -223,7 +207,8 @@ export default function EditVideoLecture() {
                       </span>
                     </div>
                     <p className="text-xs text-blue-600 mt-1">
-                      Job ID: {formik.values.videoUrl.replace('transcoding:', '')}
+                      Job ID:{" "}
+                      {formik.values.videoUrl.replace("transcoding:", "")}
                     </p>
                   </div>
                 ) : (
@@ -231,17 +216,21 @@ export default function EditVideoLecture() {
                     <p className="text-sm font-medium text-blue-900 mb-2">
                       Current video:
                     </p>
-                    <video
-                      className="h-32 w-56 rounded border border-blue-200 bg-black"
-                      src={formik.values.videoUrl}
-                      controls
-                      preload="metadata"
-                      playsInline
-                      crossOrigin="anonymous"
-                      controlsList="nodownload"
-                    >
-                      Your browser does not support the video tag.
-                    </video>
+                    <MuxPlayer
+                      src={
+                        formik.values.videoUrl ||
+                        "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+                      }
+                      videoTitle="Video preview"
+                      className="w-2/3 aspect-video"
+                      accentColor="#2b7fff"
+                      thumbnailTime={5}
+                      defaultStreamType="on-demand"
+                      streamType="on-demand"
+                      loading="page"
+                      maxResolution="1440p"
+                      disableTracking
+                    />
                     <p className="text-xs text-blue-700 mt-1">
                       Upload a new file below to replace this video
                     </p>

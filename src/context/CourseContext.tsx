@@ -6,13 +6,13 @@ import {
   useMemo,
   ReactNode,
 } from "react";
-import useCourse, { EnrollmentData } from "@/hooks/useCourse";
-import { 
-  ICourse, 
-  IBatch, 
-  IBatchRequest, 
-  IQuizQuestion, 
-  IQuizSubmission
+import useCourse, {EnrollmentData} from "@/hooks/useCourse";
+import {
+  ICourse,
+  IBatch,
+  IBatchRequest,
+  IQuizQuestion,
+  IQuizSubmission,
 } from "@/lib/services/instructor.services";
 
 export interface Chapter {
@@ -84,7 +84,6 @@ export interface BatchWizardState {
   errors: Record<string, string>;
 }
 
-
 interface CourseContextType {
   // Form data
   formData: CourseFormData;
@@ -145,18 +144,34 @@ interface CourseContextType {
   removeEnrollment: (enrollmentId: string) => Promise<boolean>;
 
   // Course Instructor Management APIs
-  addInstructorToCourse: (courseId: string, instructorId: string) => Promise<boolean>;
-  removeInstructorFromCourse: (courseId: string, instructorId: string) => Promise<boolean>;
+  addInstructorToCourse: (
+    courseId: string,
+    instructorId: string,
+  ) => Promise<boolean>;
+  removeInstructorFromCourse: (
+    courseId: string,
+    instructorId: string,
+  ) => Promise<boolean>;
 
   // Batch Management APIs
   createBatch: (batchData: IBatchRequest) => Promise<IBatch | null>;
   updateBatch: (batchId: string, batchData: IBatchRequest) => Promise<boolean>;
   deleteBatch: (batchId: string) => Promise<boolean>;
-  getMyBatches: (page?: number, size?: number, status?: string) => Promise<IBatch[]>;
+  getMyBatches: (
+    page?: number,
+    size?: number,
+    status?: string,
+  ) => Promise<IBatch[]>;
   getBatchById: (batchId: string) => Promise<IBatch | null>;
   publishBatch: (batchId: string) => Promise<boolean>;
-  addInstructorToBatch: (batchId: string, instructorId: string) => Promise<boolean>;
-  removeInstructorFromBatch: (batchId: string, instructorId: string) => Promise<boolean>;
+  addInstructorToBatch: (
+    batchId: string,
+    instructorId: string,
+  ) => Promise<boolean>;
+  removeInstructorFromBatch: (
+    batchId: string,
+    instructorId: string,
+  ) => Promise<boolean>;
 
   // Batch Form Data
   batchFormData: BatchFormData;
@@ -194,7 +209,7 @@ const initialFormData: CourseFormData = {
   image: undefined,
   videoLink: undefined,
   subtitle: "",
-  language: "vietnamese",
+  language: "Vietnamese",
   currency: "VND",
   originalPrice: 0,
   sellingPrice: 0,
@@ -234,10 +249,13 @@ export function CourseProvider({children}: CourseProviderProps) {
   const [formData, setFormData] = useState<CourseFormData>(initialFormData);
   const [wizardState, setWizardState] =
     useState<CourseWizardState>(initialWizardState);
-  
+
   // Batch Management State
-  const [batchFormData, setBatchFormData] = useState<BatchFormData>(initialBatchFormData);
-  const [batchWizardState, setBatchWizardState] = useState<BatchWizardState>(initialBatchWizardState);
+  const [batchFormData, setBatchFormData] =
+    useState<BatchFormData>(initialBatchFormData);
+  const [batchWizardState, setBatchWizardState] = useState<BatchWizardState>(
+    initialBatchWizardState,
+  );
 
   // Sử dụng hook để lấy API operations
   const {
@@ -249,7 +267,7 @@ export function CourseProvider({children}: CourseProviderProps) {
     createChapter: createChapterAPI,
     deleteChapter: deleteChapterAPI,
     deleteLesson: deleteLessonAPI,
-    
+
     // Quiz operations
     createQuiz,
     updateQuiz,
@@ -257,7 +275,7 @@ export function CourseProvider({children}: CourseProviderProps) {
     addQuestionsToQuiz,
     updateQuestion,
     deleteQuestion,
-    
+
     // New APIs from hook
     getLessonById,
     getQuizQuestions,
@@ -274,7 +292,7 @@ export function CourseProvider({children}: CourseProviderProps) {
     publishBatch,
     addInstructorToBatch,
     removeInstructorFromBatch,
-    
+
     state,
     clearError: clearErrorAPI,
   } = useCourse();
@@ -304,42 +322,46 @@ export function CourseProvider({children}: CourseProviderProps) {
   // Sync course data to form data
   const syncCourseToFormData = useCallback((course: ICourse) => {
     if (!course) return;
-    
-    const chapters: Chapter[] = course.chapters?.map((chapter: any) => ({
-      id: chapter.id,
-      title: chapter.title,
-      summary: chapter.summary,
-      slug: chapter.slug,
-      position: chapter.position,
-      lessons: chapter.lessons?.map((lesson: any) => ({
-        id: lesson.id,
-        title: lesson.title,
-        slug: lesson.slug,
-        content: lesson.content,
-        videoUrl: lesson.videoUrl,
-        fileUrl: lesson.fileUrl,
-        quizDto: lesson.quizDto,
-        position: lesson.position,
-      })) || [],
-    })) || [];
 
-    setFormData(prev => ({
+    const chapters: Chapter[] =
+      course.chapters?.map((chapter: any) => ({
+        id: chapter.id,
+        title: chapter.title,
+        summary: chapter.summary,
+        slug: chapter.slug,
+        position: chapter.position,
+        lessons:
+          chapter.lessons?.map((lesson: any) => ({
+            id: lesson.id,
+            title: lesson.title,
+            slug: lesson.slug,
+            content: lesson.content,
+            videoUrl: lesson.videoUrl,
+            fileUrl: lesson.fileUrl,
+            quizDto: lesson.quizDto,
+            position: lesson.position,
+          })) || [],
+      })) || [];
+
+    setFormData((prev) => ({
       ...prev,
-      title: course.title || '',
-      description: course.description || '',
+      title: course.title || "",
+      description: course.description || "",
       price: course.coursePrice || 0,
-      category: course.skillLevel || '',
-      timeCommitment: course.learnerProfileDesc || '',
-      tag: course.tags?.map(tag => ({ name: tag.name })) || [],
-      label: course.labels?.map(label => ({ name: label.name })) || [],
+      category: course.skillLevel || "",
+      timeCommitment: course.learnerProfileDesc || "",
+      tag: course.tags?.map((tag) => ({name: tag.name})) || [],
+      label: course.labels?.map((label) => ({name: label.name})) || [],
       image: course.image || undefined,
       videoLink: course.videoLink || undefined,
       subtitle: course.shortIntroduction || undefined,
-      language: course.language || undefined,
+      language: course.language || "Vietnamese",
       currency: course.currency || "VND",
       originalPrice: course.coursePrice || undefined,
       sellingPrice: course.sellingPrice || undefined,
-      shortIntroduction: course.shortIntroduction ? [course.shortIntroduction] : [],
+      shortIntroduction: course.shortIntroduction
+        ? [course.shortIntroduction]
+        : [],
       requirements: [],
       targetAudience: course.targetAudience ? [course.targetAudience] : [],
       chapters: chapters,
@@ -414,52 +436,52 @@ export function CourseProvider({children}: CourseProviderProps) {
       switch (field) {
         case "title":
           if (!value || (value as string).trim().length === 0) {
-            return "Tiêu đề khóa học là bắt buộc";
+            return "Course title is required";
           }
           if ((value as string).trim().length < 3) {
-            return "Tiêu đề phải có ít nhất 3 ký tự";
+            return "Title must be at least 3 characters";
           }
           if ((value as string).trim().length > 100) {
-            return "Tiêu đề không được vượt quá 100 ký tự";
+            return "Title cannot exceed 100 characters";
           }
           break;
 
         case "description":
           if (!value || (value as string).trim().length === 0) {
-            return "Mô tả khóa học là bắt buộc";
+            return "Course description is required";
           }
           if ((value as string).trim().length < 10) {
-            return "Mô tả phải có ít nhất 10 ký tự";
+            return "Description must be at least 10 characters";
           }
           break;
 
         case "price":
           if (typeof value !== "number" || value < 0) {
-            return "Giá khóa học phải là số dương";
+            return "Course price must be a positive number";
           }
           break;
 
         case "category":
           if (!value || (value as string).trim().length === 0) {
-            return "Danh mục là bắt buộc";
+            return "Category is required";
           }
           break;
 
         case "timeCommitment":
           if (!value || (value as string).trim().length === 0) {
-            return "Thời gian học là bắt buộc";
+            return "Time commitment is required";
           }
           break;
 
         case "tag":
           if (Array.isArray(value) && value.length > 10) {
-            return "Không được có quá 10 tags";
+            return "Cannot have more than 10 tags";
           }
           break;
 
         case "label":
           if (Array.isArray(value) && value.length > 5) {
-            return "Không được có quá 5 labels";
+            return "Cannot have more than 5 labels";
           }
           break;
       }
@@ -482,7 +504,6 @@ export function CourseProvider({children}: CourseProviderProps) {
         return false;
     }
   }, [currentStep, validateField]);
-
 
   const value: CourseContextType = {
     // Form data

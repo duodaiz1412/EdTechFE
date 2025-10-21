@@ -17,6 +17,8 @@ import {Modal} from "@/components/Modal";
 
 import {CourseItem, useCourseContext} from "@/context/CourseContext";
 import HtmlPreview from "@/components/HtmlPreview";
+import VideoPreview from "@/components/VideoPreview";
+import QuizPreview from "@/components/QuizPreview";
 
 interface LessonItemProps {
   chapterId: string;
@@ -62,12 +64,12 @@ export default function LessonItem({
     try {
       setIsUpdatingTitle(true);
       // Update lesson in database
-      const success = await updateLesson(item.id!, {
+      const updatedLesson = await updateLesson(item.id!, {
         title: editTitle.trim(),
       });
-      
+
       // Ensure database update was successful
-      if (!success) {
+      if (!updatedLesson) {
         throw new Error("Database update failed");
       }
 
@@ -87,7 +89,7 @@ export default function LessonItem({
             : chapter,
         ),
       });
-      
+
       // Reload course data from server to ensure consistency
       if (courseId) {
         const updatedCourse = await loadCourse(courseId);
@@ -95,7 +97,7 @@ export default function LessonItem({
           syncCourseToFormData(updatedCourse);
         }
       }
-      
+
       toast.success("Lesson title updated successfully");
       setShowEditModal(false);
     } catch {
@@ -153,16 +155,21 @@ export default function LessonItem({
         showSubmissionHistory: true,
       });
       if (!created?.id) {
-        toast.error("Tạo quiz thất bại");
+        toast.error("Failed to create quiz");
         return;
       }
-      // gán quizId vào lesson
-      await updateLesson(item.id, {
+      // Assign quizId to lesson
+      const updatedLesson = await updateLesson(item.id, {
         title: item.title || "",
         quizId: created.id,
       });
-      toast.success("Đã tạo quiz");
-      // Đồng bộ ngay vào formData để UI phản ánh liền
+
+      if (!updatedLesson) {
+        toast.error("Failed to assign quiz to lesson");
+        return;
+      }
+      toast.success("Quiz created successfully");
+      // Sync immediately to formData so UI reflects changes
       const currentChapters = formData.chapters || [];
       updateFormData({
         chapters: currentChapters.map((chapter) =>
@@ -189,7 +196,7 @@ export default function LessonItem({
         `/instructor/courses/${courseId}/edit/lecture/quiz/${created.id}`,
       );
     } catch {
-      toast.error("Có lỗi khi tạo quiz");
+      toast.error("Error creating quiz");
     } finally {
       setIsCreatingQuiz(false);
     }
@@ -249,111 +256,69 @@ export default function LessonItem({
       {isExpanded && (
         <div className="p-4 bg-white border-t border-gray-200">
           {hasContent ? (
-            <div className="space-y-4">
-              {/* Existing content preview */}
-              {item.videoUrl && (
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <PlayCircle size={20} className="text-blue-600" />
-                    <div className="flex items-center gap-3">
-                      <video
-                        className="h-36 w-64 rounded border border-blue-200 bg-black"
-                        src={item.videoUrl}
-                        controls
-                        preload="metadata"
-                        playsInline
-                        crossOrigin="anonymous"
-                        controlsList="nodownload"
-                      >
-                        {/* Fallback */}
-                      </video>
-                      <div>
-                        <p className="font-medium text-blue-900">
-                          Video preview
-                        </p>
-                        <p className="text-sm text-blue-700">
-                          Click Edit to replace or update
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() =>
+            <div className="flex flex-col gap-4">
+              <div className="space-y-4 flex flex-col">
+                {/* Existing content preview */}
+                {item.videoUrl && (
+                  <VideoPreview
+                    videoUrl={item.videoUrl || ""}
+                    onEdit={() =>
                       navigate(
                         `/instructor/courses/${courseId}/edit/lecture/video/${item.id}`,
                       )
                     }
-                    className="text-blue-700 hover:text-blue-800"
-                  >
-                    Edit
-                  </Button>
-                </div>
-              )}
+                  />
+                )}
 
-              {item.quizDto && (
-                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <HelpCircle size={20} className="text-purple-600" />
-                    <div>
-                      <p className="font-medium text-purple-900">Quiz</p>
-                      <p className="text-sm text-purple-700">
-                        {item.quizDto?.questions?.length ?? 0} question(s)
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() =>
+                {item.quizDto && (
+                  <QuizPreview
+                    quizId={item.quizDto.id || ""}
+                    quizTitle={item.quizDto.title || "Quiz"}
+                    onEdit={() =>
                       navigate(
                         `/instructor/courses/${courseId}/edit/lecture/quiz/${item.quizDto?.id}`,
                       )
                     }
-                    className="text-purple-700 hover:text-purple-800"
-                  >
-                    Edit
-                  </Button>
-                </div>
-              )}
+                  />
+                )}
 
-              {item.content && (
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <ClipboardList size={20} className="text-green-600" />
-                      <p className="font-medium text-green-900">
-                        Article Content
-                      </p>
+                {item.content && (
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <ClipboardList size={20} className="text-green-600" />
+                        <p className="font-medium text-green-900">
+                          Article Content
+                        </p>
+                      </div>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          navigate(
+                            `/instructor/courses/${courseId}/edit/lecture/article/${item.id}`,
+                          )
+                        }
+                        className="text-green-700 hover:text-green-800"
+                      >
+                        Edit
+                      </Button>
                     </div>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() =>
-                        navigate(
-                          `/instructor/courses/${courseId}/edit/lecture/article/${item.id}`,
-                        )
-                      }
-                      className="text-green-700 hover:text-green-800"
-                    >
-                      Edit
-                    </Button>
-                  </div>
 
-                  {/* Article Preview */}
-                  <div className="bg-white rounded-md p-3 border border-green-200 min-h-32">
-                    <HtmlPreview
-                      html={item.content || ""}
-                      className="text-gray-700"
-                    />
-                  </div>
+                    {/* Article Preview */}
+                    <div className="bg-white rounded-md p-3 border border-green-200 min-h-32">
+                      <HtmlPreview
+                        html={item.content || ""}
+                        className="text-gray-700"
+                      />
+                    </div>
 
-                  <div className="mt-2 text-xs text-green-600">
-                    Click "Edit" to modify content
+                    <div className="mt-2 text-xs text-green-600">
+                      Click "Edit" to modify content
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -422,7 +387,7 @@ export default function LessonItem({
       <Modal
         open={showConfirm}
         onClose={() => (!isCreatingQuiz ? setShowConfirm(false) : undefined)}
-        title="Tạo quiz cho bài học"
+        title="Create quiz for lesson"
         footer={
           <div className="flex justify-end gap-2">
             <Button
@@ -432,7 +397,7 @@ export default function LessonItem({
               className="text-gray-700"
               disabled={isCreatingQuiz}
             >
-              Hủy
+              Cancel
             </Button>
             <Button
               size="sm"
@@ -440,13 +405,14 @@ export default function LessonItem({
               className="bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
               disabled={isCreatingQuiz}
             >
-              {isCreatingQuiz ? "Đang tạo..." : "Tạo quiz"}
+              {isCreatingQuiz ? "Creating..." : "Create Quiz"}
             </Button>
           </div>
         }
       >
         <p className="text-sm text-gray-700">
-          Bạn muốn tạo quiz cho bài học này trước khi cấu hình câu hỏi?
+          Do you want to create a quiz for this lesson before configuring
+          questions?
         </p>
       </Modal>
 
@@ -458,8 +424,8 @@ export default function LessonItem({
         size="sm"
         footer={
           <div className="flex justify-end gap-2">
-            <Button 
-              variant="secondary" 
+            <Button
+              variant="secondary"
               onClick={() => setShowEditModal(false)}
               disabled={isUpdatingTitle}
             >

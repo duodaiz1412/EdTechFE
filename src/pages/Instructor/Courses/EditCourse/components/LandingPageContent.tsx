@@ -1,4 +1,5 @@
 import {useState, useEffect} from "react";
+import {useNavigate} from "react-router";
 import {X, Eye} from "lucide-react";
 import Button from "@/components/Button";
 import {Heading3} from "@/components/Typography";
@@ -7,11 +8,13 @@ import CommonSelect from "@/components/CommonSelect";
 import Chip from "@/components/Chip";
 import FileUpload from "@/components/FileUpload";
 import ReactPlayer from "react-player";
+import QuillMarkdownEditor from "@/components/QuillMarkdownEditor/QuillMarkdownEditor";
 import {useCourseContext} from "@/context/CourseContext";
 import {UploadPurpose} from "@/types/upload.types";
 import {toast} from "react-toastify";
 
 export default function LandingPageContent() {
+  const navigate = useNavigate();
   const {
     // Form data from context
     formData,
@@ -53,7 +56,7 @@ export default function LandingPageContent() {
     }
   }, [course, formData.title, updateFormData]);
 
-  // Sync YouTube URL với course data khi course thay đổi
+  // Sync YouTube URL with course data when course changes
   useEffect(() => {
     if (course?.videoLink) {
       setYoutubeUrl(course.videoLink);
@@ -69,12 +72,11 @@ export default function LandingPageContent() {
     return () => clearTimeout(timer);
   }, [youtubeUrl]);
 
-
   const languageOptions = [
-    {value: "vietnamese", label: "Vietnamese"},
-    {value: "english", label: "English"},
-    {value: "chinese", label: "Chinese"},
-    {value: "japanese", label: "Japanese"},
+    {value: "Vietnamese", label: "Vietnamese"},
+    {value: "English", label: "English"},
+    {value: "Chinese", label: "Chinese"},
+    {value: "Japanese", label: "Japanese"},
   ];
 
   const handleInputChange = (field: string, value: string) => {
@@ -82,12 +84,12 @@ export default function LandingPageContent() {
   };
 
   const handleImageUploadSuccess = (url: string) => {
-    updateFormData({ image: url });
-    toast.success("Ảnh khóa học đã được upload thành công!");
+    updateFormData({image: url});
+    toast.success("Course image uploaded successfully!");
   };
 
   const handleImageUploadError = (error: string) => {
-    toast.error(`Lỗi upload ảnh: ${error}`);
+    toast.error(`Image upload error: ${error}`);
   };
 
   const addTag = () => {
@@ -164,13 +166,13 @@ export default function LandingPageContent() {
         sellingPrice: formData.sellingPrice,
         tag: formData.tag,
         label: formData.label,
-        ...(formData.image && { 
+        ...(formData.image && {
           thumbnailUrl: formData.image,
-          image: formData.image 
+          image: formData.image,
         }),
-        ...(formData.videoLink && { 
+        ...(formData.videoLink && {
           videoUrl: formData.videoLink,
-          videoLink: formData.videoLink 
+          videoLink: formData.videoLink,
         }),
       };
 
@@ -202,17 +204,15 @@ export default function LandingPageContent() {
             variant="secondary"
             leftIcon={<Eye size={16} />}
             className="bg-gray-100 text-gray-700 hover:bg-gray-200"
-      onClick={() => {
-        if (!course?.id) {
-          toast.warning("Course ID is missing");
-          return;
-        }
-        if (!course?.slug) {
-          toast.warning("Course slug is missing. Please save the course first.");
-          return;
-        }
-        window.open(`/course/${course.slug}`, '_blank');
-      }}
+            onClick={() => {
+              if (!course?.id) {
+                toast.warning("Course ID is missing");
+                return;
+              }
+              navigate(
+                `/instructor/courses/${course.id}/preview/landing-preview`,
+              );
+            }}
           >
             Preview
           </Button>
@@ -257,11 +257,11 @@ export default function LandingPageContent() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Course description
             </label>
-            <textarea
+            <QuillMarkdownEditor
               value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
+              onChange={(value) => handleInputChange("description", value)}
               placeholder="Enter course description..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full"
               rows={4}
             />
           </div>
@@ -405,8 +405,8 @@ export default function LandingPageContent() {
             value={youtubeUrl}
             onChange={(e) => {
               setYoutubeUrl(e.target.value);
-              // Cập nhật vào formData để sync với context
-              updateFormData({ videoLink: e.target.value });
+              // Update formData to sync with context
+              updateFormData({videoLink: e.target.value});
             }}
             placeholder="https://www.youtube.com/watch?v=..."
             className="w-full"
@@ -414,21 +414,21 @@ export default function LandingPageContent() {
           {debouncedYoutubeUrl && (
             <div className="aspect-video w-full bg-black rounded overflow-hidden">
               <ReactPlayer
-              src={debouncedYoutubeUrl}
-              width="100%"
-              height="100%"
-              controls
-              config={{
-                youtube: {
-                  rel: 0,
-                  cc_load_policy: 1,
-                },
-              }}
-            />
+                src={debouncedYoutubeUrl}
+                width="100%"
+                height="100%"
+                controls
+                config={{
+                  youtube: {
+                    rel: 0,
+                    cc_load_policy: 1,
+                  },
+                }}
+              />
             </div>
           )}
           <p className="text-xs text-gray-500">
-            Dán link YouTube để hiển thị video quảng cáo trên trang landing
+            Paste YouTube link to display promotional video on landing page
           </p>
         </div>
       </div>

@@ -23,11 +23,7 @@ export default function EditArticleLecture() {
   const navigate = useNavigate();
   const {courseId, lessonId, chapterId} = useParams();
 
-  const {
-    error,
-    formData,
-    syncCourseToFormData,
-  } = useCourseContext();
+  const {error, formData, syncCourseToFormData} = useCourseContext();
 
   const {
     createLesson,
@@ -86,7 +82,7 @@ export default function EditArticleLecture() {
       try {
         if (lessonId) {
           // Edit existing lesson
-          const success = await updateLesson(lessonId, {
+          const updatedLesson = await updateLesson(lessonId, {
             title: formik.values.title,
             content: formik.values.content,
             // fileUrl: formik.values.fileUrl, // Not supported in ILessonRequest
@@ -94,7 +90,7 @@ export default function EditArticleLecture() {
             quizId: undefined, // Clear quiz data
           });
 
-          if (success) {
+          if (updatedLesson) {
             toast.success("Article lecture updated successfully!");
             if (courseId) {
               const updatedCourse = await loadCourse(courseId);
@@ -205,7 +201,6 @@ export default function EditArticleLecture() {
               <p className="mt-1 text-xs text-red-600">{formik.errors.title}</p>
             )}
           </div>
-
 
           {/* Content Editor */}
           <div>

@@ -5,13 +5,14 @@ import {
   ICourse,
   IChapterRequest,
   ILessonRequest,
+  ILesson,
   IBatch,
   IBatchRequest,
   IQuizQuestion,
   IQuizSubmission,
 } from "@/lib/services/instructor.services";
 import {Chapter, CourseItem} from "@/context/CourseContext";
-import { convertUrlToRelatuvePath } from "@/lib/utils";
+import {convertUrlToRelatuvePath} from "@/lib/utils";
 
 // Types
 // Import CourseFormData từ context để tránh trùng lặp
@@ -61,13 +62,19 @@ export interface UseCourseReturn {
   deleteCourse: (courseId: string) => Promise<boolean>;
 
   // Chapter operations
-  createChapter: (courseId: string, data: IChapterRequest) => Promise<Chapter | null>;
+  createChapter: (
+    courseId: string,
+    data: IChapterRequest,
+  ) => Promise<Chapter | null>;
   updateChapter: (chapterId: string, data: IChapterRequest) => Promise<boolean>;
   deleteChapter: (chapterId: string) => Promise<boolean>;
 
   // Lesson operations
   createLesson: (chapterId: string) => Promise<CourseItem | null>;
-  updateLesson: (lessonId: string, data: ILessonRequest) => Promise<boolean>;
+  updateLesson: (
+    lessonId: string,
+    data: ILessonRequest,
+  ) => Promise<ILesson | null>;
   deleteLesson: (lessonId: string) => Promise<boolean>;
 
   // Quiz operations
@@ -88,18 +95,34 @@ export interface UseCourseReturn {
   removeEnrollment: (enrollmentId: string) => Promise<boolean>;
 
   // Course Instructor Management APIs
-  addInstructorToCourse: (courseId: string, instructorId: string) => Promise<boolean>;
-  removeInstructorFromCourse: (courseId: string, instructorId: string) => Promise<boolean>;
+  addInstructorToCourse: (
+    courseId: string,
+    instructorId: string,
+  ) => Promise<boolean>;
+  removeInstructorFromCourse: (
+    courseId: string,
+    instructorId: string,
+  ) => Promise<boolean>;
 
   // Batch Management APIs
   createBatch: (batchData: IBatchRequest) => Promise<IBatch | null>;
   updateBatch: (batchId: string, batchData: IBatchRequest) => Promise<boolean>;
   deleteBatch: (batchId: string) => Promise<boolean>;
-  getMyBatches: (page?: number, size?: number, status?: string) => Promise<IBatch[]>;
+  getMyBatches: (
+    page?: number,
+    size?: number,
+    status?: string,
+  ) => Promise<IBatch[]>;
   getBatchById: (batchId: string) => Promise<IBatch | null>;
   publishBatch: (batchId: string) => Promise<boolean>;
-  addInstructorToBatch: (batchId: string, instructorId: string) => Promise<boolean>;
-  removeInstructorFromBatch: (batchId: string, instructorId: string) => Promise<boolean>;
+  addInstructorToBatch: (
+    batchId: string,
+    instructorId: string,
+  ) => Promise<boolean>;
+  removeInstructorFromBatch: (
+    batchId: string,
+    instructorId: string,
+  ) => Promise<boolean>;
 
   // Utility functions
   clearError: () => void;
@@ -216,7 +239,7 @@ const useCourse = (): UseCourseReturn => {
         const response = await CourseService.getCourseForInstructor(
           courseId,
           accessToken,
-        )
+        );
         setState((prev) => ({...prev, course: response.data}));
         return response.data;
       } catch (err) {
@@ -275,30 +298,85 @@ const useCourse = (): UseCourseReturn => {
         }
 
         // First, get the current course data
-        const currentCourseResponse = await CourseService.getCourseForInstructor(
-          courseId,
-          accessToken,
-        );
+        const currentCourseResponse =
+          await CourseService.getCourseForInstructor(courseId, accessToken);
         const currentCourse = currentCourseResponse.data;
         // Merge current course data with new data (only update fields that are provided)
         const mergedData: ICourseRequest = {
           title: data.title !== undefined ? data.title : currentCourse.title,
-          description: data.description !== undefined ? data.description : currentCourse.description,
-          price: data.price !== undefined ? data.price : (currentCourse.coursePrice || 0),
-          tag: data.tag !== undefined ? data.tag : currentCourse.tags?.map((tag: {name: string}) => ({name: tag.name})),
-          label: data.label !== undefined ? data.label : currentCourse.labels?.map((label: {name: string}) => ({name: label.name})),
+          description:
+            data.description !== undefined
+              ? data.description
+              : currentCourse.description,
+          price:
+            data.price !== undefined
+              ? data.price
+              : currentCourse.coursePrice || 0,
+          tag:
+            data.tag !== undefined
+              ? data.tag
+              : currentCourse.tags?.map((tag: {name: string}) => ({
+                  name: tag.name,
+                })),
+          label:
+            data.label !== undefined
+              ? data.label
+              : currentCourse.labels?.map((label: {name: string}) => ({
+                  name: label.name,
+                })),
           // Chỉ sử dụng field names mà backend expect để tránh lỗi field quá dài
-          image: data.image !== undefined ? data.image : (data.thumbnailUrl !== undefined ? data.thumbnailUrl : convertUrlToRelatuvePath(currentCourse.image)),
-          videoLink: data.videoLink !== undefined ? data.videoLink : (data.videoUrl !== undefined ? data.videoUrl : currentCourse.videoLink),
-          shortIntroduction: data.shortIntroduction !== undefined ? data.shortIntroduction : currentCourse.shortIntroduction,
-          language: data.language !== undefined ? data.language : currentCourse.language,
-          currency: data.currency !== undefined ? data.currency : currentCourse.currency,
-          coursePrice: data.coursePrice !== undefined ? data.coursePrice : currentCourse.coursePrice,
-          sellingPrice: data.sellingPrice !== undefined ? data.sellingPrice : currentCourse.sellingPrice,
-          targetAudience: data.targetAudience !== undefined ? data.targetAudience : currentCourse.targetAudience,
-          skillLevel: data.skillLevel !== undefined ? data.skillLevel : currentCourse.skillLevel,
-          learnerProfileDesc: data.learnerProfileDesc !== undefined ? data.learnerProfileDesc : currentCourse.learnerProfileDesc,
+          image:
+            data.image !== undefined
+              ? convertUrlToRelatuvePath(data.image)
+              : data.thumbnailUrl !== undefined
+                ? convertUrlToRelatuvePath(data.thumbnailUrl)
+                : currentCourse.image
+                  ? convertUrlToRelatuvePath(currentCourse.image)
+                  : undefined,
+          videoLink:
+            data.videoLink !== undefined
+              ? data.videoLink
+              : data.videoUrl !== undefined
+                ? data.videoUrl
+                : currentCourse.videoLink,
+          shortIntroduction:
+            data.shortIntroduction !== undefined
+              ? data.shortIntroduction
+              : currentCourse.shortIntroduction,
+          language:
+            data.language !== undefined
+              ? data.language
+              : currentCourse.language,
+          currency:
+            data.currency !== undefined
+              ? data.currency
+              : currentCourse.currency,
+          coursePrice:
+            data.coursePrice !== undefined
+              ? data.coursePrice
+              : currentCourse.coursePrice,
+          sellingPrice:
+            data.sellingPrice !== undefined
+              ? data.sellingPrice
+              : currentCourse.sellingPrice,
+          targetAudience:
+            data.targetAudience !== undefined
+              ? data.targetAudience
+              : currentCourse.targetAudience,
+          skillLevel:
+            data.skillLevel !== undefined
+              ? data.skillLevel
+              : currentCourse.skillLevel,
+          learnerProfileDesc:
+            data.learnerProfileDesc !== undefined
+              ? data.learnerProfileDesc
+              : currentCourse.learnerProfileDesc,
+          thumbnailUrl:
+            data.thumbnailUrl !== undefined
+              ? convertUrlToRelatuvePath(data.thumbnailUrl)
+              : convertUrlToRelatuvePath(currentCourse.thumbnailUrl),
         };
+
         const response = await CourseService.updateCourse(
           courseId,
           mergedData,
@@ -374,7 +452,10 @@ const useCourse = (): UseCourseReturn => {
 
   // Chapter operations
   const createChapter = useCallback(
-    async (courseId: string, data: IChapterRequest): Promise<Chapter | null> => {
+    async (
+      courseId: string,
+      data: IChapterRequest,
+    ): Promise<Chapter | null> => {
       try {
         setLoading(true);
         clearError();
@@ -384,7 +465,11 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        const response = await CourseService.createChapter(courseId, data, accessToken);
+        const response = await CourseService.createChapter(
+          courseId,
+          data,
+          accessToken,
+        );
         return response.data;
       } catch (err) {
         handleError(err, "createChapter");
@@ -470,7 +555,7 @@ const useCourse = (): UseCourseReturn => {
   );
 
   const updateLesson = useCallback(
-    async (lessonId: string, data: ILessonRequest): Promise<boolean> => {
+    async (lessonId: string, data: ILessonRequest): Promise<ILesson | null> => {
       try {
         setLoading(true);
         clearError();
@@ -480,11 +565,34 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        await CourseService.updateLesson(lessonId, data, accessToken);
-        return true;
+        // First, get the current lesson data
+        const currentLessonResponse = await CourseService.getLessonById(
+          lessonId,
+          accessToken,
+        );
+        const currentLesson = currentLessonResponse.data;
+        // Merge current lesson data with new data (only update fields that are provided)
+        const mergedData: ILessonRequest = {
+          title: data.title !== undefined ? data.title : currentLesson.title,
+          content:
+            data.content !== undefined ? data.content : currentLesson.content,
+          videoUrl:
+            data.videoUrl !== undefined
+              ? convertUrlToRelatuvePath(data.videoUrl)
+              : convertUrlToRelatuvePath(currentLesson.videoUrl),
+          quizId:
+            data.quizId !== undefined ? data.quizId : currentLesson.quizDto?.id,
+        };
+
+        const response = await CourseService.updateLesson(
+          lessonId,
+          mergedData,
+          accessToken,
+        );
+        return response.data;
       } catch (err) {
         handleError(err, "updateLesson");
-        return false;
+        return null;
       } finally {
         setLoading(false);
       }
@@ -619,7 +727,11 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        await CourseService.updateQuestion(questionId, questionData, accessToken);
+        await CourseService.updateQuestion(
+          questionId,
+          questionData,
+          accessToken,
+        );
         return true;
       } catch (err) {
         handleError(err, "updateQuestion");
@@ -651,7 +763,10 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        const response = await CourseService.getLessonById(lessonId, accessToken);
+        const response = await CourseService.getLessonById(
+          lessonId,
+          accessToken,
+        );
         return response.data;
       } catch (err) {
         handleError(err, "getLessonById");
@@ -675,7 +790,10 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        const response = await CourseService.getQuizQuestions(quizId, accessToken);
+        const response = await CourseService.getQuizQuestions(
+          quizId,
+          accessToken,
+        );
         return response.data || [];
       } catch (err) {
         handleError(err, "getQuizQuestions");
@@ -698,7 +816,10 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        const response = await CourseService.deleteQuestion(questionId, accessToken);
+        const response = await CourseService.deleteQuestion(
+          questionId,
+          accessToken,
+        );
         return response.status === 204;
       } catch (err) {
         handleError(err, "deleteQuestion");
@@ -721,7 +842,10 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        const response = await CourseService.getCourseQuizSubmissions(courseId, accessToken);
+        const response = await CourseService.getCourseQuizSubmissions(
+          courseId,
+          accessToken,
+        );
         return response.data || [];
       } catch (err) {
         handleError(err, "getCourseQuizSubmissions");
@@ -745,7 +869,10 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        const response = await CourseService.getCourseEnrollments(courseId, accessToken);
+        const response = await CourseService.getCourseEnrollments(
+          courseId,
+          accessToken,
+        );
         return response.data || [];
       } catch (err) {
         handleError(err, "getCourseEnrollments");
@@ -792,7 +919,11 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        await CourseService.addInstructorToCourse(courseId, instructorId, accessToken);
+        await CourseService.addInstructorToCourse(
+          courseId,
+          instructorId,
+          accessToken,
+        );
         return true;
       } catch (err) {
         handleError(err, "addInstructorToCourse");
@@ -815,7 +946,11 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        await CourseService.removeInstructorFromCourse(courseId, instructorId, accessToken);
+        await CourseService.removeInstructorFromCourse(
+          courseId,
+          instructorId,
+          accessToken,
+        );
         return true;
       } catch (err) {
         handleError(err, "removeInstructorFromCourse");
@@ -839,7 +974,10 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        const response = await CourseService.createBatch(batchData, accessToken);
+        const response = await CourseService.createBatch(
+          batchData,
+          accessToken,
+        );
         return response.data;
       } catch (err) {
         handleError(err, "createBatch");
@@ -898,7 +1036,11 @@ const useCourse = (): UseCourseReturn => {
   );
 
   const getMyBatches = useCallback(
-    async (page: number = 0, size: number = 10, status?: string): Promise<IBatch[]> => {
+    async (
+      page: number = 0,
+      size: number = 10,
+      status?: string,
+    ): Promise<IBatch[]> => {
       try {
         setLoading(true);
         clearError();
@@ -908,7 +1050,12 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        const response = await CourseService.getMyBatches(accessToken, page, size, status);
+        const response = await CourseService.getMyBatches(
+          accessToken,
+          page,
+          size,
+          status,
+        );
         return response.data.content || response.data || [];
       } catch (err) {
         handleError(err, "getMyBatches");
@@ -977,7 +1124,11 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        await CourseService.addInstructorToBatch(batchId, instructorId, accessToken);
+        await CourseService.addInstructorToBatch(
+          batchId,
+          instructorId,
+          accessToken,
+        );
         return true;
       } catch (err) {
         handleError(err, "addInstructorToBatch");
@@ -1000,7 +1151,11 @@ const useCourse = (): UseCourseReturn => {
           throw new Error("No access token found");
         }
 
-        await CourseService.removeInstructorFromBatch(batchId, instructorId, accessToken);
+        await CourseService.removeInstructorFromBatch(
+          batchId,
+          instructorId,
+          accessToken,
+        );
         return true;
       } catch (err) {
         handleError(err, "removeInstructorFromBatch");

@@ -30,19 +30,19 @@ export default function IntendedLearnersContent() {
     [],
   );
 
-  // Sử dụng useRef để track xem đã sync course data chưa
+  // Use useRef to track if course data has been synced
   const hasSyncedRef = useRef(false);
   const lastCourseIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (course && course.id) {
-      // Reset sync flag khi course thay đổi
+      // Reset sync flag when course changes
       if (lastCourseIdRef.current !== course.id) {
         hasSyncedRef.current = false;
         lastCourseIdRef.current = course.id;
       }
 
-      // Chỉ sync một lần cho mỗi course
+      // Only sync once per course
       if (!hasSyncedRef.current) {
         updateFormData({
           shortIntroduction: parseStringToArray(course.shortIntroduction),
@@ -140,50 +140,10 @@ export default function IntendedLearnersContent() {
       </div>
 
       <div className="space-y-8">
-        {/* What will students learn */}
+        {/* Skill Level */}
         <div>
           <h4 className="text-lg font-medium text-gray-900 mb-4">
-            What will students learn in your course?
-          </h4>
-          <div className="space-y-3">
-            {(formData.shortIntroduction || []).map(
-              (item: string, index: number) => (
-                <div key={index} className="flex items-center gap-3">
-                  <Input
-                    value={item}
-                    onChange={(e) =>
-                      updateItem("shortIntroduction", index, e.target.value)
-                    }
-                    placeholder="E.g: Self-discipline"
-                    className="flex-1"
-                  />
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    leftIcon={<Trash2 size={14} />}
-                    onClick={() => removeItem("shortIntroduction", index)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ),
-            )}
-            <Button
-              variant="secondary"
-              leftIcon={<Plus size={16} />}
-              onClick={() => addItem("shortIntroduction")}
-              className="text-blue-600 hover:text-blue-700"
-            >
-              Add more to your response
-            </Button>
-          </div>
-        </div>
-
-        {/* Requirements */}
-        <div>
-          <h4 className="text-lg font-medium text-gray-900 mb-4">
-            What are the requirements or prerequisites for taking your course?
+            What skill level is required for this course?
           </h4>
           <div className="space-y-3">
             {(formData.requirements || []).map(
@@ -194,7 +154,7 @@ export default function IntendedLearnersContent() {
                     onChange={(e) =>
                       updateItem("requirements", index, e.target.value)
                     }
-                    placeholder="E.g: Basic programming knowledge"
+                    placeholder="E.g: Beginner, Intermediate, Advanced"
                     className="flex-1"
                   />
                   <Button

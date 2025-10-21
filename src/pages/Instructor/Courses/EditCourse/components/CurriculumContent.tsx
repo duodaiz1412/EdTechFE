@@ -12,8 +12,6 @@ import {useCourseContext} from "@/context/CourseContext";
 import {toast} from "react-toastify";
 import NewChapterForm from "./NewChapterForm";
 
-// Types are imported from ChapterList/ChapterItem
-
 export default function CurriculumContent() {
   const navigate = useNavigate();
   const {
@@ -164,7 +162,9 @@ export default function CurriculumContent() {
       return;
     }
     // Navigate to preview course page using the cloned components
-    navigate(`/instructor/courses/${course?.id}/preview/lesson/${firstLessonWithSlug.slug}`);
+    navigate(
+      `/instructor/courses/${course?.id}/preview/lesson/${firstLessonWithSlug.slug}`,
+    );
   };
 
   const handleLessonCreated = (lesson: any, chapterId?: string) => {

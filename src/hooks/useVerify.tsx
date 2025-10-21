@@ -23,7 +23,7 @@ const useVerify = (options?: UseVerifyOptions) => {
     const useToken = inputToken ?? token ?? undefined;
     if (!useToken) {
       setStatus("error");
-      setMessage("Thiếu token xác thực");
+      setMessage("Missing authentication token");
       return false;
     }
     try {
@@ -68,10 +68,10 @@ const useVerify = (options?: UseVerifyOptions) => {
       }
 
       setStatus("success");
-      setMessage("Xác thực thành công");
+      setMessage("Authentication successful");
       return true;
     } catch (e: any) {
-      const errMsg = e?.message || "Xác thực thất bại";
+      const errMsg = e?.message || "Authentication failed";
       setStatus("error");
       setMessage(errMsg);
       dispatch(setError(errMsg));

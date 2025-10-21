@@ -10,6 +10,8 @@ export default function TagsLabelsStep() {
   const [labelsInput, setLabelsInput] = useState(
     formData.label.map((label) => label.name).join(", "),
   );
+  const [tagsFocused, setTagsFocused] = useState(false);
+  const [labelsFocused, setLabelsFocused] = useState(false);
 
   const tagsError = validateField("tag");
   const labelsError = validateField("label");
@@ -36,6 +38,15 @@ export default function TagsLabelsStep() {
 
     updateFormData({tag: tags, label: labels});
   }, [tagsInput, labelsInput, updateFormData]);
+
+  // Handle focus events
+  const handleTagsFocus = () => {
+    setTagsFocused(true);
+  };
+
+  const handleLabelsFocus = () => {
+    setLabelsFocused(true);
+  };
 
   // Auto-process when input changes (debounced)
   useEffect(() => {
@@ -65,21 +76,22 @@ export default function TagsLabelsStep() {
             htmlFor="tags"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Tags
+            Tags <span className="text-red-500">*</span>
           </label>
           <Input
             id="tags"
             value={tagsInput}
             onChange={(e) => setTagsInput(e.target.value)}
-            placeholder="Enter tags for your course (separated by commas)"
+            onFocus={handleTagsFocus}
+            placeholder="e.g: JavaScript, React, Web Development, Programming (separated by commas)"
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
             autoComplete="off"
           />
-          {tagsError && (
+          {tagsFocused && tagsError && (
             <p className="text-red-500 text-sm mt-1">{tagsError}</p>
           )}
           <p className="text-xs text-gray-500 mt-1">
-            Add tags to help students discover your course
+            Add at least one tag to help students discover your course
           </p>
         </div>
 
@@ -89,21 +101,22 @@ export default function TagsLabelsStep() {
             htmlFor="labels"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Labels
+            Labels <span className="text-red-500">*</span>
           </label>
           <Input
             id="labels"
             value={labelsInput}
             onChange={(e) => setLabelsInput(e.target.value)}
-            placeholder="Enter labels for your course (separated by commas)"
+            onFocus={handleLabelsFocus}
+            placeholder="e.g: Beginner, Intermediate, Advanced, Professional (separated by commas)"
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:border-gray-300"
             autoComplete="off"
           />
-          {labelsError && (
+          {labelsFocused && labelsError && (
             <p className="text-red-500 text-sm mt-1">{labelsError}</p>
           )}
           <p className="text-xs text-gray-500 mt-1">
-            Add labels to categorize your course level or type
+            Add at least one label to categorize your course level or type
           </p>
         </div>
       </div>

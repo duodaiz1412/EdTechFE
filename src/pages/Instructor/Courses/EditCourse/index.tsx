@@ -1,6 +1,6 @@
 import {useMemo, useEffect, useCallback, useState} from "react";
 import {Outlet, useLocation, useNavigate, useParams} from "react-router";
-import {ArrowLeft, Settings, Loader2, Upload, AlertTriangle} from "lucide-react";
+import {ArrowLeft, Loader2, Upload, AlertTriangle} from "lucide-react";
 import Button from "@/components/Button";
 import {Heading2} from "@/components/Typography";
 import Chip from "@/components/Chip";
@@ -14,7 +14,6 @@ const navigationItems = [
     items: [
       {id: "intended-learners", label: "Intended learners", active: true},
       {id: "course-structure", label: "Course structure"},
-      {id: "setup-test", label: "Setup & test video"},
     ],
   },
   {
@@ -32,7 +31,6 @@ const navigationItems = [
       {id: "landing-page", label: "Course landing page"},
       {id: "pricing", label: "Pricing"},
       {id: "promotions", label: "Promotions"},
-      {id: "messages", label: "Course messages"},
     ],
   },
 ];
@@ -77,13 +75,9 @@ export default function EditCourse() {
     navigate("/instructor");
   }, [navigate]);
 
-  const handleSettings = useCallback(() => {
-    navigate(`/instructor/courses/${courseId}/edit/settings`);
-  }, [navigate, courseId]);
-
   const handlePublishCourse = useCallback(() => {
     if (!courseId || !course) return;
-    
+
     if (course.status === "PUBLISHED") {
       toast.info("Course is already published!");
       return;
@@ -97,7 +91,7 @@ export default function EditCourse() {
 
     setShowPublishModal(false);
     setIsPublishing(true);
-    
+
     try {
       const success = await publishCourse(courseId);
       if (success) {
@@ -185,18 +179,8 @@ export default function EditCourse() {
               {isPublishing
                 ? "Publishing..."
                 : course?.status === "PUBLISHED"
-                ? "Published"
-                : "Publish Course"}
-            </Button>
-
-            <Button
-              variant="secondary"
-              leftIcon={<Settings size={16} />}
-              onClick={handleSettings}
-              className="bg-gray-100 text-gray-700 hover:bg-gray-200"
-              disabled={courseState.isLoading}
-            >
-              Settings
+                  ? "Published"
+                  : "Publish Course"}
             </Button>
           </div>
         </div>
@@ -293,7 +277,8 @@ export default function EditCourse() {
         }
       >
         <p className="text-gray-600">
-          Are you sure you want to publish this course? Once published, students will be able to enroll and access your content.
+          Are you sure you want to publish this course? Once published, students
+          will be able to enroll and access your content.
         </p>
       </Modal>
     </div>

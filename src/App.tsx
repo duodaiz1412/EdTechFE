@@ -47,8 +47,6 @@ import AccessibilityContent from "./pages/Instructor/Courses/EditCourse/componen
 import LandingPageContent from "./pages/Instructor/Courses/EditCourse/components/LandingPageContent.tsx";
 import PricingContent from "./pages/Instructor/Courses/EditCourse/components/PricingContent.tsx";
 import PromotionsContent from "./pages/Instructor/Courses/EditCourse/components/PromotionsContent.tsx";
-import CourseMessagesContent from "./pages/Instructor/Courses/EditCourse/components/CourseMessagesContent.tsx";
-import CourseSettingsContent from "./pages/Instructor/Courses/EditCourse/components/CourseSettingsContent.tsx";
 import {CourseProvider} from "./context/CourseContext.tsx";
 import BecomeInstructor from "./pages/Instructor/BecomeInstructor.tsx";
 import {enrollServices} from "./lib/services/enroll.services.ts";
@@ -57,6 +55,7 @@ import EditLecture from "./pages/Instructor/Courses/EditCourse/components/EditLe
 import EditVideoLecture from "./pages/Instructor/Courses/EditCourse/components/EditVideoLecture.tsx";
 import EditArticleLecture from "./pages/Instructor/Courses/EditCourse/components/EditArticleLecture.tsx";
 import EditQuizLecture from "./pages/Instructor/Courses/EditCourse/components/EditQuizLecture.tsx";
+import CourseLandingPreview from "./pages/Instructor/Courses/PreviewCourse/CourseLandingPreview.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -215,6 +214,17 @@ function App() {
               }
             />
             <Route
+              path="/instructor/courses/:courseId/preview/landing-preview"
+              element={
+                <RoleProtectedRoute
+                  requiredRole="COURSE_CREATOR"
+                  redirectTo="/teaching"
+                >
+                  <CourseLandingPreview />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
               path="/instructor/courses/:courseId/edit"
               element={
                 <RoleProtectedRoute
@@ -236,14 +246,7 @@ function App() {
                 path="course-structure"
                 element={<CourseStructureContent />}
               />
-              <Route
-                path="setup-test"
-                element={
-                  <div className="text-center text-gray-500">
-                    Setup & test video content coming soon...
-                  </div>
-                }
-              />
+
               <Route path="film-edit" element={<FilmEditContent />} />
               <Route path="curriculum" element={<CurriculumContent />} />
               <Route path="caption" element={<CaptionContent />} />
@@ -251,14 +254,21 @@ function App() {
               <Route path="landing-page" element={<LandingPageContent />} />
               <Route path="pricing" element={<PricingContent />} />
               <Route path="promotions" element={<PromotionsContent />} />
-              <Route path="messages" element={<CourseMessagesContent />} />
-              <Route path="settings" element={<CourseSettingsContent />} />
 
               {/* Nested lecture edit routes using the same CourseProvider */}
               <Route path="lecture/edit/:lessonId" element={<EditLecture />} />
-              <Route path="lecture/video/:lessonId" element={<EditVideoLecture />} />
-              <Route path="lecture/article/:lessonId" element={<EditArticleLecture />} />
-              <Route path="lecture/quiz/:quizId" element={<EditQuizLecture />} />
+              <Route
+                path="lecture/video/:lessonId"
+                element={<EditVideoLecture />}
+              />
+              <Route
+                path="lecture/article/:lessonId"
+                element={<EditArticleLecture />}
+              />
+              <Route
+                path="lecture/quiz/:quizId"
+                element={<EditQuizLecture />}
+              />
             </Route>
           </Route>
         </Routes>

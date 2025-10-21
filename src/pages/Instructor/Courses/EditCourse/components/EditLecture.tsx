@@ -20,7 +20,7 @@ interface LectureFormValues {
   description: string;
   videoFile: File | null;
   content: string;
-  videoUrl?: string; // URL của video đã upload
+  videoUrl?: string; // URL of uploaded video
 }
 
 const typeOptions = [
@@ -39,7 +39,7 @@ export default function EditLecture() {
     syncCourseToFormData,
   } = useCourseContext();
 
-  // Sử dụng trực tiếp hook useCourse để có createLesson và updateLesson
+  // Use useCourse hook directly to get createLesson and updateLesson
   const {
     createLesson,
     updateLesson,
@@ -113,14 +113,13 @@ export default function EditLecture() {
       try {
         if (lessonId) {
           // Edit existing lesson
-          const success = await updateLesson(lessonId, {
+          const updatedLesson = await updateLesson(lessonId, {
             title: formik.values.title,
-            description: formik.values.description,
             content: formik.values.content,
             videoUrl: formik.values.videoUrl,
           });
 
-          if (success) {
+          if (updatedLesson) {
             toast.success("Lecture updated successfully!");
             // Reload course data to get updated lesson
             if (courseId) {
@@ -369,7 +368,7 @@ export default function EditLecture() {
                 value={formik.values.content}
                 onChange={(value) => formik.setFieldValue("content", value)}
                 onBlur={() => formik.setFieldTouched("content", true)}
-                placeholder="Nhập nội dung bài giảng..."
+                placeholder="Enter lesson content..."
                 className="w-full"
                 rows={5}
               />
