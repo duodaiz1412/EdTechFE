@@ -38,10 +38,6 @@ export default function InstructorCourse() {
         id: course.id,
         title: course.title,
         status: course.status === "PUBLISHED" ? "Published" : "Draft",
-        publishedAt:
-          course.status === "PUBLISHED"
-            ? new Date(course.updatedAt).toLocaleDateString()
-            : undefined,
       }));
       setCourses(transformedCourses);
     } catch {

@@ -1,8 +1,10 @@
 import Input from "@/components/Input";
 import {useCourseContext} from "@/context/CourseContext";
+import {useState} from "react";
 
 export default function BasicInfoStep() {
   const {formData, updateFormData, validateField} = useCourseContext();
+  const [titleFocused, setTitleFocused] = useState(false);
   const titleError = validateField("title");
 
   return (
@@ -21,10 +23,11 @@ export default function BasicInfoStep() {
         <Input
           value={formData.title}
           onChange={(e) => updateFormData({title: e.target.value})}
+          onFocus={() => setTitleFocused(true)}
           placeholder="E.g: Learn Photoshop CS6 from scratch"
           className="w-full text-center text-lg py-3 focus:outline-none focus:ring-1 focus:border-gray-300"
         />
-        {titleError && (
+        {titleFocused && titleError && (
           <p className="text-red-500 text-sm mt-1 text-left">{titleError}</p>
         )}
       </div>

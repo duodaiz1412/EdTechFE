@@ -1,4 +1,4 @@
-import {useEffect} from "react";
+import {useEffect, useCallback, useRef} from "react";
 import {Plus, Trash2} from "lucide-react";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
@@ -11,7 +11,6 @@ export default function IntendedLearnersContent() {
     // Form data from context
     formData,
     updateFormData,
-
     // API State (from hook via context)
     state: courseState,
     updateCourse,
@@ -20,22 +19,41 @@ export default function IntendedLearnersContent() {
   } = useCourseContext();
   const {course} = courseState;
 
+  const parseStringToArray = useCallback(
+    (str: string | null | undefined): string[] => {
+      if (!str || str.trim() === "") return [""];
+      const items = str
+        .split("\n")
+        .filter((item: string) => item.trim() !== "");
+      return items.length > 0 ? items : [""];
+    },
+    [],
+  );
+
+  // Use useRef to track if course data has been synced
+  const hasSyncedRef = useRef(false);
+  const lastCourseIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (course && (formData.shortIntroduction?.length || 0) === 0) {
-      // Only update if formData is empty (first load)
-      updateFormData({
-        shortIntroduction: course.shortIntroduction
-          ? course.shortIntroduction.split("\n").filter((item) => item.trim())
-          : [],
-        requirements: course.skillLevel
-          ? course.skillLevel.split("\n").filter((item) => item.trim())
-          : [],
-        targetAudience: course.targetAudience
-          ? course.targetAudience.split("\n").filter((item) => item.trim())
-          : [],
-      });
+    if (course && course.id) {
+      // Reset sync flag when course changes
+      if (lastCourseIdRef.current !== course.id) {
+        hasSyncedRef.current = false;
+        lastCourseIdRef.current = course.id;
+      }
+
+      // Only sync once per course
+      if (!hasSyncedRef.current) {
+        updateFormData({
+          shortIntroduction: parseStringToArray(course.shortIntroduction),
+          requirements: parseStringToArray(course.skillLevel),
+          targetAudience: parseStringToArray(course.targetAudience),
+        });
+
+        hasSyncedRef.current = true;
+      }
     }
-  }, [course, formData.shortIntroduction?.length, updateFormData]);
+  }, [course, updateFormData, parseStringToArray]);
 
   const addItem = (
     field: keyof Pick<
@@ -84,15 +102,16 @@ export default function IntendedLearnersContent() {
     }
 
     try {
+      const arrayToString = (arr: string[] | undefined): string => {
+        if (!arr || arr.length === 0) return "";
+        const filtered = arr.filter((item) => item.trim() !== "");
+        return filtered.length > 0 ? filtered.join("\n") : "";
+      };
+
       const updateData = {
-        title: formData.title,
-        description: formData.description,
-        price: formData.price,
-        shortIntroduction: (formData.shortIntroduction || []).join("\n"),
-        skillLevel: (formData.requirements || []).join("\n"),
-        targetAudience: (formData.targetAudience || []).join("\n"),
-        tag: formData.tag || [],
-        label: formData.label || [],
+        shortIntroduction: arrayToString(formData.shortIntroduction),
+        skillLevel: arrayToString(formData.requirements),
+        targetAudience: arrayToString(formData.targetAudience),
       };
 
       const success = await updateCourse(course.id, updateData);
@@ -116,53 +135,15 @@ export default function IntendedLearnersContent() {
         </div>
       )}
 
-      <Heading3 className="mb-6">Intended Learners</Heading3>
+      <div className="flex justify-between items-center mb-6">
+        <Heading3>Intended Learners</Heading3>
+      </div>
 
       <div className="space-y-8">
-        {/* What will students learn */}
+        {/* Skill Level */}
         <div>
           <h4 className="text-lg font-medium text-gray-900 mb-4">
-            What will students learn in your course?
-          </h4>
-          <div className="space-y-3">
-            {(formData.shortIntroduction || []).map(
-              (item: string, index: number) => (
-                <div key={index} className="flex items-center gap-3">
-                  <Input
-                    value={item}
-                    onChange={(e) =>
-                      updateItem("shortIntroduction", index, e.target.value)
-                    }
-                    placeholder="E.g: Self-discipline"
-                    className="flex-1"
-                  />
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    leftIcon={<Trash2 size={14} />}
-                    onClick={() => removeItem("shortIntroduction", index)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ),
-            )}
-            <Button
-              variant="secondary"
-              leftIcon={<Plus size={16} />}
-              onClick={() => addItem("shortIntroduction")}
-              className="text-blue-600 hover:text-blue-700"
-            >
-              Add more to your response
-            </Button>
-          </div>
-        </div>
-
-        {/* Requirements */}
-        <div>
-          <h4 className="text-lg font-medium text-gray-900 mb-4">
-            What are the requirements or prerequisites for taking your course?
+            What skill level is required for this course?
           </h4>
           <div className="space-y-3">
             {(formData.requirements || []).map(
@@ -173,7 +154,7 @@ export default function IntendedLearnersContent() {
                     onChange={(e) =>
                       updateItem("requirements", index, e.target.value)
                     }
-                    placeholder="E.g: Basic programming knowledge"
+                    placeholder="E.g: Beginner, Intermediate, Advanced"
                     className="flex-1"
                   />
                   <Button

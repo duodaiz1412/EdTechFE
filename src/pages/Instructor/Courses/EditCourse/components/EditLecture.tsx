@@ -20,7 +20,7 @@ interface LectureFormValues {
   description: string;
   videoFile: File | null;
   content: string;
-  videoUrl?: string; // URL của video đã upload
+  videoUrl?: string; // URL of uploaded video
 }
 
 const typeOptions = [
@@ -36,12 +36,14 @@ export default function EditLecture() {
     // API State (from hook via context)
     error,
     formData,
+    syncCourseToFormData,
   } = useCourseContext();
 
-  // Sử dụng trực tiếp hook useCourse để có createLesson và updateLesson
+  // Use useCourse hook directly to get createLesson and updateLesson
   const {
     createLesson,
     updateLesson,
+    loadCourse,
     state: {isSubmitting},
   } = useCourse();
 
@@ -111,25 +113,38 @@ export default function EditLecture() {
       try {
         if (lessonId) {
           // Edit existing lesson
-          const success = await updateLesson(lessonId, {
+          const updatedLesson = await updateLesson(lessonId, {
             title: formik.values.title,
-            description: formik.values.description,
             content: formik.values.content,
             videoUrl: formik.values.videoUrl,
           });
 
-          if (success) {
+          if (updatedLesson) {
             toast.success("Lecture updated successfully!");
+            // Reload course data to get updated lesson
+            if (courseId) {
+              const updatedCourse = await loadCourse(courseId);
+              if (updatedCourse) {
+                syncCourseToFormData(updatedCourse);
+              }
+            }
             navigate(`/instructor/courses/${courseId}/edit/curriculum`);
           } else {
             toast.error("Failed to update lecture");
           }
         } else {
           // Create new lesson
-          const newLessonId = await createLesson(entityId);
+          const newLesson = await createLesson(entityId);
 
-          if (newLessonId) {
+          if (newLesson) {
             toast.success("Lecture created successfully!");
+            // Reload course data to get new lesson
+            if (courseId) {
+              const updatedCourse = await loadCourse(courseId);
+              if (updatedCourse) {
+                syncCourseToFormData(updatedCourse);
+              }
+            }
             navigate(`/instructor/courses/${courseId}/edit/curriculum`);
           } else {
             toast.error("Failed to create lecture");
@@ -353,7 +368,7 @@ export default function EditLecture() {
                 value={formik.values.content}
                 onChange={(value) => formik.setFieldValue("content", value)}
                 onBlur={() => formik.setFieldTouched("content", true)}
-                placeholder="Nhập nội dung bài giảng..."
+                placeholder="Enter lesson content..."
                 className="w-full"
                 rows={5}
               />
@@ -367,6 +382,7 @@ export default function EditLecture() {
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-2">
             <Button
+              type="button"
               variant="secondary"
               onClick={() =>
                 navigate(`/instructor/courses/${courseId}/edit/curriculum`)

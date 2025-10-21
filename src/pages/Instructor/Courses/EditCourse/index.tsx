@@ -1,11 +1,12 @@
-import {useMemo, useEffect, useCallback} from "react";
+import {useMemo, useEffect, useCallback, useState} from "react";
 import {Outlet, useLocation, useNavigate, useParams} from "react-router";
-import {ArrowLeft, Settings, Loader2} from "lucide-react";
+import {ArrowLeft, Loader2, Upload, AlertTriangle} from "lucide-react";
 import Button from "@/components/Button";
 import {Heading2} from "@/components/Typography";
 import Chip from "@/components/Chip";
+import Modal from "@/components/Modal";
 import {useCourseContext} from "@/context/CourseContext";
-// import {toast} from "react-hot-toast";
+import {toast} from "react-toastify";
 
 const navigationItems = [
   {
@@ -13,7 +14,6 @@ const navigationItems = [
     items: [
       {id: "intended-learners", label: "Intended learners", active: true},
       {id: "course-structure", label: "Course structure"},
-      {id: "setup-test", label: "Setup & test video"},
     ],
   },
   {
@@ -31,7 +31,6 @@ const navigationItems = [
       {id: "landing-page", label: "Course landing page"},
       {id: "pricing", label: "Pricing"},
       {id: "promotions", label: "Promotions"},
-      {id: "messages", label: "Course messages"},
     ],
   },
 ];
@@ -40,9 +39,12 @@ export default function EditCourse() {
   const navigate = useNavigate();
   const {courseId} = useParams();
   const location = useLocation();
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [showPublishModal, setShowPublishModal] = useState(false);
   const {
     // API Operations (from hook via context)
     loadCourse,
+    publishCourse,
 
     // API State (from hook via context)
     state: courseState,
@@ -73,9 +75,40 @@ export default function EditCourse() {
     navigate("/instructor");
   }, [navigate]);
 
-  const handleSettings = useCallback(() => {
-    navigate(`/instructor/courses/${courseId}/edit/settings`);
-  }, [navigate, courseId]);
+  const handlePublishCourse = useCallback(() => {
+    if (!courseId || !course) return;
+
+    if (course.status === "PUBLISHED") {
+      toast.info("Course is already published!");
+      return;
+    }
+
+    setShowPublishModal(true);
+  }, [courseId, course]);
+
+  const confirmPublishCourse = useCallback(async () => {
+    if (!courseId) return;
+
+    setShowPublishModal(false);
+    setIsPublishing(true);
+
+    try {
+      const success = await publishCourse(courseId);
+      if (success) {
+        toast.success("Course published successfully!");
+        // Reload course to get updated status
+        await loadCourse(courseId);
+      } else {
+        toast.error("Failed to publish course. Please try again.");
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Error publishing course:", error);
+      toast.error("An error occurred while publishing the course.");
+    } finally {
+      setIsPublishing(false);
+    }
+  }, [courseId, publishCourse, loadCourse]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -125,14 +158,29 @@ export default function EditCourse() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {/* Publish Button */}
             <Button
-              variant="secondary"
-              leftIcon={<Settings size={16} />}
-              onClick={handleSettings}
-              className="bg-gray-100 text-gray-700 hover:bg-gray-200"
-              disabled={courseState.isLoading}
+              variant={course?.status === "PUBLISHED" ? "secondary" : "primary"}
+              leftIcon={
+                isPublishing ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Upload size={16} />
+                )
+              }
+              onClick={handlePublishCourse}
+              disabled={courseState.isLoading || isPublishing || !course}
+              className={
+                course?.status === "PUBLISHED"
+                  ? "bg-green-100 text-green-700 hover:bg-green-200 border-green-300"
+                  : ""
+              }
             >
-              Settings
+              {isPublishing
+                ? "Publishing..."
+                : course?.status === "PUBLISHED"
+                  ? "Published"
+                  : "Publish Course"}
             </Button>
           </div>
         </div>
@@ -187,6 +235,52 @@ export default function EditCourse() {
           </div>
         </div>
       </div>
+
+      {/* Publish Confirmation Modal */}
+      <Modal
+        open={showPublishModal}
+        onClose={() => setShowPublishModal(false)}
+        title={
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="h-6 w-6 text-amber-500" />
+            <span>Publish Course</span>
+          </div>
+        }
+        size="sm"
+        closeOnOverlayClick={!isPublishing}
+        hideCloseButton={isPublishing}
+        footer={
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="secondary"
+              onClick={() => setShowPublishModal(false)}
+              disabled={isPublishing}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={confirmPublishCourse}
+              disabled={isPublishing}
+              leftIcon={
+                isPublishing ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Upload size={16} />
+                )
+              }
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isPublishing ? "Publishing..." : "Publish Course"}
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-gray-600">
+          Are you sure you want to publish this course? Once published, students
+          will be able to enroll and access your content.
+        </p>
+      </Modal>
     </div>
   );
 }

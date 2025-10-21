@@ -21,34 +21,36 @@ export default function PricingContent() {
   const {course} = courseState;
 
   // Local state for UI-specific data (currency, prices)
-  const [currency, setCurrency] = useState("vnd");
+  const [currency, setCurrency] = useState("VND");
   const [originalPrice, setOriginalPrice] = useState("0");
   const [sellingPrice, setSellingPrice] = useState("0");
 
   // Fill form with course data when course is loaded (only once)
   useEffect(() => {
     if (course && formData.originalPrice === 0) {
-      // Only update if formData is empty (first load)
+      const coursePrice = course.coursePrice || 0;
+      const sellingPrice = course.sellingPrice || 0;
+
       updateFormData({
-        currency: course.currency || "vnd",
-        originalPrice: course.coursePrice || 0,
-        sellingPrice: course.sellingPrice || 0,
+        currency: course.currency || "VND",
+        originalPrice: coursePrice,
+        sellingPrice: sellingPrice,
       });
     }
   }, [course, formData.originalPrice, updateFormData]);
 
   // Sync local state with formData
   useEffect(() => {
-    setCurrency(formData.currency || "vnd");
+    setCurrency(formData.currency || "VND");
     setOriginalPrice(formData.originalPrice?.toString() || "0");
     setSellingPrice(formData.sellingPrice?.toString() || "0");
   }, [formData.currency, formData.originalPrice, formData.sellingPrice]);
 
   const currencyOptions = [
-    {value: "vnd", label: "VND"},
-    {value: "usd", label: "USD"},
-    {value: "eur", label: "EUR"},
-    {value: "gbp", label: "GBP"},
+    {value: "VND", label: "VND"},
+    {value: "USD", label: "USD"},
+    {value: "EUR", label: "EUR"},
+    {value: "GBP", label: "GBP"},
   ];
 
   const handleInputChange = (field: string, value: string) => {
@@ -128,81 +130,90 @@ export default function PricingContent() {
       )}
 
       <div className="max-w-md space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Currency
-          </label>
-          <CommonSelect
-            value={currency}
-            onChange={(value) => {
-              setCurrency(value);
-              handleInputChange("currency", value);
-            }}
-            options={currencyOptions}
-            placeholder="Select currency"
-            className="w-full"
-          />
-        </div>
+        {/* Pricing Controls */}
+        <>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Currency
+            </label>
+            <CommonSelect
+              value={currency}
+              onChange={(value) => {
+                setCurrency(value);
+                handleInputChange("currency", value);
+              }}
+              options={currencyOptions}
+              placeholder="Select currency"
+              className="w-full"
+            />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Original price
-          </label>
-          <Input
-            value={originalPrice}
-            onChange={(e) => handlePriceChange("originalPrice", e.target.value)}
-            placeholder="Enter original price"
-            className="w-full"
-          />
-        </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Original price
+            </label>
+            <Input
+              value={originalPrice}
+              onChange={(e) =>
+                handlePriceChange("originalPrice", e.target.value)
+              }
+              placeholder="Enter original price"
+              className="w-full"
+            />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Selling price
-          </label>
-          <Input
-            value={sellingPrice}
-            onChange={(e) => handlePriceChange("sellingPrice", e.target.value)}
-            placeholder="Enter selling price"
-            className="w-full"
-          />
-        </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Selling price
+            </label>
+            <Input
+              value={sellingPrice}
+              onChange={(e) =>
+                handlePriceChange("sellingPrice", e.target.value)
+              }
+              placeholder="Enter selling price"
+              className="w-full"
+            />
+          </div>
 
-        {/* Price Summary */}
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">
-            Price Summary
-          </h4>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Original Price:</span>
-              <span className="font-medium">
-                {originalPrice} {currency.toUpperCase()}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Selling Price:</span>
-              <span className="font-medium text-green-600">
-                {sellingPrice} {currency.toUpperCase()}
-              </span>
-            </div>
-            <div className="border-t pt-2">
+          {/* Price Summary */}
+          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">
+              Price Summary
+            </h4>
+            <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">Discount:</span>
-                <span className="font-medium text-red-600">
-                  {(() => {
-                    const original = parseInt(originalPrice.replace(/\./g, ""));
-                    const selling = parseInt(sellingPrice.replace(/\./g, ""));
-                    const discount = original - selling;
-                    return discount > 0
-                      ? `${discount.toLocaleString("vi-VN")} ${currency.toUpperCase()}`
-                      : "0 VND";
-                  })()}
+                <span className="text-gray-600">Original Price:</span>
+                <span className="font-medium">
+                  {originalPrice} {currency.toUpperCase()}
                 </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Selling Price:</span>
+                <span className="font-medium text-green-600">
+                  {sellingPrice} {currency.toUpperCase()}
+                </span>
+              </div>
+              <div className="border-t pt-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Discount:</span>
+                  <span className="font-medium text-red-600">
+                    {(() => {
+                      const original = parseInt(
+                        originalPrice.replace(/\./g, ""),
+                      );
+                      const selling = parseInt(sellingPrice.replace(/\./g, ""));
+                      const discount = original - selling;
+                      return discount > 0
+                        ? `${discount.toLocaleString("vi-VN")} ${currency.toUpperCase()}`
+                        : "0 VND";
+                    })()}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </>
       </div>
     </div>
   );

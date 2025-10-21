@@ -1,25 +1,23 @@
 import Button from "@/components/Button";
-import {HelpCircle, FileText} from "lucide-react";
+import {FileText} from "lucide-react";
 import {useState} from "react";
 import CreateLessonModal from "@/components/CreateLessonModal";
 
 interface NewItemActionProps {
   chapterId: string;
-  onAddItem: (chapterId: string) => void;
-  onLessonCreated?: (lessonId: string) => void;
+  onLessonCreated?: (lesson: any) => void;
 }
 
 export default function NewItemAction({
   chapterId,
-  onAddItem,
   onLessonCreated,
 }: NewItemActionProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const handleCreateLesson = (lessonId: string) => {
+  const handleCreateLesson = (lesson: any) => {
     // Call parent callback to update the curriculum list
     if (onLessonCreated) {
-      onLessonCreated(lessonId);
+      onLessonCreated(lesson);
     }
     setShowCreateModal(false);
   };
@@ -38,16 +36,7 @@ export default function NewItemAction({
               <FileText size={16} /> Lecture
             </span>
           </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="bg-blue-50 text-blue-700"
-            onClick={() => onAddItem(chapterId)}
-          >
-            <span className="inline-flex items-center gap-2">
-              <HelpCircle size={16} /> Quiz
-            </span>
-          </Button>
+          {/* Quiz functionality will be implemented later */}
         </div>
       </div>
 

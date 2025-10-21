@@ -6,6 +6,8 @@ import {
   TranscodeRequest,
   Job,
 } from "../../types/upload.types";
+import {convertUrlToRelatuvePath} from "../utils";
+import {getAccessToken} from "../utils/getAccessToken";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
 
@@ -22,20 +24,21 @@ export const generatePresignedUrl = async (
   request: PresignedUrlRequest,
 ): Promise<PresignedUrlResponse> => {
   try {
+    const accessToken = await getAccessToken();
     const response = await axios.post<PresignedUrlResponse>(
       UPLOAD_ENDPOINTS.GENERATE_PRESIGNED_URL,
       request,
       {
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
+          "Authorization": `Bearer ${accessToken}`,
         },
       },
     );
     return response.data;
   } catch {
-    toast.error("Không thể tạo URL upload file");
-    throw new Error("Không thể tạo URL upload file");
+    toast.error("Cannot create file upload URL");
+    throw new Error("Cannot create file upload URL");
   }
 };
 
@@ -70,16 +73,11 @@ export const uploadFileToMinIO = async (
       },
     });
 
-    // Trả về path từ lessons/ trở đi (bỏ domain, bucket name và query parameters)
-    const cleanUrl = presignedUrl.split("?")[0]; // Loại bỏ query parameters
-    const url = new URL(cleanUrl);
-    const pathname = url.pathname.substring(1); // Bỏ dấu / đầu tiên
-    // Tìm vị trí của "lessons/" và lấy phần từ đó trở đi
-    const lessonsIndex = pathname.indexOf("lessons/");
-    return lessonsIndex !== -1 ? pathname.substring(lessonsIndex) : pathname;
+    // Sử dụng function convertUrl để rút gọn URL
+    return convertUrlToRelatuvePath(presignedUrl);
   } catch {
-    toast.error("Không thể upload file");
-    throw new Error("Không thể upload file");
+    toast.error("Cannot upload file");
+    throw new Error("Cannot upload file");
   }
 };
 
@@ -100,13 +98,14 @@ export const uploadVideoForTranscoding = async (
     formData.append("entityId", request.entityId);
     formData.append("purpose", request.purpose);
 
+    const accessToken = await getAccessToken();
     const response = await axios.post<Job>(
       UPLOAD_ENDPOINTS.UPLOAD_VIDEO,
       formData,
       {
         headers: {
           "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
+          "Authorization": `Bearer ${accessToken}`,
         },
         onUploadProgress: (progressEvent) => {
           if (onProgress && progressEvent.total) {
@@ -124,7 +123,7 @@ export const uploadVideoForTranscoding = async (
     );
     return response.data;
   } catch {
-    toast.error("Không thể upload video để transcoding");
-    throw new Error("Không thể upload video để transcoding");
+    toast.error("Cannot upload video for transcoding");
+    throw new Error("Cannot upload video for transcoding");
   }
 };

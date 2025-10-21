@@ -7,7 +7,7 @@ interface CreateLessonModalProps {
   isOpen: boolean;
   onClose: () => void;
   chapterId: string;
-  onSuccess: (lessonId: string) => void;
+  onSuccess: (lesson: any) => void;
 }
 
 export default function CreateLessonModal({
@@ -27,11 +27,11 @@ export default function CreateLessonModal({
 
     setIsCreating(true);
     try {
-      const lessonId = await createLesson(chapterId);
+      const lesson = await createLesson(chapterId);
 
-      if (lessonId) {
+      if (lesson) {
         toast.success("Lesson created successfully!");
-        onSuccess(lessonId);
+        onSuccess(lesson);
         onClose();
       } else {
         toast.error("Failed to create lesson");

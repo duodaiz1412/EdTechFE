@@ -1,14 +1,20 @@
 import {useState, useEffect} from "react";
-import {X, Upload, Eye} from "lucide-react";
+import {useNavigate} from "react-router";
+import {X, Eye} from "lucide-react";
 import Button from "@/components/Button";
 import {Heading3} from "@/components/Typography";
 import Input from "@/components/Input";
 import CommonSelect from "@/components/CommonSelect";
 import Chip from "@/components/Chip";
+import FileUpload from "@/components/FileUpload";
+import ReactPlayer from "react-player";
+import QuillMarkdownEditor from "@/components/QuillMarkdownEditor/QuillMarkdownEditor";
 import {useCourseContext} from "@/context/CourseContext";
+import {UploadPurpose} from "@/types/upload.types";
 import {toast} from "react-toastify";
 
 export default function LandingPageContent() {
+  const navigate = useNavigate();
   const {
     // Form data from context
     formData,
@@ -25,8 +31,8 @@ export default function LandingPageContent() {
   // Local state for UI-specific data (files, temporary inputs)
   const [newTag, setNewTag] = useState("");
   const [newSubject, setNewSubject] = useState("");
-  const [courseImage, setCourseImage] = useState<File | null>(null);
-  const [promotionalVideo, setPromotionalVideo] = useState<File | null>(null);
+  const [youtubeUrl, setYoutubeUrl] = useState<string>("");
+  const [debouncedYoutubeUrl, setDebouncedYoutubeUrl] = useState<string>("");
 
   // Fill form with course data when course is loaded (only once)
   useEffect(() => {
@@ -43,30 +49,47 @@ export default function LandingPageContent() {
         sellingPrice: course.sellingPrice || 0,
         tag: course.tags?.map((tag: any) => ({name: tag.name})) || [],
         label: course.labels?.map((label: any) => ({name: label.name})) || [],
+        image: course.image || "",
+        videoLink: course.videoLink || "",
       });
+      setYoutubeUrl(course.videoLink || "");
     }
-  }, [course]);
+  }, [course, formData.title, updateFormData]);
+
+  // Sync YouTube URL with course data when course changes
+  useEffect(() => {
+    if (course?.videoLink) {
+      setYoutubeUrl(course.videoLink);
+    }
+  }, [course?.videoLink]);
+
+  // Debounce YouTube URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedYoutubeUrl(youtubeUrl);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [youtubeUrl]);
 
   const languageOptions = [
-    {value: "vietnamese", label: "Vietnamese"},
-    {value: "english", label: "English"},
-    {value: "chinese", label: "Chinese"},
-    {value: "japanese", label: "Japanese"},
+    {value: "Vietnamese", label: "Vietnamese"},
+    {value: "English", label: "English"},
+    {value: "Chinese", label: "Chinese"},
+    {value: "Japanese", label: "Japanese"},
   ];
 
   const handleInputChange = (field: string, value: string) => {
     updateFormData({[field]: value} as any);
   };
 
-  const handleFileChange = (
-    field: "courseImage" | "promotionalVideo",
-    file: File | null,
-  ) => {
-    if (field === "courseImage") {
-      setCourseImage(file);
-    } else {
-      setPromotionalVideo(file);
-    }
+  const handleImageUploadSuccess = (url: string) => {
+    updateFormData({image: url});
+    toast.success("Course image uploaded successfully!");
+  };
+
+  const handleImageUploadError = (error: string) => {
+    toast.error(`Image upload error: ${error}`);
   };
 
   const addTag = () => {
@@ -143,6 +166,14 @@ export default function LandingPageContent() {
         sellingPrice: formData.sellingPrice,
         tag: formData.tag,
         label: formData.label,
+        ...(formData.image && {
+          thumbnailUrl: formData.image,
+          image: formData.image,
+        }),
+        ...(formData.videoLink && {
+          videoUrl: formData.videoLink,
+          videoLink: formData.videoLink,
+        }),
       };
 
       const success = await updateCourse(course.id, updateData);
@@ -173,6 +204,15 @@ export default function LandingPageContent() {
             variant="secondary"
             leftIcon={<Eye size={16} />}
             className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+            onClick={() => {
+              if (!course?.id) {
+                toast.warning("Course ID is missing");
+                return;
+              }
+              navigate(
+                `/instructor/courses/${course.id}/preview/landing-preview`,
+              );
+            }}
           >
             Preview
           </Button>
@@ -217,11 +257,11 @@ export default function LandingPageContent() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Course description
             </label>
-            <textarea
+            <QuillMarkdownEditor
               value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
+              onChange={(value) => handleInputChange("description", value)}
               placeholder="Enter course description..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full"
               rows={4}
             />
           </div>
@@ -344,84 +384,52 @@ export default function LandingPageContent() {
         </div>
 
         {/* Course Image */}
-        <div>
-          <h4 className="text-lg font-semibold text-gray-900 mb-4">
-            Course Image
-          </h4>
-          <div className="flex gap-6">
-            <div className="w-64 h-40 bg-gray-200 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-              {courseImage ? (
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">{courseImage.name}</p>
-                </div>
-              ) : (
-                <div className="text-center text-gray-500">
-                  <Upload size={32} className="mx-auto mb-2" />
-                  <p className="text-sm">Upload course image</p>
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) =>
-                  handleFileChange("courseImage", e.target.files?.[0] || null)
-                }
-                className="hidden"
-                id="course-image-upload"
-              />
-              <label
-                htmlFor="course-image-upload"
-                className="block w-full px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
-              >
-                Upload an image
-              </label>
-            </div>
-          </div>
-        </div>
+        {course?.id && (
+          <FileUpload
+            title="Course Image"
+            accept="image/*"
+            purpose={UploadPurpose.COURSE_THUMBNAIL}
+            courseId={course.id}
+            src={course.image}
+            onUploadSuccess={handleImageUploadSuccess}
+            onUploadError={handleImageUploadError}
+          />
+        )}
 
-        {/* Promotional Video */}
-        <div>
-          <h4 className="text-lg font-semibold text-gray-900 mb-4">
+        {/* Promotional Video - YouTube URL */}
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Promotional Video
-          </h4>
-          <div className="flex gap-6">
-            <div className="w-64 h-40 bg-gray-200 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-              {promotionalVideo ? (
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">
-                    {promotionalVideo.name}
-                  </p>
-                </div>
-              ) : (
-                <div className="text-center text-gray-500">
-                  <Upload size={32} className="mx-auto mb-2" />
-                  <p className="text-sm">Upload promotional video</p>
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <input
-                type="file"
-                accept="video/*"
-                onChange={(e) =>
-                  handleFileChange(
-                    "promotionalVideo",
-                    e.target.files?.[0] || null,
-                  )
-                }
-                className="hidden"
-                id="promotional-video-upload"
+          </label>
+          <Input
+            value={youtubeUrl}
+            onChange={(e) => {
+              setYoutubeUrl(e.target.value);
+              // Update formData to sync with context
+              updateFormData({videoLink: e.target.value});
+            }}
+            placeholder="https://www.youtube.com/watch?v=..."
+            className="w-full"
+          />
+          {debouncedYoutubeUrl && (
+            <div className="aspect-video w-full bg-black rounded overflow-hidden">
+              <ReactPlayer
+                src={debouncedYoutubeUrl}
+                width="100%"
+                height="100%"
+                controls
+                config={{
+                  youtube: {
+                    rel: 0,
+                    cc_load_policy: 1,
+                  },
+                }}
               />
-              <label
-                htmlFor="promotional-video-upload"
-                className="block w-full px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
-              >
-                Upload a video
-              </label>
             </div>
-          </div>
+          )}
+          <p className="text-xs text-gray-500">
+            Paste YouTube link to display promotional video on landing page
+          </p>
         </div>
       </div>
     </div>
