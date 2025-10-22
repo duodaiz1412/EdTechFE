@@ -58,6 +58,7 @@ import EditVideoLecture from "./pages/Instructor/Courses/EditCourse/components/E
 import EditArticleLecture from "./pages/Instructor/Courses/EditCourse/components/EditArticleLecture.tsx";
 import EditQuizLecture from "./pages/Instructor/Courses/EditCourse/components/EditQuizLecture.tsx";
 import CourseLandingPreview from "./pages/Instructor/Courses/PreviewCourse/CourseLandingPreview.tsx";
+import SetPayment from "./pages/Instructor/Payment/SetPayment.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -176,6 +177,7 @@ function App() {
               }
             >
               <Route path="/instructor" element={<InstructorCourse />} />
+              <Route path="/instructor/payment" element={<SetPayment />} />
             </Route>
 
             {/* Instructor - Create/Edit Course routes (without sidebar) */}

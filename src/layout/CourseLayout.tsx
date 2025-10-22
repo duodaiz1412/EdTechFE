@@ -64,7 +64,7 @@ export default function CourseLayout() {
 
       <div className="fixed top-16 bottom-0 left-0 right-0 flex">
         <main className="w-3/4 h-full overflow-y-scroll">
-          {!isEnrolled && !isPreview && (
+          {!isEnrolled && (
             <div className="w-full h-full bg-slate-200 flex flex-col space-y-6 items-center justify-center text-slate-500">
               <Lock size={48} />
               <h3 className="text-lg font-semibold">
@@ -72,7 +72,7 @@ export default function CourseLayout() {
               </h3>
             </div>
           )}
-          {(isEnrolled || isPreview) && (
+          {isEnrolled && (
             <CourseLesson
               lesson={lesson}
               status={isLessonCompleted(lesson?.id, progress)}

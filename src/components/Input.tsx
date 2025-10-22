@@ -9,6 +9,7 @@ export interface InputProps
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   size?: "sm" | "md" | "lg";
+  isRequired?: boolean;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -22,6 +23,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       rightIcon,
       size = "md",
       id,
+      isRequired = false,
       ...props
     },
     ref,
@@ -48,6 +50,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             className="block text-sm font-medium text-gray-700 mb-1"
           >
             {label}
+            {isRequired && (
+              <span className="text-red-500 ml-1 align-middle text-center inline-block">
+                *
+              </span>
+            )}
           </label>
         )}
 

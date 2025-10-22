@@ -5,6 +5,7 @@ import {
   BarChart3,
   Wrench,
   HelpCircle,
+  CreditCard,
 } from "lucide-react";
 import {InstructorSidebarItem} from "./InstructorSidebarItem";
 
@@ -37,6 +38,11 @@ export default function InstructorSidebar() {
       icon: <HelpCircle className="w-5 h-5" />,
       label: "Resources",
     },
+    {
+      to: "/instructor/payment",
+      icon: <CreditCard className="w-5 h-5" />,
+      label: "Payment",
+    },
   ];
 
   return (
@@ -54,7 +60,11 @@ export default function InstructorSidebar() {
             to={item.to}
             icon={item.icon}
             label={item.label}
-            isActive={location.pathname.startsWith(item.to)}
+            isActive={
+              item.to === "/instructor"
+                ? location.pathname === "/instructor"
+                : location.pathname.startsWith(item.to)
+            }
           />
         ))}
       </nav>

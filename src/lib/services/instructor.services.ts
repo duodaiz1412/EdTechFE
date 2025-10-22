@@ -89,6 +89,10 @@ const INSTRUCTOR_ENDPOINTS = {
     BASE_API + `/instructor/batches/${batchId}/instructors`,
   REMOVE_INSTRUCTOR_FROM_BATCH: (batchId: string, instructorId: string) =>
     BASE_API + `/instructor/batches/${batchId}/instructors/${instructorId}`,
+
+  // PayOS Configuration endpoints
+  CREATE_PAYOS_CONFIG: BASE_API + "/instructor/payos-configs",
+  GET_MY_PAYOS_CONFIG: BASE_API + "/instructor/payos-configs/my-config",
 } as const;
 
 // Types
@@ -259,6 +263,23 @@ export interface IBatch {
 
 export interface IInstructorIdRequest {
   instructorId: string;
+}
+
+// PayOS Configuration Types
+export interface ICreatePayOSConfigRequest {
+  clientId: string;
+  apiKey: string;
+  checksumKey: string;
+  accountNumber: string;
+}
+
+export interface IPayOSConfigResponse {
+  id: string;
+  clientId: string;
+  accountNumber: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface IQuizQuestion {
@@ -726,6 +747,26 @@ export const instructorServices = {
     );
     return response;
   },
+
+  // PayOS Configuration APIs
+  async createPayOSConfig(
+    configData: ICreatePayOSConfigRequest,
+    accessToken: string,
+  ) {
+    const response = await axios.post(
+      INSTRUCTOR_ENDPOINTS.CREATE_PAYOS_CONFIG,
+      configData,
+      {headers: {Authorization: `Bearer ${accessToken}`}},
+    );
+    return response;
+  },
+
+  async getMyPayOSConfig(accessToken: string) {
+    const response = await axios.get(INSTRUCTOR_ENDPOINTS.GET_MY_PAYOS_CONFIG, {
+      headers: {Authorization: `Bearer ${accessToken}`},
+    });
+    return response;
+  },
 };
 
 export class InstructorService {
@@ -966,5 +1007,17 @@ export class InstructorService {
       instructorId,
       accessToken,
     );
+  }
+
+  // PayOS Configuration APIs
+  static async createPayOSConfig(
+    configData: ICreatePayOSConfigRequest,
+    accessToken: string,
+  ) {
+    return instructorServices.createPayOSConfig(configData, accessToken);
+  }
+
+  static async getMyPayOSConfig(accessToken: string) {
+    return instructorServices.getMyPayOSConfig(accessToken);
   }
 }
