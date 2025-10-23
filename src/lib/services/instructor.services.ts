@@ -111,6 +111,7 @@ export interface ICourseRequest {
   currency?: string;
   coursePrice?: number;
   sellingPrice?: number;
+  paidCourse?: boolean;
   targetAudience?: string;
   skillLevel?: string;
   learnerProfileDesc?: string;
@@ -175,6 +176,7 @@ export interface ICourse {
     name: string;
   }>;
   chapters: IChapter[];
+  paidCourse: boolean;
 }
 
 export interface IChapter {

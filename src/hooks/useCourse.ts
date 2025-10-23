@@ -359,6 +359,10 @@ const useCourse = (): UseCourseReturn => {
             data.sellingPrice !== undefined
               ? data.sellingPrice
               : currentCourse.sellingPrice,
+          paidCourse:
+            data.paidCourse !== undefined
+              ? data.paidCourse
+              : currentCourse.paidCourse,
           targetAudience:
             data.targetAudience !== undefined
               ? data.targetAudience

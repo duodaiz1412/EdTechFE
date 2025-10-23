@@ -52,6 +52,7 @@ export interface CourseFormData {
   currency?: string;
   originalPrice?: number;
   sellingPrice?: number;
+  paidCourse?: boolean;
   // Intended learners specific fields
   shortIntroduction?: string[];
   requirements?: string[];
@@ -213,6 +214,7 @@ const initialFormData: CourseFormData = {
   currency: "VND",
   originalPrice: 0,
   sellingPrice: 0,
+  paidCourse: false,
   shortIntroduction: [],
   requirements: [],
   targetAudience: [],
@@ -359,6 +361,7 @@ export function CourseProvider({children}: CourseProviderProps) {
       currency: course.currency || "VND",
       originalPrice: course.coursePrice || undefined,
       sellingPrice: course.sellingPrice || undefined,
+      paidCourse: course.paidCourse || false,
       shortIntroduction: course.shortIntroduction
         ? [course.shortIntroduction]
         : [],

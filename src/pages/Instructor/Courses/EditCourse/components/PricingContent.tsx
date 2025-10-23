@@ -20,21 +20,24 @@ export default function PricingContent() {
   } = useCourseContext();
   const {course} = courseState;
 
-  // Local state for UI-specific data (currency, prices)
+  // Local state for UI-specific data (currency, prices, paid course)
   const [currency, setCurrency] = useState("VND");
   const [originalPrice, setOriginalPrice] = useState("0");
   const [sellingPrice, setSellingPrice] = useState("0");
+  const [isPaidCourse, setIsPaidCourse] = useState(false);
 
   // Fill form with course data when course is loaded (only once)
   useEffect(() => {
     if (course && formData.originalPrice === 0) {
       const coursePrice = course.coursePrice || 0;
       const sellingPrice = course.sellingPrice || 0;
+      const paidCourse = course.paidCourse || false;
 
       updateFormData({
         currency: course.currency || "VND",
         originalPrice: coursePrice,
         sellingPrice: sellingPrice,
+        paidCourse: paidCourse,
       });
     }
   }, [course, formData.originalPrice, updateFormData]);
@@ -44,7 +47,13 @@ export default function PricingContent() {
     setCurrency(formData.currency || "VND");
     setOriginalPrice(formData.originalPrice?.toString() || "0");
     setSellingPrice(formData.sellingPrice?.toString() || "0");
-  }, [formData.currency, formData.originalPrice, formData.sellingPrice]);
+    setIsPaidCourse(formData.paidCourse || false);
+  }, [
+    formData.currency,
+    formData.originalPrice,
+    formData.sellingPrice,
+    formData.paidCourse,
+  ]);
 
   const currencyOptions = [
     {value: "VND", label: "VND"},
@@ -71,6 +80,7 @@ export default function PricingContent() {
         currency: formData.currency,
         coursePrice: formData.originalPrice,
         sellingPrice: formData.sellingPrice,
+        paidCourse: formData.paidCourse,
         tag: formData.tag || [],
         label: formData.label || [],
       };
@@ -80,10 +90,10 @@ export default function PricingContent() {
       if (success) {
         toast.success("Pricing saved successfully!");
       } else {
-        toast.error("Failed to save pricing");
+        toast.error("Failed to save payment methods");
       }
     } catch {
-      toast.error("Error saving pricing");
+      toast.error("Error saving payment methods");
     }
   };
 
@@ -130,90 +140,142 @@ export default function PricingContent() {
       )}
 
       <div className="max-w-md space-y-6">
-        {/* Pricing Controls */}
-        <>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Currency
+        {/* Course Type Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Course Type
+          </label>
+          <div className="flex space-x-4">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="courseType"
+                checked={!isPaidCourse}
+                onChange={() => {
+                  setIsPaidCourse(false);
+                  updateFormData({paidCourse: false});
+                }}
+                className="mr-2 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">Free Course</span>
             </label>
-            <CommonSelect
-              value={currency}
-              onChange={(value) => {
-                setCurrency(value);
-                handleInputChange("currency", value);
-              }}
-              options={currencyOptions}
-              placeholder="Select currency"
-              className="w-full"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Original price
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="courseType"
+                checked={isPaidCourse}
+                onChange={() => {
+                  setIsPaidCourse(true);
+                  updateFormData({paidCourse: true});
+                }}
+                className="mr-2 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">Paid Course</span>
             </label>
-            <Input
-              value={originalPrice}
-              onChange={(e) =>
-                handlePriceChange("originalPrice", e.target.value)
-              }
-              placeholder="Enter original price"
-              className="w-full"
-            />
           </div>
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Selling price
-            </label>
-            <Input
-              value={sellingPrice}
-              onChange={(e) =>
-                handlePriceChange("sellingPrice", e.target.value)
-              }
-              placeholder="Enter selling price"
-              className="w-full"
-            />
-          </div>
+        {/* Pricing Controls - Only show when paid course is selected */}
+        {isPaidCourse && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Currency
+              </label>
+              <CommonSelect
+                value={currency}
+                onChange={(value) => {
+                  setCurrency(value);
+                  handleInputChange("currency", value);
+                }}
+                options={currencyOptions}
+                placeholder="Select currency"
+                className="w-full"
+              />
+            </div>
 
-          {/* Price Summary */}
-          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">
-              Price Summary
-            </h4>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Original Price:</span>
-                <span className="font-medium">
-                  {originalPrice} {currency.toUpperCase()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Selling Price:</span>
-                <span className="font-medium text-green-600">
-                  {sellingPrice} {currency.toUpperCase()}
-                </span>
-              </div>
-              <div className="border-t pt-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Original price
+              </label>
+              <Input
+                value={originalPrice}
+                onChange={(e) =>
+                  handlePriceChange("originalPrice", e.target.value)
+                }
+                placeholder="Enter original price"
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Selling price
+              </label>
+              <Input
+                value={sellingPrice}
+                onChange={(e) =>
+                  handlePriceChange("sellingPrice", e.target.value)
+                }
+                placeholder="Enter selling price"
+                className="w-full"
+              />
+            </div>
+
+            {/* Price Summary */}
+            <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">
+                Price Summary
+              </h4>
+              <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Discount:</span>
-                  <span className="font-medium text-red-600">
-                    {(() => {
-                      const original = parseInt(
-                        originalPrice.replace(/\./g, ""),
-                      );
-                      const selling = parseInt(sellingPrice.replace(/\./g, ""));
-                      const discount = original - selling;
-                      return discount > 0
-                        ? `${discount.toLocaleString("vi-VN")} ${currency.toUpperCase()}`
-                        : "0 VND";
-                    })()}
+                  <span className="text-gray-600">Original Price:</span>
+                  <span className="font-medium">
+                    {originalPrice} {currency.toUpperCase()}
                   </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Selling Price:</span>
+                  <span className="font-medium text-green-600">
+                    {sellingPrice} {currency.toUpperCase()}
+                  </span>
+                </div>
+                <div className="border-t pt-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Discount:</span>
+                    <span className="font-medium text-red-600">
+                      {(() => {
+                        const original = parseInt(
+                          originalPrice.replace(/\./g, ""),
+                        );
+                        const selling = parseInt(
+                          sellingPrice.replace(/\./g, ""),
+                        );
+                        const discount = original - selling;
+                        return discount > 0
+                          ? `${discount.toLocaleString("vi-VN")} ${currency.toUpperCase()}`
+                          : "0 VND";
+                      })()}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
+          </>
+        )}
+
+        {/* Free Course Message */}
+        {!isPaidCourse && (
+          <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <h4 className="text-sm font-medium text-green-800 mb-2">
+              Free Course
+            </h4>
+            <p className="text-sm text-green-700">
+              This course will be available to all students at no cost. Students
+              can enroll directly without payment.
+            </p>
           </div>
-        </>
+        )}
       </div>
     </div>
   );

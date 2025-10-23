@@ -38,7 +38,7 @@ export default function SetPayment() {
   const [isEditing, setIsEditing] = useState(false);
 
   const [formData, setFormData] = useState<ICreatePayOSConfigRequest>({
-    clientId: user?.id || "",
+    clientId: "",
     apiKey: "",
     checksumKey: "",
     accountNumber: "",
@@ -85,10 +85,10 @@ export default function SetPayment() {
     setIsEditing(false);
     setShowForm(true);
     setFormData({
-      clientId: user?.id || "",
+      clientId: "",
       apiKey: "",
       checksumKey: "",
-      accountNumber: "",
+      accountNumber: user?.id || "",
     });
     setError("");
     setSuccess("");
@@ -100,7 +100,7 @@ export default function SetPayment() {
     setIsEditing(true);
     setShowForm(true);
     setFormData({
-      clientId: user?.id || "",
+      clientId: currentConfig.clientId,
       apiKey: "", // Don't show old API key because of security
       checksumKey: "", // Don't show old checksum key because of security
       accountNumber: currentConfig.accountNumber,
@@ -113,7 +113,7 @@ export default function SetPayment() {
     setShowForm(false);
     setIsEditing(false);
     setFormData({
-      clientId: user?.id || "",
+      clientId: "",
       apiKey: "",
       checksumKey: "",
       accountNumber: "",
@@ -126,7 +126,12 @@ export default function SetPayment() {
     e.preventDefault();
 
     // Validation
-    if (!formData.apiKey || !formData.checksumKey || !formData.accountNumber) {
+    if (
+      !formData.clientId ||
+      !formData.apiKey ||
+      !formData.checksumKey ||
+      !formData.accountNumber
+    ) {
       setError("Please fill in all required information");
       return;
     }
@@ -157,7 +162,7 @@ export default function SetPayment() {
       setShowForm(false);
       setIsEditing(false);
       setFormData({
-        clientId: user?.id || "",
+        clientId: "",
         apiKey: "",
         checksumKey: "",
         accountNumber: "",
@@ -215,7 +220,7 @@ export default function SetPayment() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <CaptionRegular className="text-gray-500 mb-1">
-                  Client ID
+                  Client ID (PayOS)
                 </CaptionRegular>
                 <BodyRegular className="font-mono bg-gray-50 p-2 rounded border">
                   {currentConfig.clientId}
@@ -224,7 +229,7 @@ export default function SetPayment() {
 
               <div>
                 <CaptionRegular className="text-gray-500 mb-1">
-                  Account Number
+                  Account Number (User ID)
                 </CaptionRegular>
                 <BodyRegular className="font-mono bg-gray-50 p-2 rounded border">
                   {currentConfig.accountNumber}
@@ -297,25 +302,26 @@ export default function SetPayment() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Client ID - hiển thị readonly */}
-            <div className="bg-gray-50 p-4 rounded-lg border">
-              <CaptionRegular className="text-gray-500 mb-2">
-                Client ID (Auto from account)
-              </CaptionRegular>
-              <BodyRegular className="font-mono text-gray-700">
-                {user?.id || "No user information"}
-              </BodyRegular>
-            </div>
+            <Input
+              label="Client ID"
+              isRequired
+              placeholder="Enter PayOS Client ID"
+              value={formData.clientId}
+              onChange={(e) => handleInputChange("clientId", e.target.value)}
+              helperText="Client ID from PayOS dashboard"
+            />
 
             <Input
               label="Account Number"
               isRequired
-              placeholder="Enter PayOS account number"
+              placeholder={
+                user?.id ? `Default: ${user.id}` : "Enter account number"
+              }
               value={formData.accountNumber}
               onChange={(e) =>
                 handleInputChange("accountNumber", e.target.value)
               }
-              helperText="PayOS account number to receive payments"
+              helperText="Account number for receiving payments (can use your user ID or custom number)"
             />
 
             <Input
@@ -403,6 +409,7 @@ export default function SetPayment() {
                 type="submit"
                 loading={isCreating}
                 disabled={
+                  !formData.clientId ||
                   !formData.apiKey ||
                   !formData.checksumKey ||
                   !formData.accountNumber
@@ -440,6 +447,9 @@ export default function SetPayment() {
           </BodyRegular>
           <BodyRegular>
             • Contact PayOS to get Client ID, API Key and Checksum Key
+          </BodyRegular>
+          <BodyRegular>
+            • Account Number can be your user ID or a custom number
           </BodyRegular>
           <BodyRegular>
             • After setup, students can pay directly for your courses
