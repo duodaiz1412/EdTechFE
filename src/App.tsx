@@ -24,9 +24,10 @@ import MainLayout from "./layout/MainLayout.tsx";
 import Support from "./pages/Info/Support.tsx";
 import About from "./pages/Info/About.tsx";
 
-import MyLearning from "./pages/Course/MyLearning/MyLearning.tsx";
+import MyLearning from "./pages/Course/MyLearning/index.tsx";
 import CourseLayout from "./layout/CourseLayout.tsx";
-import Courses from "./pages/Course/Courses.tsx";
+import CourseList from "./pages/Course/CourseList";
+import CoursesByTag from "./pages/Course/CourseList/CoursesByTag.tsx";
 import CourseDetail from "./pages/Course/CourseDetail.tsx";
 
 import ProfileLayout from "./layout/ProfileLayout.tsx";
@@ -68,7 +69,8 @@ function App() {
     queryFn: async () => {
       const accessToken = await getAccessToken();
       const response = await userServices.getUserInfo(accessToken);
-      const enrollments = await enrollServices.getEnrollments(accessToken);
+      const courseEnrollments =
+        await enrollServices.getEnrollments(accessToken);
 
       // Set global state
       dispatch(
@@ -80,7 +82,7 @@ function App() {
           image: response.data.userImage || undefined,
           type: response.data.userType,
           roles: response.data.roles.map((role: Role) => role.role),
-          enrollments: enrollments,
+          courseEnrollments: courseEnrollments,
         }),
       );
       return response;
@@ -114,10 +116,10 @@ function App() {
               </MainLayout>
             }
           >
-            <Route path="/" element={<Courses />} />
+            <Route path="/" element={<CourseList />} />
+            <Route path="/tag/:tag" element={<CoursesByTag />} />
             <Route path="/users/:userId/profile" element={<PublicProfile />} />
             <Route path="/course/:slug" element={<CourseDetail />} />
-            <Route path="/learning" element={<MyLearning />} />
 
             <Route path="/help" element={<Support />} />
             <Route path="/about" element={<About />} />
@@ -159,6 +161,14 @@ function App() {
             <Route
               path="/course/:courseSlug/learn/lesson/:lessonSlug"
               element={<CourseLayout />}
+            />
+            <Route
+              path="/learning"
+              element={
+                <MainLayout>
+                  <MyLearning />
+                </MainLayout>
+              }
             />
 
             {/* Instructor routes */}

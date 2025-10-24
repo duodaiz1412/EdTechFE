@@ -48,6 +48,7 @@ export default function VideoPreview({
               className="w-2/3 aspect-video"
               accentColor="#2b7fff"
               thumbnailTime={5}
+              preferPlayback="mse"
               defaultStreamType="on-demand"
               streamType="on-demand"
               loading="page"

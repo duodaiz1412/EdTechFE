@@ -1,6 +1,7 @@
-import {instructorServices} from "@/lib/services/instructor.services";
+import {learnerServices} from "@/lib/services/learner.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {Quiz, QuizQuestion, QuizSubmmission} from "@/types";
+import {ChevronsLeft, ChevronsRight} from "lucide-react";
 import {useState} from "react";
 
 interface CourseLessonQuizProps {
@@ -12,32 +13,19 @@ export default function CourseLessonQuiz({quiz}: CourseLessonQuizProps) {
   const [currentIdx, setCurrentIdx] = useState(0);
 
   const [isDoing, setIsDoing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [answers, setAnswers] = useState<{[key: string]: string}>({});
 
   const [haveResult, setHaveResult] = useState(false);
   const [result, setResult] = useState<QuizSubmmission>();
 
   const fetchQuestions = async () => {
-    setIsLoading(true);
-    try {
-      const accessToken = await getAccessToken();
-      const response = await instructorServices.getQuizQuestions(
-        quiz?.id || "",
-        accessToken,
-      );
-      const questionsData = response.data || [];
-      setQuestions(questionsData);
-
-      if (questionsData.length > 0) {
-        setIsDoing(true);
-      }
-    } catch {
-      // Preview mode - không có questions
-      setQuestions([]);
-    } finally {
-      setIsLoading(false);
-    }
+    const accessToken = await getAccessToken();
+    const response = await learnerServices.getQuizQuestions(
+      accessToken,
+      quiz?.id,
+    );
+    setQuestions(response.questions || []);
+    setIsDoing(true);
   };
 
   const setCurrentAnswer = (questionId: string, answer: string) => {
@@ -45,13 +33,15 @@ export default function CourseLessonQuiz({quiz}: CourseLessonQuizProps) {
   };
 
   const submitQuiz = async () => {
-    // Instructor preview mode - simulate quiz completion
+    const accessToken = await getAccessToken();
+    const response = await learnerServices.submitQuiz(
+      accessToken,
+      quiz?.id,
+      answers,
+    );
     setIsDoing(false);
     setHaveResult(true);
-    setResult({
-      id: "preview-result",
-      percentage: Math.floor(Math.random() * 40) + 60, // Random score 60-100%
-    } as QuizSubmmission);
+    setResult(response);
   };
 
   const resetQuiz = () => {
@@ -63,46 +53,28 @@ export default function CourseLessonQuiz({quiz}: CourseLessonQuizProps) {
   };
 
   return (
-    <div className="w-5/6 bg-white p-6 h-[600px] relative overflow-y-auto custom-scrollbar">
+    <div className="w-5/6 bg-white p-6 h-[600px] relative">
       {/* Fetch questions */}
-      {!isDoing && !haveResult && !isLoading && (
+      {!isDoing && !haveResult && (
         <div className=" h-full flex flex-col justify-center items-center space-y-4">
-          <h3 className="text-lg font-semibold">{quiz?.title}</h3>
-          <button className="btn btn-neutral w-96" onClick={fetchQuestions}>
+          <h3 className="text-2xl font-semibold">{quiz?.title}</h3>
+          <button
+            className="btn btn-neutral rounded-lg w-96"
+            onClick={fetchQuestions}
+          >
             Start quiz
           </button>
         </div>
       )}
-
-      {/* Loading state */}
-      {isLoading && (
-        <div className="h-full flex flex-col justify-center items-center space-y-4">
-          <div className="loading loading-spinner loading-lg"></div>
-          <p className="text-gray-600">Loading quiz questions...</p>
-        </div>
-      )}
-      {/* No questions message */}
-      {!isLoading && isDoing && questions.length === 0 && (
-        <div className="h-full flex flex-col justify-center items-center space-y-4">
-          <h3 className="text-lg font-semibold">No questions available</h3>
-          <p className="text-gray-600">
-            This quiz doesn't have any questions yet.
-          </p>
-          <button className="btn btn-neutral" onClick={() => setIsDoing(false)}>
-            Back
-          </button>
-        </div>
-      )}
-
       {/* Main quiz  */}
-      {isDoing && questions.length > 0 && questions[currentIdx] && (
+      {isDoing && (
         <>
           <div>
             <h3 className="font-semibold text-xl mb-6">
-              Question {currentIdx + 1}: {questions[currentIdx]?.question}
+              Question {currentIdx + 1}: {questions[currentIdx].question}
             </h3>
             <div className="space-y-4">
-              {questions[currentIdx]?.options &&
+              {questions[currentIdx].options &&
                 JSON.parse(questions[currentIdx].options).map(
                   (opt: {option: string}) => (
                     <div
@@ -116,7 +88,7 @@ export default function CourseLessonQuiz({quiz}: CourseLessonQuizProps) {
                         value={opt.option}
                         onChange={(e) =>
                           setCurrentAnswer(
-                            questions[currentIdx]?.id || "",
+                            questions[currentIdx].id!,
                             e.target.value,
                           )
                         }
@@ -135,21 +107,23 @@ export default function CourseLessonQuiz({quiz}: CourseLessonQuizProps) {
             ></progress>
             <div className="space-x-2">
               <button
-                className="btn btn-sm"
+                className="btn btn-sm rounded-lg"
                 disabled={currentIdx == 0}
                 onClick={() => setCurrentIdx(currentIdx - 1)}
               >
-                Prev
+                <ChevronsLeft size={16} />
+                <span>Prev</span>
               </button>
               <button
-                className="btn btn-sm"
+                className="btn btn-sm rounded-lg"
                 disabled={currentIdx == questions.length - 1}
                 onClick={() => setCurrentIdx(currentIdx + 1)}
               >
-                Next
+                <span>Next</span>
+                <ChevronsRight size={16} />
               </button>
               <button
-                className="btn btn-sm btn-neutral"
+                className="btn btn-sm btn-neutral rounded-lg"
                 disabled={Object.keys(answers).length != questions.length}
                 onClick={submitQuiz}
               >
@@ -161,10 +135,13 @@ export default function CourseLessonQuiz({quiz}: CourseLessonQuizProps) {
       )}
       {/* Result */}
       {!isDoing && haveResult && (
-        <div className="space-y-4 pb-20">
+        <div className="space-y-4">
           <div className="text-center space-y-2 mb-6">
-            <h3 className="text-lg font-semibold">{quiz?.title}</h3>
-            <p>Result: {result?.percentage}%</p>
+            <h3 className="text-xl font-semibold">{quiz?.title}</h3>
+            <p>
+              Result:{" "}
+              <span className="font-semibold">{result?.percentage}%</span>
+            </p>
             <button className="btn btn-neutral w-96" onClick={resetQuiz}>
               Retake quiz
             </button>
@@ -172,9 +149,9 @@ export default function CourseLessonQuiz({quiz}: CourseLessonQuizProps) {
           {questions.map((question, idx) => (
             <div
               key={question.id}
-              className="p-4 border border-slate-300 rounded-lg space-y-2"
+              className="px-6 py-4 border border-slate-400 bg-slate-50 rounded-lg space-y-3"
             >
-              <h4>
+              <h4 className="font-semibold text-lg mb-4">
                 Question {idx + 1}: {question.question}
               </h4>
               {question.options &&
@@ -184,7 +161,7 @@ export default function CourseLessonQuiz({quiz}: CourseLessonQuizProps) {
                   return (
                     <div
                       key={opt.option}
-                      className={`p-2 rounded-md border ${isYourAnswer ? (isCorrectAnswer ? "border-green-500" : "border-red-500") : "border-slate-300"}`}
+                      className={`p-2 rounded-md border ${isYourAnswer ? (isCorrectAnswer ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50") : "border-slate-400"}`}
                     >
                       <span className={`${isYourAnswer && "font-semibold"}`}>
                         {opt.option}

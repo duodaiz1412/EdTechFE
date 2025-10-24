@@ -18,19 +18,20 @@ import CourseSidebar from "./components/Course/CourseSidebar";
 import CourseLesson from "@/pages/Course/CourseLesson";
 
 export default function CourseLayout() {
+  const {courseSlug, lessonSlug} = useParams();
   const userData = useAppSelector((state) => state.user.data);
+
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [progress, setProgress] = useState<Progress>();
   const [chapters, setChapters] = useState<Chapter[]>();
   const [currentLesson, setCurrentLesson] = useState<LessonCurrent>();
   const [lesson, setLesson] = useState<Lesson>();
-  const {courseSlug, lessonSlug} = useParams();
 
   const fetchChapters = useCallback(async () => {
     const getChapters = await publicServices.getChapters(courseSlug as string);
     setChapters(getChapters);
     setCurrentLesson(getCurrentLesson(getChapters, lessonSlug));
-    setIsEnrolled(isCourseEnrolled(userData?.enrollments, courseSlug));
+    setIsEnrolled(isCourseEnrolled(userData?.courseEnrollments, courseSlug));
   }, [courseSlug, lessonSlug, userData]);
 
   const fetchProgress = useCallback(async () => {

@@ -7,7 +7,7 @@ type Props = {
   className?: string;
 };
 
-export default function HtmlPreview({html, className}: Props) {
+export default function HtmlDisplay({html, className}: Props) {
   const clean = useMemo(() => {
     const sanitized = DOMPurify.sanitize(html, {
       ALLOWED_TAGS: [
