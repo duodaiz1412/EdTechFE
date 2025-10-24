@@ -1,12 +1,27 @@
 import {Link} from "react-router-dom";
 
 import {CourseEnrollment} from "@/types";
+import {useQuery} from "@tanstack/react-query";
+import {getAccessToken} from "@/lib/utils/getAccessToken";
+import {progressServices} from "@/lib/services/progress.services";
 
 interface MyLearningItemProps {
   enroll: CourseEnrollment;
 }
 
-export default function MyLearningItem({enroll}: MyLearningItemProps) {
+export default function MyLearningCourseItem({enroll}: MyLearningItemProps) {
+  const {data} = useQuery({
+    queryKey: ["enrollment-progress", enroll.id],
+    queryFn: async () => {
+      const accessToken = await getAccessToken();
+      const response = await progressServices.getProgress(
+        enroll.courseSlug!,
+        accessToken,
+      );
+      return response;
+    },
+  });
+
   return (
     <div className="card shadow">
       <figure className="h-56">
@@ -20,7 +35,7 @@ export default function MyLearningItem({enroll}: MyLearningItemProps) {
           max="100"
         ></progress>
         <Link
-          to={`/course/${enroll.courseSlug}/learn/lesson/${enroll.currentLessonSlug}`}
+          to={`/course/${enroll.courseSlug}/learn/lesson/${data?.currentLessonSlug}`}
           className="btn btn-neutral"
         >
           Continue Learning

@@ -1,16 +1,13 @@
 import {useEffect, useState} from "react";
-import {toast} from "react-toastify";
-import {motion} from "motion/react";
+import axios from "axios";
 
 import {Lesson} from "@/types";
-
 import {Download} from "lucide-react";
 import CourseLessonVideo from "./LessonType/CourseLessonVideo";
-
-import LessonCommentList from "./Comment/LessonCommentList";
-import CourseReviewList from "./Review/CourseReviewList";
 import CourseLessonQuiz from "./LessonType/CourseLessonQuiz";
 import CourseLessonArticle from "./LessonType/CourseLessonArticle";
+import LessonCommentList from "./Comment/LessonCommentList";
+import CourseReviewList from "./Review/CourseReviewList";
 
 interface CourseLessonProps {
   lesson?: Lesson;
@@ -19,26 +16,31 @@ interface CourseLessonProps {
 
 export default function CourseLesson({lesson, status}: CourseLessonProps) {
   const [lessonType, setLessonType] = useState("video");
-  const [isCompleted, setIsCompleted] = useState(status);
+  const [downloadUrl, setDownloadUrl] = useState("");
 
   useEffect(() => {
-    if (!lesson) return;
-    setIsCompleted(status);
+    const fetchData = async () => {
+      if (!lesson) return;
 
-    if (lesson.content) {
-      setLessonType("article");
-    } else if (lesson.quizDto) {
-      setLessonType("quiz");
-    } else {
-      setLessonType("video");
-    }
+      if (lesson.content) {
+        setLessonType("article");
+      } else if (lesson.quizDto) {
+        setLessonType("quiz");
+      } else {
+        setLessonType("video");
+      }
+
+      if (lesson.fileUrl) {
+        const response = await axios.get(lesson.fileUrl, {
+          responseType: "blob",
+        });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        setDownloadUrl(url);
+      }
+    };
+
+    fetchData();
   }, [status, lesson]);
-
-  const handleComplete = async (lessonTitle?: string) => {
-    // Preview mode - simulate lesson completion
-    setIsCompleted(true);
-    toast.success(`${lessonTitle} completed! (Preview Mode)`);
-  };
 
   return (
     <div>
@@ -57,27 +59,6 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
       </div>
 
       <div className="w-5/6 mx-auto py-6 h-[500px]">
-        {/* Lesson status */}
-        <div className="flex mb-6 justify-end">
-          {isCompleted && (
-            <motion.span
-              className="badge badge-xl badge-success"
-              initial={{scale: 0.8}}
-              animate={{scale: 1}}
-              transition={{duration: 0.3}}
-            >
-              Completed
-            </motion.span>
-          )}
-          {!isCompleted && (
-            <button
-              className="btn btn-neutral"
-              onClick={() => handleComplete(lesson?.title)}
-            >
-              Mark as completed
-            </button>
-          )}
-        </div>
         {/* Info, rating & comments */}
         <div>
           <div className="tabs tabs-lg tabs-border">
@@ -95,8 +76,8 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
                 <div className="space-y-2">
                   <p>Attachments</p>
                   <a
-                    href=""
-                    download={lesson?.fileUrl}
+                    href={downloadUrl}
+                    download={`${lesson?.title}-attachment`}
                     className="p-3 text-blue-600 bg-blue-50 border border-blue-200 rounded-md flex items-center space-x-4"
                   >
                     <Download size={20} />

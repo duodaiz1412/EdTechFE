@@ -4,10 +4,9 @@ import {useAppDispatch, useAppSelector} from "@/redux/hooks";
 import {login} from "@/redux/slice/userSlice";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {enrollServices} from "@/lib/services/enroll.services";
-import MyLearningItem from "./MyLearningItem";
+import MyLearningCourseItem from "./MyLearningCourseItem";
 
-export default function MyLearning() {
-  const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
+export default function MyLearningCourses() {
   const userData = useAppSelector((state) => state.user.data);
   const dispatch = useAppDispatch();
 
@@ -21,22 +20,15 @@ export default function MyLearning() {
     },
   });
 
-  if (!isAuthenticated) {
-    return (
-      <h2 className="text-center text-2xl font-bold mt-10">
-        Login to track your progress
-      </h2>
-    );
-  }
-
   return (
-    <div className="w-full p-6">
-      <h2 className="text-2xl font-semibold mb-10">My Learning</h2>
+    <div className="w-full">
       <div className="grid grid-cols-4 gap-6">
-        {userData?.enrollments &&
-          userData?.enrollments?.map((enroll) => (
-            <MyLearningItem key={enroll.id} enroll={enroll} />
+        {userData?.courseEnrollments &&
+          userData?.courseEnrollments?.map((enroll) => (
+            <MyLearningCourseItem key={enroll.id} enroll={enroll} />
           ))}
+        {!userData?.courseEnrollments &&
+          "You have not enrolled in any courses yet."}
       </div>
     </div>
   );

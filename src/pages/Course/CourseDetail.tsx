@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {Link, useParams} from "react-router-dom";
+import ReactPlayer from "react-player";
 
 import {Chapter, Course, CourseLabel, CourseTag, Review} from "@/types";
 import {publicServices} from "@/lib/services/public.services";
@@ -12,18 +13,20 @@ import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
 
 import {toast} from "react-toastify";
 import {useAppSelector} from "@/redux/hooks";
-import {Languages} from "lucide-react";
+import {Languages, PlayCircle, XIcon} from "lucide-react";
 import ReadOnlyRating from "@/components/ReadOnlyRating";
 import CourseContentList from "./CourseContent/CourseContentList";
 import CourseReviewItem from "./CourseLesson/Review/CourseReviewItem";
 
 import {usePayOS} from "@payos/payos-checkout";
+import HtmlDisplay from "@/components/HtmlDisplay";
 
 export default function CourseDetail() {
   // Data states
   const {slug} = useParams();
   const [courseInfo, setCourseInfo] = useState<Course>();
   const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [averageRating, setAverageRating] = useState<number>(0);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [currentLessonSlug, setCurrentLessonSlug] = useState("");
@@ -31,6 +34,9 @@ export default function CourseDetail() {
   // Redux states
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
   const userData = useAppSelector((state) => state.user.data);
+
+  // Preview states
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   // Payment states
   const [isPaying, setIsPaying] = useState(false);
@@ -69,11 +75,16 @@ export default function CourseDetail() {
       setChapters(chapters);
 
       // Get reviews
+      const avgRating = await publicServices.getAverageRating(slug);
+      setAverageRating(avgRating);
       const reviews = await publicServices.getReviews(slug);
       setReviews(reviews.content);
 
       // Check if user is enrolled this course
-      const enrolled = isCourseEnrolled(userData?.enrollments || [], slug);
+      const enrolled = isCourseEnrolled(
+        userData?.courseEnrollments || [],
+        slug,
+      );
       setIsEnrolled(enrolled);
 
       // Get progress
@@ -143,9 +154,9 @@ export default function CourseDetail() {
             <p className="text-xl">{courseInfo?.shortIntroduction}</p>
             <div className="flex space-x-2 items-start">
               <span className="font-semibold text-orange-900">
-                {courseInfo?.rating || 0}
+                {averageRating || 0}
               </span>
-              <ReadOnlyRating rating={courseInfo?.rating || 0} size="xs" />
+              <ReadOnlyRating rating={averageRating || 0} size="xs" />
               <span>({courseInfo?.enrollments || 0} students)</span>
             </div>
             {/* Instructors */}
@@ -174,6 +185,11 @@ export default function CourseDetail() {
               </div>
             </div>
           </div>
+          {/* Description */}
+          <div>
+            <h3 className="text-xl font-semibold mb-4">Description</h3>
+            <HtmlDisplay html={courseInfo?.description || ""} />
+          </div>
           {/* Topics (tags) */}
           <div>
             <h3 className="text-xl font-semibold mb-4">
@@ -181,7 +197,7 @@ export default function CourseDetail() {
             </h3>
             {courseInfo?.tags?.map((tag: CourseTag) => (
               <Link
-                to={`/?tags=${tag.name}`}
+                to={`/tag/${tag.name}`}
                 key={tag.id}
                 className="btn rounded-lg mr-4"
               >
@@ -197,25 +213,17 @@ export default function CourseDetail() {
               courseSlug={courseInfo?.slug}
             />
           </div>
-          {/* Description */}
-          <div>
-            <h3 className="text-xl font-semibold mb-4">Description</h3>
-            <p
-              className="ql-editor ql-snow h-auto p-0"
-              dangerouslySetInnerHTML={{__html: courseInfo?.description || ""}}
-            ></p>
-          </div>
           {/* Skill level */}
           <div>
             <h3 className="text-xl font-semibold mb-4">Course level</h3>
-            <p>{courseInfo?.skillLevel}</p>
+            <p>{courseInfo?.skillLevel || "Not specified"}</p>
           </div>
           {/* Who is this course for*/}
           <div>
             <h3 className="text-xl font-semibold mb-4">
-              Who is this course for ?
+              Who is this course for?
             </h3>
-            <p>{courseInfo?.targetAudience}</p>
+            <p>{courseInfo?.targetAudience || "Not specified"}</p>
           </div>
           {/* Reviews */}
           <div>
@@ -225,6 +233,7 @@ export default function CourseDetail() {
                 reviews.map((review) => (
                   <CourseReviewItem key={review.id} review={review} />
                 ))}
+              {reviews.length === 0 && <p>No reviews yet.</p>}
             </div>
           </div>
         </div>
@@ -262,14 +271,35 @@ export default function CourseDetail() {
                   Continue learning
                 </Link>
               )}
-              {courseInfo?.videoLink && (
-                <button className="btn btn-outline">Preview this course</button>
-              )}
+              <button className="btn" onClick={() => setIsPreviewOpen(true)}>
+                Preview this course
+              </button>
             </div>
           </div>
         </div>
       </div>
-      {/* QR Modal */}
+      {/* Preview video modal */}
+      {isPreviewOpen && (
+        <div className="fixed top-0 left-0 right-0 bottom-0 z-50 bg-[rgba(0,0,0,0.5)] flex justify-center items-center">
+          {courseInfo?.videoLink && (
+            <ReactPlayer src={courseInfo?.videoLink} className="w-2/3" />
+          )}
+          {!courseInfo?.videoLink && (
+            <div className="w-2/3 h-2/3 bg-slate-100 flex items-center justify-center text-slate-500">
+              <PlayCircle size={40} />
+              <span className="ml-4 font-semibold text-lg">
+                No preview available
+              </span>
+            </div>
+          )}
+          <XIcon
+            className="absolute top-16 right-16 text-slate-200 cursor-pointer"
+            size={30}
+            onClick={() => setIsPreviewOpen(false)}
+          />
+        </div>
+      )}
+      {/* QR modal */}
       <div
         className={`fixed top-0 left-0 right-0 bottom-0 z-50 bg-[rgba(0,0,0,0.5)] flex justify-center items-center ${!isPaying && "hidden"}`}
       >

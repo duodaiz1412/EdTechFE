@@ -26,6 +26,14 @@ export const publicServices = {
     return response.data;
   },
 
+  async getAverageRating(slug: string): Promise<number> {
+    const response = await axios.get(
+      BASE_API + `/courses/${slug}/average-rating`,
+    );
+
+    return response.data;
+  },
+
   async getReviews(slug: string) {
     const response = await axios.get(BASE_API + `/courses/${slug}/reviews`);
     return response.data;

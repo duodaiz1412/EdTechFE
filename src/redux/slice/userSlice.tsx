@@ -12,7 +12,7 @@ export interface UserState {
     image: string | undefined;
     type: string;
     roles: string[];
-    enrollments: CourseEnrollment[];
+    courseEnrollments: CourseEnrollment[];
   } | null;
 }
 

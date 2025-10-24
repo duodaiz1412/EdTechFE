@@ -16,7 +16,7 @@ import useCourse from "@/hooks/useCourse";
 import {Modal} from "@/components/Modal";
 
 import {CourseItem, useCourseContext} from "@/context/CourseContext";
-import HtmlPreview from "@/components/HtmlPreview";
+import HtmlDisplay from "@/components/HtmlDisplay";
 import VideoPreview from "@/components/VideoPreview";
 import QuizPreview from "@/components/QuizPreview";
 
@@ -307,7 +307,7 @@ export default function LessonItem({
 
                     {/* Article Preview */}
                     <div className="bg-white rounded-md p-3 border border-green-200 min-h-32">
-                      <HtmlPreview
+                      <HtmlDisplay
                         html={item.content || ""}
                         className="text-gray-700"
                       />

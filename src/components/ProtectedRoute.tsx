@@ -17,7 +17,8 @@ export default function ProtectedRoute() {
     queryFn: async () => {
       const accessToken = await getAccessToken();
       const response = await userServices.getUserInfo(accessToken);
-      const enrollments = await enrollServices.getEnrollments(accessToken);
+      const courseEnrollments =
+        await enrollServices.getEnrollments(accessToken);
 
       // Set global state
       dispatch(
@@ -29,7 +30,7 @@ export default function ProtectedRoute() {
           image: response.data.userImage || undefined,
           type: response.data.userType,
           roles: response.data.roles.map((role: Role) => role.role),
-          enrollments: enrollments,
+          courseEnrollments: courseEnrollments,
         }),
       );
       return response;

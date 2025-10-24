@@ -1,6 +1,7 @@
 import {learnerServices} from "@/lib/services/learner.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {Quiz, QuizQuestion, QuizSubmmission} from "@/types";
+import {ChevronsLeft, ChevronsRight} from "lucide-react";
 import {useState} from "react";
 
 interface CourseLessonQuizProps {
@@ -63,8 +64,11 @@ export default function CourseLessonQuiz({
       {/* Fetch questions */}
       {!isDoing && !haveResult && (
         <div className=" h-full flex flex-col justify-center items-center space-y-4">
-          <h3 className="text-lg font-semibold">{quiz?.title}</h3>
-          <button className="btn btn-neutral w-96" onClick={fetchQuestions}>
+          <h3 className="text-2xl font-semibold">{quiz?.title}</h3>
+          <button
+            className="btn btn-neutral rounded-lg w-96"
+            onClick={fetchQuestions}
+          >
             Start quiz
           </button>
         </div>
@@ -110,21 +114,23 @@ export default function CourseLessonQuiz({
             ></progress>
             <div className="space-x-2">
               <button
-                className="btn btn-sm"
+                className="btn btn-sm rounded-lg"
                 disabled={currentIdx == 0}
                 onClick={() => setCurrentIdx(currentIdx - 1)}
               >
-                Prev
+                <ChevronsLeft size={16} />
+                <span>Prev</span>
               </button>
               <button
-                className="btn btn-sm"
+                className="btn btn-sm rounded-lg"
                 disabled={currentIdx == questions.length - 1}
                 onClick={() => setCurrentIdx(currentIdx + 1)}
               >
-                Next
+                <span>Next</span>
+                <ChevronsRight size={16} />
               </button>
               <button
-                className="btn btn-sm btn-neutral"
+                className="btn btn-sm btn-neutral rounded-lg"
                 disabled={Object.keys(answers).length != questions.length}
                 onClick={submitQuiz}
               >
@@ -138,8 +144,11 @@ export default function CourseLessonQuiz({
       {!isDoing && haveResult && (
         <div className="space-y-4">
           <div className="text-center space-y-2 mb-6">
-            <h3 className="text-lg font-semibold">{quiz?.title}</h3>
-            <p>Result: {result?.percentage}%</p>
+            <h3 className="text-xl font-semibold">{quiz?.title}</h3>
+            <p>
+              Result:{" "}
+              <span className="font-semibold">{result?.percentage}%</span>
+            </p>
             <button className="btn btn-neutral w-96" onClick={resetQuiz}>
               Retake quiz
             </button>
@@ -147,9 +156,9 @@ export default function CourseLessonQuiz({
           {questions.map((question, idx) => (
             <div
               key={question.id}
-              className="p-4 border border-slate-300 rounded-lg space-y-2"
+              className="px-6 py-4 border border-slate-400 bg-slate-50 rounded-lg space-y-3"
             >
-              <h4>
+              <h4 className="font-semibold text-lg mb-4">
                 Question {idx + 1}: {question.question}
               </h4>
               {question.options &&
@@ -159,7 +168,7 @@ export default function CourseLessonQuiz({
                   return (
                     <div
                       key={opt.option}
-                      className={`p-2 rounded-md border ${isYourAnswer ? (isCorrectAnswer ? "border-green-500" : "border-red-500") : "border-slate-300"}`}
+                      className={`p-2 rounded-md border ${isYourAnswer ? (isCorrectAnswer ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50") : "border-slate-400"}`}
                     >
                       <span className={`${isYourAnswer && "font-semibold"}`}>
                         {opt.option}

@@ -8,6 +8,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import {InstructorSidebarItem} from "./InstructorSidebarItem";
+import Logo from "@/components/Logo";
 
 export default function InstructorSidebar() {
   const location = useLocation();
@@ -49,7 +50,7 @@ export default function InstructorSidebar() {
     <div className="fixed top-0 left-0 h-screen w-1/6 bg-white border-r border-gray-200 shadow-sm z-50">
       {/* Header */}
       <div className="px-6 py-4">
-        <h1 className="text-2xl font-bold text-blue-600">Edtech</h1>
+        <Logo />
       </div>
 
       {/* Navigation */}

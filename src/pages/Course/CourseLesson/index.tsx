@@ -12,6 +12,7 @@ import CourseLessonQuiz from "./LessonType/CourseLessonQuiz";
 import CourseLessonArticle from "./LessonType/CourseLessonArticle";
 import LessonCommentList from "./Comment/LessonCommentList";
 import CourseReviewList from "./Review/CourseReviewList";
+import axios from "axios";
 
 interface CourseLessonProps {
   lesson?: Lesson;
@@ -21,18 +22,31 @@ interface CourseLessonProps {
 export default function CourseLesson({lesson, status}: CourseLessonProps) {
   const [lessonType, setLessonType] = useState("video");
   const [isCompleted, setIsCompleted] = useState(status);
+  const [downloadUrl, setDownloadUrl] = useState("");
 
   useEffect(() => {
-    if (!lesson) return;
-    setIsCompleted(status);
+    const fetchData = async () => {
+      if (!lesson) return;
+      setIsCompleted(status);
 
-    if (lesson.content) {
-      setLessonType("article");
-    } else if (lesson.quizDto) {
-      setLessonType("quiz");
-    } else {
-      setLessonType("video");
-    }
+      if (lesson.content) {
+        setLessonType("article");
+      } else if (lesson.quizDto) {
+        setLessonType("quiz");
+      } else {
+        setLessonType("video");
+      }
+
+      if (lesson.fileUrl) {
+        const response = await axios.get(lesson.fileUrl, {
+          responseType: "blob",
+        });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        setDownloadUrl(url);
+      }
+    };
+
+    fetchData();
   }, [status, lesson]);
 
   const handleComplete = async () => {
@@ -110,8 +124,8 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
                 <div className="space-y-2">
                   <p>Attachments</p>
                   <a
-                    href=""
-                    download={lesson?.fileUrl}
+                    href={downloadUrl}
+                    download={`${lesson?.title}-attachment`}
                     className="p-3 text-blue-600 bg-blue-50 border border-blue-200 rounded-md flex items-center space-x-4"
                   >
                     <Download size={20} />
