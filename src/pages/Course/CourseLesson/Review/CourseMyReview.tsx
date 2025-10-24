@@ -56,13 +56,13 @@ export default function CourseMyReview({
       <div className="w-1/4 flex flex-col space-y-4 bg-white p-6 rounded-lg">
         <h4 className="text-center text-lg font-semibold">Your rating</h4>
         {/* Stars */}
-        <div className="rating rating-lg rating-half justify-center">
-          {[0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((value, idx) => (
+        <div className="rating rating-lg justify-center">
+          {[1, 2, 3, 4, 5].map((value) => (
             <input
               key={value}
               type="radio"
               name="rating-11"
-              className={`mask mask-star-2 mask-half-${idx % 2 == 0 ? "1" : "2"} bg-orange-400`}
+              className={`mask mask-star-2 bg-orange-400`}
               aria-label={`${value} star`}
               defaultChecked={
                 myReview ? value === myReview.rating : value === rating
