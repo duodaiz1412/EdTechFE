@@ -8,12 +8,14 @@ import {
   ChevronDown,
   ChevronRight,
   FileText,
+  Loader2,
 } from "lucide-react";
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import {useNavigate, useParams} from "react-router";
 import {toast} from "react-toastify";
 import useCourse from "@/hooks/useCourse";
 import {Modal} from "@/components/Modal";
+import {useTaskSelectors} from "@/stores/taskStore";
 
 import {CourseItem, useCourseContext} from "@/context/CourseContext";
 import HtmlDisplay from "@/components/HtmlDisplay";
@@ -26,7 +28,9 @@ interface LessonItemProps {
   onDelete: (chapterId: string, itemId: string) => void;
 }
 
-const getItemIcon = (item: CourseItem) => {
+const getItemIcon = (item: CourseItem, isProcessing: boolean = false) => {
+  if (isProcessing)
+    return <Loader2 size={20} className="animate-spin text-blue-600" />;
   if (item.videoUrl) return <PlayCircle size={20} />;
   if (item.quizDto) return <HelpCircle size={20} />;
   if (item.content) return <ClipboardList size={20} />;
@@ -48,6 +52,49 @@ export default function LessonItem({
   const [editTitle, setEditTitle] = useState(item.title || "");
   const [isUpdatingTitle, setIsUpdatingTitle] = useState(false);
   const {formData, updateFormData, syncCourseToFormData} = useCourseContext();
+
+  // Task store hooks
+  const {isTaskProcessing} = useTaskSelectors();
+
+  // Check if this lesson is processing video
+  const isVideoProcessing = isTaskProcessing(item.id || "");
+
+  // Listen for video transcoding completion
+  useEffect(() => {
+    const handleVideoTranscodingCompleted = async (event: CustomEvent) => {
+      const {entityId} = event.detail;
+
+      // Check if this completion is for current lesson
+      if (entityId === item.id) {
+        try {
+          // Reload course data to get updated video URL
+          if (courseId) {
+            const updatedCourse = await loadCourse(courseId);
+            if (updatedCourse) {
+              syncCourseToFormData(updatedCourse);
+              toast.success(
+                "Video transcoding completed! Video is now available.",
+              );
+            }
+          }
+        } catch {
+          toast.error("Error reloading course data");
+        }
+      }
+    };
+
+    window.addEventListener(
+      "videoTranscodingCompleted",
+      handleVideoTranscodingCompleted as unknown as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "videoTranscodingCompleted",
+        handleVideoTranscodingCompleted as unknown as EventListener,
+      );
+    };
+  }, [item.id, courseId, loadCourse, syncCourseToFormData]);
 
   // Handle edit title
   const handleEditTitle = async () => {
@@ -133,6 +180,9 @@ export default function LessonItem({
 
   const hasContent = item.videoUrl || item.quizDto || item.content;
 
+  // Nếu đang processing video thì hiển thị loading thay vì content
+  const shouldShowLoading = isVideoProcessing;
+
   const handleClickQuiz = async () => {
     if (!item.id) return;
     if (item.quizDto?.id) {
@@ -217,10 +267,17 @@ export default function LessonItem({
               <ChevronRight size={20} />
             )}
           </span>
-          <span className="text-lg">{getItemIcon(item)}</span>
+          <span className="text-lg">
+            {getItemIcon(item, isVideoProcessing)}
+          </span>
           <div>
             <p className="font-medium text-gray-900">
               Lesson {item.position}: {item.title}
+              {isVideoProcessing && (
+                <span className="ml-2 text-sm text-blue-600 font-normal">
+                  (Processing video...)
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -255,7 +312,20 @@ export default function LessonItem({
       {/* Collapsible Content */}
       {isExpanded && (
         <div className="p-4 bg-white border-t border-gray-200">
-          {hasContent ? (
+          {shouldShowLoading ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <div className="flex items-center space-x-3 mb-4">
+                <Loader2 size={24} className="animate-spin text-blue-600" />
+                <span className="text-lg font-medium text-gray-700">
+                  Processing video...
+                </span>
+              </div>
+              <p className="text-sm text-gray-500 text-center max-w-md">
+                Your video is being processed. This may take a few minutes. The
+                page will automatically update when processing is complete.
+              </p>
+            </div>
+          ) : hasContent ? (
             <div className="flex flex-col gap-4">
               <div className="space-y-4 flex flex-col">
                 {/* Existing content preview */}

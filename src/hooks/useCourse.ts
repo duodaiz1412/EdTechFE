@@ -10,6 +10,7 @@ import {
   IBatchRequest,
   IQuizQuestion,
   IQuizSubmission,
+  IJob,
 } from "@/lib/services/instructor.services";
 import {Chapter, CourseItem} from "@/context/CourseContext";
 import {convertUrlToRelatuvePath} from "@/lib/utils";
@@ -124,6 +125,9 @@ export interface UseCourseReturn {
     instructorId: string,
   ) => Promise<boolean>;
 
+  // Job Management APIs
+  getMyJobs: (page?: number, size?: number) => Promise<IJob[]>;
+
   // Utility functions
   clearError: () => void;
   setLoading: (loading: boolean) => void;
@@ -161,7 +165,6 @@ const useCourse = (): UseCourseReturn => {
     const errorMessage =
       err?.response?.data?.message || err?.message || `${operation} failed`;
     setState((prev) => ({...prev, error: errorMessage}));
-    // console.error(`Error in ${operation}:`, err);
   }, []);
 
   // State setters
@@ -176,6 +179,30 @@ const useCourse = (): UseCourseReturn => {
   const clearError = useCallback(() => {
     setState((prev) => ({...prev, error: null}));
   }, []);
+
+  // Job Management APIs
+  const getMyJobs = useCallback(
+    async (page: number = 0, size: number = 10): Promise<IJob[]> => {
+      try {
+        setLoading(true);
+        clearError();
+
+        const accessToken = getAccessToken();
+        if (!accessToken) {
+          throw new Error("No access token found");
+        }
+
+        const response = await CourseService.getMyJobs(accessToken, page, size);
+        return response.data.content || response.data || [];
+      } catch (err) {
+        handleError(err, "getMyJobs");
+        return [];
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAccessToken, handleError, setLoading, clearError],
+  );
 
   // Course operations
   const createCourse = useCallback(
@@ -1227,6 +1254,9 @@ const useCourse = (): UseCourseReturn => {
     publishBatch,
     addInstructorToBatch,
     removeInstructorFromBatch,
+
+    // Job Management APIs
+    getMyJobs,
 
     // Utility functions
     clearError,

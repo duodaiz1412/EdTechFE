@@ -1,4 +1,3 @@
-import {useEffect, useCallback, useRef} from "react";
 import {Plus, Trash2} from "lucide-react";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
@@ -17,43 +16,9 @@ export default function IntendedLearnersContent() {
     isLoading,
     error,
   } = useCourseContext();
-  const {course} = courseState;
 
-  const parseStringToArray = useCallback(
-    (str: string | null | undefined): string[] => {
-      if (!str || str.trim() === "") return [""];
-      const items = str
-        .split("\n")
-        .filter((item: string) => item.trim() !== "");
-      return items.length > 0 ? items : [""];
-    },
-    [],
-  );
-
-  // Use useRef to track if course data has been synced
-  const hasSyncedRef = useRef(false);
-  const lastCourseIdRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (course && course.id) {
-      // Reset sync flag when course changes
-      if (lastCourseIdRef.current !== course.id) {
-        hasSyncedRef.current = false;
-        lastCourseIdRef.current = course.id;
-      }
-
-      // Only sync once per course
-      if (!hasSyncedRef.current) {
-        updateFormData({
-          shortIntroduction: parseStringToArray(course.shortIntroduction),
-          requirements: parseStringToArray(course.skillLevel),
-          targetAudience: parseStringToArray(course.targetAudience),
-        });
-
-        hasSyncedRef.current = true;
-      }
-    }
-  }, [course, updateFormData, parseStringToArray]);
+  // Note: Course data is already synced to formData via CourseContext.loadCourse()
+  // No need to sync again here to avoid conflicts
 
   const addItem = (
     field: keyof Pick<
@@ -96,7 +61,7 @@ export default function IntendedLearnersContent() {
 
   // Save data to course
   const saveData = async () => {
-    if (!course?.id) {
+    if (!courseState.course?.id) {
       toast.error("No course selected");
       return;
     }
@@ -114,7 +79,7 @@ export default function IntendedLearnersContent() {
         targetAudience: arrayToString(formData.targetAudience),
       };
 
-      const success = await updateCourse(course.id, updateData);
+      const success = await updateCourse(courseState.course.id, updateData);
 
       if (success) {
         toast.success("Intended learners data saved successfully!");

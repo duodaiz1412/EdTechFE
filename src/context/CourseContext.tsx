@@ -365,8 +365,12 @@ export function CourseProvider({children}: CourseProviderProps) {
       shortIntroduction: course.shortIntroduction
         ? [course.shortIntroduction]
         : [],
-      requirements: [],
-      targetAudience: course.targetAudience ? [course.targetAudience] : [],
+      requirements: course.skillLevel
+        ? course.skillLevel.split("\n").filter((item) => item.trim() !== "")
+        : [],
+      targetAudience: course.targetAudience
+        ? course.targetAudience.split("\n").filter((item) => item.trim() !== "")
+        : [],
       chapters: chapters,
       enrollment: course.enrollments?.toString() || undefined,
     }));
