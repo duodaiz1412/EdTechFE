@@ -1,22 +1,22 @@
-import {ChangeEvent, useEffect} from "react";
+import {useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
 import {Heading3} from "@/components/Typography";
 import QuillMarkdownEditor from "@/components/QuillMarkdownEditor/QuillMarkdownEditor";
+import DocumentUpload from "@/components/DocumentUpload";
 import {useFormik} from "formik";
 import * as Yup from "yup";
 import {useCourseContext} from "@/context/CourseContext";
 import {toast} from "react-toastify";
-import {useUploadFile} from "@/hooks/useUploadFile";
 import useCourse from "@/hooks/useCourse";
+import {useUploadFile} from "@/hooks/useUploadFile";
 import {UploadPurpose} from "@/types/upload.types";
 
 interface ArticleLectureFormValues {
   title: string;
   content: string;
   fileUrl?: string;
-  articleFile: File | null;
 }
 
 export default function EditArticleLecture() {
@@ -26,28 +26,20 @@ export default function EditArticleLecture() {
   const {error, formData, syncCourseToFormData} = useCourseContext();
 
   const {
-    createLesson,
     updateLesson,
     loadCourse,
     state: {isSubmitting},
   } = useCourse();
 
-  // Upload hook for article files
-  const {
-    isUploading,
-    progress,
-    error: uploadError,
-    success: uploadSuccess,
-    uploadedUrl,
-    uploadFile,
-    resetState: resetUploadState,
-  } = useUploadFile({
-    onSuccess: (url) => {
-      toast.success("Article file uploaded successfully!");
-      formik.setFieldValue("fileUrl", url);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // Upload hook for file upload
+  const {uploadFile, isUploading: isFileUploading} = useUploadFile({
+    onSuccess: () => {
+      // This will be handled in the submit function
     },
     onError: (error) => {
-      toast.error(`Upload failed: ${error}`);
+      toast.error(`File upload failed: ${error}`);
     },
   });
 
@@ -61,7 +53,6 @@ export default function EditArticleLecture() {
       },
     ),
     fileUrl: Yup.string().optional(),
-    articleFile: Yup.mixed<File>().nullable(),
   });
 
   const formik = useFormik<ArticleLectureFormValues>({
@@ -69,7 +60,6 @@ export default function EditArticleLecture() {
       title: "",
       content: "",
       fileUrl: "",
-      articleFile: null,
     },
     validationSchema,
     onSubmit: async () => {
@@ -80,15 +70,35 @@ export default function EditArticleLecture() {
       }
 
       try {
+        let fileUrl = formik.values.fileUrl;
+        if (selectedFile && courseId) {
+          try {
+            fileUrl = await uploadFile(
+              selectedFile,
+              UploadPurpose.LESSON_RESOURCE,
+              courseId,
+            );
+            if (!fileUrl) {
+              toast.error("Failed to upload file");
+              return;
+            }
+          } catch {
+            toast.error("Failed to upload file");
+            return;
+          }
+        }
         if (lessonId) {
           // Edit existing lesson
-          const updatedLesson = await updateLesson(lessonId, {
+
+          const updateData = {
             title: formik.values.title,
             content: formik.values.content,
-            // fileUrl: formik.values.fileUrl, // Not supported in ILessonRequest
+            fileUrl: fileUrl,
             videoUrl: undefined, // Clear video data
             quizId: undefined, // Clear quiz data
-          });
+          };
+
+          const updatedLesson = await updateLesson(lessonId, updateData);
 
           if (updatedLesson) {
             toast.success("Article lecture updated successfully!");
@@ -101,22 +111,6 @@ export default function EditArticleLecture() {
             navigate(`/instructor/courses/${courseId}/edit/curriculum`);
           } else {
             toast.error("Failed to update article lecture");
-          }
-        } else {
-          // Create new lesson
-          const newLesson = await createLesson(entityId);
-
-          if (newLesson) {
-            toast.success("Article lecture created successfully!");
-            if (courseId) {
-              const updatedCourse = await loadCourse(courseId);
-              if (updatedCourse) {
-                syncCourseToFormData(updatedCourse);
-              }
-            }
-            navigate(`/instructor/courses/${courseId}/edit/curriculum`);
-          } else {
-            toast.error("Failed to create article lecture");
           }
         }
       } catch {
@@ -139,25 +133,15 @@ export default function EditArticleLecture() {
           title: lesson.title || "",
           content: lesson.content || "",
           fileUrl: lesson.fileUrl || "",
-          articleFile: null,
         });
+        setSelectedFile(null);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId]);
 
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] ?? null;
-    formik.setFieldValue("articleFile", file);
-
-    const entityId = lessonId || chapterId;
-    if (file && entityId) {
-      try {
-        await uploadFile(file, UploadPurpose.LESSON_RESOURCE, entityId);
-      } catch {
-        // Handle upload error silently
-      }
-    }
+  const handleFileSelect = (file: File | null) => {
+    setSelectedFile(file);
   };
 
   return (
@@ -223,68 +207,13 @@ export default function EditArticleLecture() {
           </div>
 
           {/* Optional File Upload */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Attach File (Optional)
-            </label>
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx,.txt,.md"
-              onChange={handleFileChange}
-              disabled={isUploading}
-              className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border file:border-gray-300 file:text-sm file:font-medium file:bg-white hover:file:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            />
-
-            {/* File info */}
-            {formik.values.articleFile && (
-              <p className="mt-2 text-xs text-gray-500">
-                Selected: {formik.values.articleFile.name}
-              </p>
-            )}
-
-            {/* Upload progress */}
-            {isUploading && progress && (
-              <div className="mt-3">
-                <div className="flex justify-between text-sm text-gray-600 mb-1">
-                  <span>Uploading... {progress.percentage}%</span>
-                  <span>
-                    {Math.round(progress.loaded / 1024)}KB /{" "}
-                    {Math.round(progress.total / 1024)}KB
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                    style={{width: `${progress.percentage}%`}}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Upload success */}
-            {uploadSuccess && uploadedUrl && (
-              <div className="mt-3 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md">
-                <p className="text-sm font-medium">
-                  ✓ File uploaded successfully!
-                </p>
-                <p className="text-xs mt-1">URL: {uploadedUrl}</p>
-              </div>
-            )}
-
-            {/* Upload error */}
-            {uploadError && (
-              <div className="mt-3 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md">
-                <p className="text-sm font-medium">Upload failed:</p>
-                <p className="text-xs mt-1">{uploadError}</p>
-                <button
-                  onClick={resetUploadState}
-                  className="mt-2 text-xs underline hover:no-underline"
-                >
-                  Try again
-                </button>
-              </div>
-            )}
-          </div>
+          <DocumentUpload
+            title="Attach File (Optional)"
+            accept=".pdf,.doc,.docx,.txt,.md"
+            src={formik.values.fileUrl}
+            selectedFile={selectedFile}
+            onFileSelect={handleFileSelect}
+          />
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-2">
@@ -304,15 +233,15 @@ export default function EditArticleLecture() {
                 !formik.isValid ||
                 !formik.values.title.trim() ||
                 !formik.values.content.trim() ||
-                isUploading ||
-                isSubmitting
+                isSubmitting ||
+                isFileUploading
               }
               className="bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isUploading
-                ? "Uploading..."
+              {isFileUploading
+                ? "Uploading file..."
                 : isSubmitting
-                  ? "Creating..."
+                  ? "Saving..."
                   : "Save Article"}
             </Button>
           </div>
