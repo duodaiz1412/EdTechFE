@@ -265,9 +265,7 @@ export default function EditQuizLecture() {
         } else {
           setOriginalQuestions([]);
         }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error("Error loading quiz:", error);
+      } catch {
         toast.error("Failed to load quiz");
       } finally {
         setIsLoadingQuestions(false);

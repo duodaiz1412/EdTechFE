@@ -1,4 +1,4 @@
-import {ChangeEvent, useEffect} from "react";
+import {ChangeEvent, useEffect, useRef} from "react";
 import {useNavigate, useParams} from "react-router";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
@@ -11,6 +11,8 @@ import {useUploadFile} from "@/hooks/useUploadFile";
 import useCourse from "@/hooks/useCourse";
 import {UploadPurpose} from "@/types/upload.types";
 import MuxPlayer from "@mux/mux-player-react/lazy";
+import {useTaskActions, useTaskSelectors} from "@/stores/taskStore";
+import {useGlobalPollingContext} from "@/components/GlobalPollingProvider";
 
 interface VideoLectureFormValues {
   title: string;
@@ -30,6 +32,16 @@ export default function EditVideoLecture() {
     state: {isSubmitting},
   } = useCourse();
 
+  // Task store hooks
+  const {addTask} = useTaskActions();
+  const {getTaskByEntityId} = useTaskSelectors();
+
+  // Global polling context
+  const {isPolling, currentJob} = useGlobalPollingContext();
+
+  // Track if component is mounted
+  const isMountedRef = useRef(true);
+
   // Upload hook for video transcoding
   const {
     isUploading,
@@ -40,11 +52,29 @@ export default function EditVideoLecture() {
     uploadVideo,
     resetState: resetUploadState,
   } = useUploadFile({
-    onSuccess: (jobId) => {
+    onSuccess: (entityId: string) => {
       toast.success("Video queued for transcoding successfully!");
-      formik.setFieldValue("videoUrl", `transcoding:${jobId}`);
+      // Sử dụng entityId làm jobId để tracking
+      formik.setFieldValue("videoUrl", `transcoding:${entityId}`);
+
+      // Add task to store and start polling
+      addTask({
+        id: entityId, // Sử dụng entityId làm id
+        type: "video_transcoding",
+        status: "processing",
+        progress: 0,
+        maxRetries: 100,
+        metadata: {
+          lessonId,
+          courseId,
+          entityId: lessonId,
+          entityType: "lesson",
+        },
+      });
+
+      // Global polling will automatically handle this task
     },
-    onError: (error) => {
+    onError: (error: string) => {
       toast.error(`Upload failed: ${error}`);
     },
   });
@@ -134,10 +164,89 @@ export default function EditVideoLecture() {
           videoFile: null,
           videoUrl: lesson.videoUrl || "",
         });
+
+        // Check if there's an existing transcoding job for this lesson
+        if (lesson.videoUrl && lesson.videoUrl.startsWith("transcoding:")) {
+          const jobId = lesson.videoUrl.replace("transcoding:", "");
+          const existingTask = getTaskByEntityId(lessonId);
+
+          if (!existingTask) {
+            // Add new task to store - global polling will handle it
+            addTask({
+              id: jobId,
+              type: "video_transcoding",
+              status: "processing",
+              progress: 0,
+              maxRetries: 100,
+              metadata: {
+                lessonId,
+                courseId,
+                entityId: lessonId,
+                entityType: "lesson",
+              },
+            });
+          }
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId]);
+
+  // Listen for video transcoding completion
+  useEffect(() => {
+    const handleVideoTranscodingCompleted = async (event: CustomEvent) => {
+      const {entityId} = event.detail;
+
+      // Check if this completion is for current lesson
+      if (entityId === lessonId) {
+        try {
+          // Reload course data to get updated video URL
+          const updatedCourse = await loadCourse(courseId!);
+          if (updatedCourse) {
+            syncCourseToFormData(updatedCourse);
+
+            // Find updated lesson
+            const updatedLesson = updatedCourse.chapters
+              ?.flatMap((chapter) => chapter.lessons || [])
+              .find((lesson) => lesson.id === lessonId);
+
+            if (
+              updatedLesson &&
+              updatedLesson.videoUrl &&
+              !updatedLesson.videoUrl.startsWith("transcoding:")
+            ) {
+              // Update form with actual video URL
+              formik.setFieldValue("videoUrl", updatedLesson.videoUrl);
+              toast.success(
+                "Video transcoding completed! Video is now available.",
+              );
+            }
+          }
+        } catch {
+          toast.error("Error reloading course data");
+        }
+      }
+    };
+
+    window.addEventListener(
+      "videoTranscodingCompleted",
+      handleVideoTranscodingCompleted as unknown as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "videoTranscodingCompleted",
+        handleVideoTranscodingCompleted as unknown as EventListener,
+      );
+    };
+  }, [lessonId, courseId, loadCourse, syncCourseToFormData, formik]);
+
+  // Cleanup when component unmounts
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
@@ -210,6 +319,14 @@ export default function EditVideoLecture() {
                       Job ID:{" "}
                       {formik.values.videoUrl.replace("transcoding:", "")}
                     </p>
+                    {isPolling && currentJob && (
+                      <div className="mt-2">
+                        <p className="text-xs text-blue-600">
+                          Status: {currentJob.status} | Progress:{" "}
+                          {currentJob.progress}%
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div>
@@ -336,7 +453,9 @@ export default function EditVideoLecture() {
                 !formik.isValid ||
                 !formik.values.title.trim() ||
                 isUploading ||
-                isSubmitting
+                isSubmitting ||
+                (isPolling &&
+                  formik.values.videoUrl?.startsWith("transcoding:"))
               }
               className="bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -344,9 +463,12 @@ export default function EditVideoLecture() {
                 ? "Uploading..."
                 : isSubmitting
                   ? "Saving..."
-                  : formik.values.videoFile
-                    ? "Upload & Save Video"
-                    : "Save Video"}
+                  : isPolling &&
+                      formik.values.videoUrl?.startsWith("transcoding:")
+                    ? "Processing Video..."
+                    : formik.values.videoFile
+                      ? "Upload & Save Video"
+                      : "Save Video"}
             </Button>
           </div>
         </form>
