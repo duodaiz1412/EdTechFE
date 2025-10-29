@@ -41,7 +41,10 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
         const response = await axios.get(lesson.fileUrl, {
           responseType: "blob",
         });
-        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const contentType = response.headers["content-type"];
+        const url = window.URL.createObjectURL(
+          new Blob([response.data], {type: contentType}),
+        );
         setDownloadUrl(url);
       }
     };
