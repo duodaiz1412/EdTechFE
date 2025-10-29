@@ -106,7 +106,7 @@ export default function Notify() {
                 href={emailProvider.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn btn-primary"
+                className="btn btn-neutral rounded-lg"
               >
                 Open {emailProvider.name}
               </a>

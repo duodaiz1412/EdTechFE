@@ -188,7 +188,7 @@ export default function CourseDetail() {
           {/* Description */}
           <div>
             <h3 className="text-xl font-semibold mb-4">Description</h3>
-            <HtmlDisplay html={courseInfo?.description || ""} />
+            <HtmlDisplay html={courseInfo?.description || "No description"} />
           </div>
           {/* Topics (tags) */}
           <div>
@@ -242,10 +242,15 @@ export default function CourseDetail() {
           <div className="card border border-slate-200 shadow-sm rounded-lg">
             <figure className="h-56 border-b border-b-slate-200">
               {courseInfo?.image && (
-                <img className="w-full" src={courseInfo.image} />
+                <img
+                  className="w-full h-full object-cover"
+                  src={courseInfo.image}
+                />
               )}
               {!courseInfo?.image && (
-                <div className="w-full h-full bg-slate-200"></div>
+                <div className="w-full h-full bg-slate-100 text-slate-500 flex justify-center items-center">
+                  No image
+                </div>
               )}
             </figure>
             <div className="card-body space-y-2">
@@ -282,7 +287,14 @@ export default function CourseDetail() {
       {isPreviewOpen && (
         <div className="fixed top-0 left-0 right-0 bottom-0 z-50 bg-[rgba(0,0,0,0.5)] flex justify-center items-center">
           {courseInfo?.videoLink && (
-            <ReactPlayer src={courseInfo?.videoLink} className="w-2/3" />
+            <ReactPlayer
+              src={courseInfo?.videoLink}
+              style={{
+                width: "calc(100% / 3 * 2)",
+                height: "calc(100% / 4 * 3)",
+              }}
+              controls
+            />
           )}
           {!courseInfo?.videoLink && (
             <div className="w-2/3 h-2/3 bg-slate-100 flex items-center justify-center text-slate-500">
