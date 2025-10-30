@@ -53,10 +53,13 @@ export default function BecomeInstructor() {
           new skills, and advance their careers.
         </p>
         <div className="flex space-x-4">
-          <button className="btn btn-lg btn-primary" onClick={handleSubmit}>
+          <button
+            className="btn btn-lg btn-neutral rounded-lg"
+            onClick={handleSubmit}
+          >
             Get Started
           </button>
-          <Link to="/" className="btn btn-lg">
+          <Link to="/" className="btn btn-lg rounded-lg">
             Cancel
           </Link>
         </div>

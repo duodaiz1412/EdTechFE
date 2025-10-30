@@ -4,7 +4,7 @@ export default function Settings() {
   };
 
   return (
-    <div>
+    <div className="px-6">
       <h2 className="text-xl font-bold mb-10">Settings</h2>
       <form className="space-y-8" onSubmit={handleSetting}>
         <div className="flex flex-col space-y-2">
