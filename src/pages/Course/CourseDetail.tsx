@@ -277,7 +277,7 @@ export default function CourseDetail() {
                 </Link>
               )}
               <button className="btn" onClick={() => setIsPreviewOpen(true)}>
-                Preview this course
+                Course introduction
               </button>
             </div>
           </div>
