@@ -94,6 +94,7 @@ export interface ILessonRequest {
   content?: string;
   videoUrl?: string;
   quizId?: string;
+  fileUrl?: string;
 }
 
 export interface CourseFilters {

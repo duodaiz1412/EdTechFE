@@ -613,6 +613,10 @@ const useCourse = (): UseCourseReturn => {
               : convertUrlToRelatuvePath(currentLesson.videoUrl),
           quizId:
             data.quizId !== undefined ? data.quizId : currentLesson.quizDto?.id,
+          fileUrl:
+            data.fileUrl !== undefined
+              ? convertUrlToRelatuvePath(data.fileUrl)
+              : convertUrlToRelatuvePath(currentLesson.fileUrl),
         };
 
         const response = await CourseService.updateLesson(
