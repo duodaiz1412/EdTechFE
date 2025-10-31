@@ -7,13 +7,15 @@ import {publicServices} from "@/lib/services/public.services";
 import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
 
 import CourseItem from "./CourseItem";
+import {CourseSkeleton} from "./CourseSkeleton";
 
 export default function CourseList() {
   const [courses, setCourses] = useState<Course[]>();
   const [search, setSearch] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const userData = useAppSelector((state) => state.user.data);
 
-  useQuery({
+  const {isLoading} = useQuery({
     queryKey: ["courses"],
     queryFn: async () => {
       const response = await publicServices.getCourses();
@@ -23,15 +25,25 @@ export default function CourseList() {
   });
 
   const handleSearch = async () => {
-    const searchedCourses = await publicServices.getCourses(search);
-    setCourses(searchedCourses.content);
+    setIsSearching(true);
+    try {
+      const searchedCourses = await publicServices.getCourses(search);
+      setCourses(searchedCourses.content);
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleClear = async () => {
     if (search === "") return;
-    const allCourses = await publicServices.getCourses();
-    setCourses(allCourses.content);
-    setSearch("");
+    setIsSearching(true);
+    try {
+      const allCourses = await publicServices.getCourses();
+      setCourses(allCourses.content);
+      setSearch("");
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   return (
@@ -52,31 +64,47 @@ export default function CourseList() {
           <button
             className="btn bg-slate-900 text-white rounded-lg"
             onClick={handleSearch}
+            disabled={isSearching}
           >
-            Search
+            {isSearching ? (
+              <>
+                <span className="loading loading-spinner loading-sm mr-2"></span>
+                Searching...
+              </>
+            ) : (
+              "Search"
+            )}
           </button>
-          <button className="btn rounded-lg" onClick={handleClear}>
+          <button
+            className="btn rounded-lg"
+            onClick={handleClear}
+            disabled={isSearching}
+          >
             Clear
           </button>
         </div>
       </div>
       {/* List of courses */}
-      <div className="grid grid-cols-4 gap-4">
-        {courses?.map((course: Course) => {
-          const isEnrolled = isCourseEnrolled(
-            userData?.courseEnrollments || [],
-            course?.slug || "",
-          );
+      {isLoading ? (
+        <CourseSkeleton count={6} />
+      ) : (
+        <div className="grid grid-cols-4 gap-4">
+          {courses?.map((course: Course) => {
+            const isEnrolled = isCourseEnrolled(
+              userData?.courseEnrollments || [],
+              course?.slug || "",
+            );
 
-          return (
-            <CourseItem
-              key={course.id}
-              course={course}
-              isEnrolled={isEnrolled}
-            />
-          );
-        })}
-      </div>
+            return (
+              <CourseItem
+                key={course.id}
+                course={course}
+                isEnrolled={isEnrolled}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

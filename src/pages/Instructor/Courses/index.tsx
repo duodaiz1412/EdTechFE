@@ -7,7 +7,7 @@ import CourseItem, {
   Course,
 } from "@/pages/Instructor/Courses/components/CourseItem";
 import {Heading3} from "@/components/Typography";
-import {useState, useEffect, useCallback} from "react";
+import {useState, useEffect, useCallback, useMemo} from "react";
 import DeleteModal from "@/components/DeleteModal";
 import useCourseHook from "@/hooks/useCourse";
 // import {toast} from "react-hot-toast";
@@ -24,6 +24,7 @@ export default function InstructorCourse() {
     open: boolean;
     course: Course | null;
   }>({open: false, course: null});
+  const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [courses, setCourses] = useState<Course[]>([]);
@@ -90,15 +91,33 @@ export default function InstructorCourse() {
     }
   }, [deleteState.course, deleteCourse, loadCourses]);
 
-  const handleSearch = useCallback((value: string) => {
-    setSearchTerm(value);
-    // TODO: Implement search functionality
-  }, []);
+  const handleSearch = useCallback(() => {
+    setSearchTerm(searchInput);
+  }, [searchInput]);
 
   const handleSortChange = useCallback((value: string) => {
     setSortBy(value);
     // TODO: Implement sort functionality
   }, []);
+
+  const displayedCourses = useMemo(() => {
+    const keyword = searchTerm.trim().toLowerCase();
+    let filtered = courses;
+
+    if (keyword) {
+      filtered = courses.filter((c) => c.title.toLowerCase().includes(keyword));
+    }
+
+    switch (sortBy) {
+      case "a-z":
+        return [...filtered].sort((a, b) => a.title.localeCompare(b.title));
+      case "z-a":
+        return [...filtered].sort((a, b) => b.title.localeCompare(a.title));
+      // "newest" | "oldest" giữ nguyên thứ tự từ API do thiếu metadata thời gian
+      default:
+        return filtered;
+    }
+  }, [courses, searchTerm, sortBy]);
 
   return (
     <div className="w-full h-full container mx-auto flex flex-col gap-6">
@@ -135,14 +154,14 @@ export default function InstructorCourse() {
               placeholder="Search your course"
               size="md"
               className="w-64"
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
             />
 
             <Button
               variant="secondary"
               leftIcon={<Search size={16} />}
-              onClick={() => handleSearch(searchTerm)}
+              onClick={handleSearch}
             >
               Search
             </Button>
@@ -181,7 +200,7 @@ export default function InstructorCourse() {
               <span>Loading courses...</span>
             </div>
           </div>
-        ) : courses.length === 0 ? (
+        ) : displayedCourses.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 mb-4">No courses found</p>
             <Button onClick={handleCreateCourse}>
@@ -189,7 +208,7 @@ export default function InstructorCourse() {
             </Button>
           </div>
         ) : (
-          courses.map((course) => (
+          displayedCourses.map((course) => (
             <CourseItem
               key={course.id}
               course={course}

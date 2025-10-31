@@ -93,6 +93,8 @@ const INSTRUCTOR_ENDPOINTS = {
   // PayOS Configuration endpoints
   CREATE_PAYOS_CONFIG: BASE_API + "/instructor/payos-configs",
   GET_MY_PAYOS_CONFIG: BASE_API + "/instructor/payos-configs/my-config",
+  UPDATE_PAYOS_CONFIG: (configId: string) =>
+    BASE_API + `/instructor/payos-configs/${configId}`,
 } as const;
 
 // Types
@@ -282,6 +284,15 @@ export interface IPayOSConfigResponse {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+// For updates, all fields are optional to allow partial updates
+export interface IUpdatePayOSConfigRequest {
+  clientId?: string;
+  apiKey?: string;
+  checksumKey?: string;
+  accountNumber?: string;
+  isActive?: boolean;
 }
 
 export interface IQuizQuestion {
@@ -769,6 +780,19 @@ export const instructorServices = {
     });
     return response;
   },
+
+  async updatePayOSConfig(
+    configId: string,
+    data: IUpdatePayOSConfigRequest,
+    accessToken: string,
+  ) {
+    const response = await axios.put(
+      INSTRUCTOR_ENDPOINTS.UPDATE_PAYOS_CONFIG(configId),
+      data,
+      {headers: {Authorization: `Bearer ${accessToken}`}},
+    );
+    return response;
+  },
 };
 
 export class InstructorService {
@@ -1021,5 +1045,13 @@ export class InstructorService {
 
   static async getMyPayOSConfig(accessToken: string) {
     return instructorServices.getMyPayOSConfig(accessToken);
+  }
+
+  static async updatePayOSConfig(
+    configId: string,
+    data: IUpdatePayOSConfigRequest,
+    accessToken: string,
+  ) {
+    return instructorServices.updatePayOSConfig(configId, data, accessToken);
   }
 }

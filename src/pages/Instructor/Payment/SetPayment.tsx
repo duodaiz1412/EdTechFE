@@ -11,10 +11,10 @@ import {
   InstructorService,
   ICreatePayOSConfigRequest,
   IPayOSConfigResponse,
+  IUpdatePayOSConfigRequest,
 } from "@/lib/services/instructor.services";
+import {toast} from "@/hooks/use-toast";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
-import {useAppSelector} from "@/redux/hooks";
-import {selectUser} from "@/redux/slice/userSlice";
 import {
   Eye,
   EyeOff,
@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 
 export default function SetPayment() {
-  const user = useAppSelector(selectUser);
   const [currentConfig, setCurrentConfig] =
     useState<IPayOSConfigResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -88,7 +87,7 @@ export default function SetPayment() {
       clientId: "",
       apiKey: "",
       checksumKey: "",
-      accountNumber: user?.id || "",
+      accountNumber: "",
     });
     setError("");
     setSuccess("");
@@ -126,14 +125,24 @@ export default function SetPayment() {
     e.preventDefault();
 
     // Validation
-    if (
-      !formData.clientId ||
-      !formData.apiKey ||
-      !formData.checksumKey ||
-      !formData.accountNumber
-    ) {
-      setError("Please fill in all required information");
-      return;
+    if (!isEditing) {
+      if (
+        !formData.clientId ||
+        !formData.apiKey ||
+        !formData.checksumKey ||
+        !formData.accountNumber
+      ) {
+        setError("Please fill in all required information");
+        return;
+      }
+    } else {
+      // Editing: clientId and accountNumber required; apiKey/checksumKey optional
+      if (!formData.clientId || !formData.accountNumber) {
+        setError(
+          "Please fill in required fields: Client ID and Account Number",
+        );
+        return;
+      }
     }
 
     setIsCreating(true);
@@ -147,16 +156,44 @@ export default function SetPayment() {
         return;
       }
 
-      const response = await InstructorService.createPayOSConfig(
-        formData,
-        accessToken,
-      );
+      let response;
+      if (isEditing && currentConfig) {
+        const updatePayload: IUpdatePayOSConfigRequest = {};
+        // always allow updating these two
+        if (formData.clientId) updatePayload.clientId = formData.clientId;
+        if (formData.accountNumber)
+          updatePayload.accountNumber = formData.accountNumber;
+        // only send secrets if user typed something
+        if (formData.apiKey) updatePayload.apiKey = formData.apiKey;
+        if (formData.checksumKey)
+          updatePayload.checksumKey = formData.checksumKey;
+
+        response = await InstructorService.updatePayOSConfig(
+          currentConfig.id,
+          updatePayload,
+          accessToken,
+        );
+      } else {
+        response = await InstructorService.createPayOSConfig(
+          formData,
+          accessToken,
+        );
+      }
       setCurrentConfig(response.data);
       setSuccess(
         isEditing
           ? "PayOS configuration updated successfully!"
           : "PayOS configuration created successfully!",
       );
+
+      toast({
+        title: isEditing
+          ? "PayOS updated successfully"
+          : "PayOS configuration created",
+        description: isEditing
+          ? "Your payment configuration has been updated."
+          : "A new PayOS payment configuration has been created.",
+      });
 
       // Hide form and reset
       setShowForm(false);
@@ -260,7 +297,7 @@ export default function SetPayment() {
                 </CaptionRegular>
                 <BodyRegular className="bg-gray-50 p-2 rounded border">
                   {new Date(currentConfig.createdAt).toLocaleDateString(
-                    "vi-VN",
+                    "en-US",
                   )}
                 </BodyRegular>
               </div>
@@ -314,14 +351,12 @@ export default function SetPayment() {
             <Input
               label="Account Number"
               isRequired
-              placeholder={
-                user?.id ? `Default: ${user.id}` : "Enter account number"
-              }
+              placeholder={"Enter bank account number"}
               value={formData.accountNumber}
               onChange={(e) =>
                 handleInputChange("accountNumber", e.target.value)
               }
-              helperText="Account number for receiving payments (can use your user ID or custom number)"
+              helperText="Bank account number for receiving payments"
             />
 
             <Input
@@ -409,10 +444,12 @@ export default function SetPayment() {
                 type="submit"
                 loading={isCreating}
                 disabled={
-                  !formData.clientId ||
-                  !formData.apiKey ||
-                  !formData.checksumKey ||
-                  !formData.accountNumber
+                  isEditing
+                    ? !formData.clientId || !formData.accountNumber
+                    : !formData.clientId ||
+                      !formData.apiKey ||
+                      !formData.checksumKey ||
+                      !formData.accountNumber
                 }
                 className="flex-1 md:flex-none"
               >
@@ -449,7 +486,7 @@ export default function SetPayment() {
             • Contact PayOS to get Client ID, API Key and Checksum Key
           </BodyRegular>
           <BodyRegular>
-            • Account Number can be your user ID or a custom number
+            • Account Number is your bank account number
           </BodyRegular>
           <BodyRegular>
             • After setup, students can pay directly for your courses
