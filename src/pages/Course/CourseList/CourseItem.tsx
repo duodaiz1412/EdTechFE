@@ -24,7 +24,7 @@ export default function CourseItem({course, isEnrolled}: CourseItemProps) {
     <Link
       key={course.id}
       to={`/course/${course.slug}`}
-      className="card border border-slate-300 shadow-sm hover:-translate-y-1 transition-all overflow-hidden"
+      className="card border border-slate-200 shadow-sm hover:-translate-y-1 transition-all overflow-hidden"
     >
       {/* Course image */}
       <figure className="h-56 border-b border-b-slate-200">

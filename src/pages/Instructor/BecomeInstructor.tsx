@@ -1,11 +1,12 @@
-import {userServices} from "@/lib/services/user.services";
-import {getAccessToken} from "@/lib/utils/getAccessToken";
-import {useAppDispatch, useAppSelector} from "@/redux/hooks";
-import {login} from "@/redux/slice/userSlice";
-import {Presentation} from "lucide-react";
 import {useEffect} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {toast} from "react-toastify";
+
+import {login} from "@/redux/slice/userSlice";
+import {useAppDispatch, useAppSelector} from "@/redux/hooks";
+import {userServices} from "@/lib/services/user.services";
+import {getAccessToken} from "@/lib/utils/getAccessToken";
+import instructorImg from "@/assets/instructor.svg";
 
 export default function BecomeInstructor() {
   const navigate = useNavigate();
@@ -37,18 +38,21 @@ export default function BecomeInstructor() {
       }),
     );
 
-    // Refresh token (Có thể check hết hạn, check có null hay ko, hoặc viết 1 hàm utils)
-
     navigate("/instructor");
   };
 
   return (
     <div className="flex">
-      <div className="w-1/2 bg-slate-200 h-screen"></div>
+      <div className="w-1/2 h-screen flex items-center justify-center">
+        <img
+          src={instructorImg}
+          alt="Become an instructor"
+          className="h-2/3 w-2/3 object-cover"
+        />
+      </div>
       <div className="w-1/2 flex flex-col space-y-6 h-screen items-center justify-center">
-        <Presentation size={64} />
-        <h2 className="text-2xl font-semibold">Become an instructor</h2>
-        <p className="px-8 text-center">
+        <h2 className="text-3xl font-semibold">Become an instructor</h2>
+        <p className="px-8 text-center text-lg">
           Teach what you know and help learners explore their interests, gain
           new skills, and advance their careers.
         </p>

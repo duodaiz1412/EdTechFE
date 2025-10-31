@@ -71,7 +71,7 @@ export default function Login() {
       <h1 className="text-2xl font-semibold text-center">
         Login to your account
       </h1>
-      <label className="input input-lg w-full">
+      <label className="input input-lg rounded-lg w-full">
         <Mail size={20} color="#aaa" />
         <input
           type="email"
@@ -86,7 +86,7 @@ export default function Login() {
       </label>
       <button
         type="submit"
-        className="btn btn-lg btn-neutral w-full"
+        className="btn btn-lg btn-neutral rounded-lg w-full"
         disabled={isLoading}
       >
         {isLoading ? (
