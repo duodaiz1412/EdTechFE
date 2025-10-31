@@ -1,6 +1,7 @@
 import {BrowserRouter, Outlet, Route, Routes} from "react-router-dom";
 import {ToastContainer} from "react-toastify";
 import {useQuery} from "@tanstack/react-query";
+import {GlobalPollingProvider} from "./components/GlobalPollingProvider";
 
 import {login} from "./redux/slice/userSlice.tsx";
 import {useAppDispatch} from "./redux/hooks.ts";
@@ -91,205 +92,216 @@ function App() {
 
   return (
     <>
-      <BrowserRouter>
-        <Routes>
-          {/* Auth routes */}
-          <Route
-            element={
-              <AuthLayout>
-                <Outlet />
-              </AuthLayout>
-            }
-          >
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          </Route>
-          <Route path="/notify" element={<Notify />} />
-          <Route path="/auth/verify" element={<VerifyRedirect />} />
-          <Route path="/verify" element={<Verify />} />
-
-          {/* Public routes */}
-          <Route
-            element={
-              <MainLayout>
-                <Outlet />
-              </MainLayout>
-            }
-          >
-            <Route path="/" element={<CourseList />} />
-            <Route path="/tag/:tag" element={<CoursesByTag />} />
-            <Route path="/users/:userId/profile" element={<PublicProfile />} />
-            <Route path="/course/:slug" element={<CourseDetail />} />
-
-            <Route path="/help" element={<Support />} />
-            <Route path="/about" element={<About />} />
-          </Route>
-
-          {/* Protected routes */}
-          <Route element={<ProtectedRoute />}>
-            {/* Profile & Settings */}
+      <GlobalPollingProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Auth routes */}
             <Route
               element={
-                <ProfileLayout>
+                <AuthLayout>
                   <Outlet />
-                </ProfileLayout>
+                </AuthLayout>
               }
             >
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/settings" element={<Settings />} />
-
-              {/* Admin CMS routes */}
-              <Route
-                path="/users"
-                element={
-                  <TypeProtectedRoute requiredType="SYSTEM_USER">
-                    <UserList />
-                  </TypeProtectedRoute>
-                }
-              />
-              <Route
-                path="/users/:userId"
-                element={
-                  <TypeProtectedRoute requiredType="SYSTEM_USER">
-                    <UserDetail />
-                  </TypeProtectedRoute>
-                }
-              />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
             </Route>
+            <Route path="/notify" element={<Notify />} />
+            <Route path="/auth/verify" element={<VerifyRedirect />} />
+            <Route path="/verify" element={<Verify />} />
 
-            {/* Learner routes */}
+            {/* Public routes */}
             <Route
-              path="/course/:courseSlug/learn/lesson/:lessonSlug"
-              element={<CourseLayout />}
-            />
-            <Route
-              path="/learning"
               element={
                 <MainLayout>
-                  <MyLearning />
+                  <Outlet />
                 </MainLayout>
               }
-            />
+            >
+              <Route path="/" element={<CourseList />} />
+              <Route path="/tag/:tag" element={<CoursesByTag />} />
+              <Route
+                path="/users/:userId/profile"
+                element={<PublicProfile />}
+              />
+              <Route path="/course/:slug" element={<CourseDetail />} />
 
-            {/* Instructor routes */}
-            <Route path="/teaching" element={<BecomeInstructor />} />
+              <Route path="/help" element={<Support />} />
+              <Route path="/about" element={<About />} />
+            </Route>
 
-            <Route
-              element={
-                <RoleProtectedRoute
-                  requiredRole="COURSE_CREATOR"
-                  redirectTo="/teaching"
-                >
-                  <InstructorLayout>
+            {/* Protected routes */}
+            <Route element={<ProtectedRoute />}>
+              {/* Profile & Settings */}
+              <Route
+                element={
+                  <ProfileLayout>
                     <Outlet />
-                  </InstructorLayout>
-                </RoleProtectedRoute>
-              }
-            >
-              <Route path="/instructor" element={<InstructorCourse />} />
-              <Route path="/instructor/payment" element={<SetPayment />} />
+                  </ProfileLayout>
+                }
+              >
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/settings" element={<Settings />} />
+
+                {/* Admin CMS routes */}
+                <Route
+                  path="/users"
+                  element={
+                    <TypeProtectedRoute requiredType="SYSTEM_USER">
+                      <UserList />
+                    </TypeProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/users/:userId"
+                  element={
+                    <TypeProtectedRoute requiredType="SYSTEM_USER">
+                      <UserDetail />
+                    </TypeProtectedRoute>
+                  }
+                />
+              </Route>
+
+              {/* Learner routes */}
+              <Route
+                path="/course/:courseSlug/learn/lesson/:lessonSlug"
+                element={<CourseLayout />}
+              />
+              <Route
+                path="/learning"
+                element={
+                  <MainLayout>
+                    <MyLearning />
+                  </MainLayout>
+                }
+              />
+
+              {/* Instructor routes */}
+              <Route path="/teaching" element={<BecomeInstructor />} />
+
+              <Route
+                element={
+                  <RoleProtectedRoute
+                    requiredRole="COURSE_CREATOR"
+                    redirectTo="/teaching"
+                  >
+                    <InstructorLayout>
+                      <Outlet />
+                    </InstructorLayout>
+                  </RoleProtectedRoute>
+                }
+              >
+                <Route path="/instructor" element={<InstructorCourse />} />
+                <Route path="/instructor/payment" element={<SetPayment />} />
+              </Route>
+
+              {/* Instructor - Create/Edit Course routes (without sidebar) */}
+              <Route
+                path="/instructor/courses/create"
+                element={
+                  <RoleProtectedRoute
+                    requiredRole="COURSE_CREATOR"
+                    redirectTo="/teaching"
+                  >
+                    <CourseProvider>
+                      <CreateCourse />
+                    </CourseProvider>
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route
+                path="/instructor/courses/:courseId/preview"
+                element={
+                  <RoleProtectedRoute
+                    requiredRole="COURSE_CREATOR"
+                    redirectTo="/teaching"
+                  >
+                    <CourseProvider>
+                      <PreviewCourse />
+                    </CourseProvider>
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route
+                path="/instructor/courses/:courseId/preview/lesson/:lessonSlug"
+                element={
+                  <RoleProtectedRoute
+                    requiredRole="COURSE_CREATOR"
+                    redirectTo="/teaching"
+                  >
+                    <CourseProvider>
+                      <PreviewCourse />
+                    </CourseProvider>
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route
+                path="/instructor/courses/:courseId/preview/landing-preview"
+                element={
+                  <RoleProtectedRoute
+                    requiredRole="COURSE_CREATOR"
+                    redirectTo="/teaching"
+                  >
+                    <CourseLandingPreview />
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route
+                path="/instructor/courses/:courseId/edit"
+                element={
+                  <RoleProtectedRoute
+                    requiredRole="COURSE_CREATOR"
+                    redirectTo="/teaching"
+                  >
+                    <CourseProvider>
+                      <EditCourse />
+                    </CourseProvider>
+                  </RoleProtectedRoute>
+                }
+              >
+                <Route index element={<IntendedLearnersContent />} />
+                <Route
+                  path="intended-learners"
+                  element={<IntendedLearnersContent />}
+                />
+                <Route
+                  path="course-structure"
+                  element={<CourseStructureContent />}
+                />
+
+                <Route path="film-edit" element={<FilmEditContent />} />
+                <Route path="curriculum" element={<CurriculumContent />} />
+                <Route path="caption" element={<CaptionContent />} />
+                <Route
+                  path="accessibility"
+                  element={<AccessibilityContent />}
+                />
+                <Route path="landing-page" element={<LandingPageContent />} />
+                <Route path="pricing" element={<PricingContent />} />
+                <Route path="promotions" element={<PromotionsContent />} />
+
+                {/* Nested lecture edit routes using the same CourseProvider */}
+                <Route
+                  path="lecture/edit/:lessonId"
+                  element={<EditLecture />}
+                />
+                <Route
+                  path="lecture/video/:lessonId"
+                  element={<EditVideoLecture />}
+                />
+                <Route
+                  path="lecture/article/:lessonId"
+                  element={<EditArticleLecture />}
+                />
+                <Route
+                  path="lecture/quiz/:quizId"
+                  element={<EditQuizLecture />}
+                />
+              </Route>
             </Route>
-
-            {/* Instructor - Create/Edit Course routes (without sidebar) */}
-            <Route
-              path="/instructor/courses/create"
-              element={
-                <RoleProtectedRoute
-                  requiredRole="COURSE_CREATOR"
-                  redirectTo="/teaching"
-                >
-                  <CourseProvider>
-                    <CreateCourse />
-                  </CourseProvider>
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/instructor/courses/:courseId/preview"
-              element={
-                <RoleProtectedRoute
-                  requiredRole="COURSE_CREATOR"
-                  redirectTo="/teaching"
-                >
-                  <CourseProvider>
-                    <PreviewCourse />
-                  </CourseProvider>
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/instructor/courses/:courseId/preview/lesson/:lessonSlug"
-              element={
-                <RoleProtectedRoute
-                  requiredRole="COURSE_CREATOR"
-                  redirectTo="/teaching"
-                >
-                  <CourseProvider>
-                    <PreviewCourse />
-                  </CourseProvider>
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/instructor/courses/:courseId/preview/landing-preview"
-              element={
-                <RoleProtectedRoute
-                  requiredRole="COURSE_CREATOR"
-                  redirectTo="/teaching"
-                >
-                  <CourseLandingPreview />
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/instructor/courses/:courseId/edit"
-              element={
-                <RoleProtectedRoute
-                  requiredRole="COURSE_CREATOR"
-                  redirectTo="/teaching"
-                >
-                  <CourseProvider>
-                    <EditCourse />
-                  </CourseProvider>
-                </RoleProtectedRoute>
-              }
-            >
-              <Route index element={<IntendedLearnersContent />} />
-              <Route
-                path="intended-learners"
-                element={<IntendedLearnersContent />}
-              />
-              <Route
-                path="course-structure"
-                element={<CourseStructureContent />}
-              />
-
-              <Route path="film-edit" element={<FilmEditContent />} />
-              <Route path="curriculum" element={<CurriculumContent />} />
-              <Route path="caption" element={<CaptionContent />} />
-              <Route path="accessibility" element={<AccessibilityContent />} />
-              <Route path="landing-page" element={<LandingPageContent />} />
-              <Route path="pricing" element={<PricingContent />} />
-              <Route path="promotions" element={<PromotionsContent />} />
-
-              {/* Nested lecture edit routes using the same CourseProvider */}
-              <Route path="lecture/edit/:lessonId" element={<EditLecture />} />
-              <Route
-                path="lecture/video/:lessonId"
-                element={<EditVideoLecture />}
-              />
-              <Route
-                path="lecture/article/:lessonId"
-                element={<EditArticleLecture />}
-              />
-              <Route
-                path="lecture/quiz/:quizId"
-                element={<EditQuizLecture />}
-              />
-            </Route>
-          </Route>
-        </Routes>
-      </BrowserRouter>
+          </Routes>
+        </BrowserRouter>
+      </GlobalPollingProvider>
 
       <ToastContainer
         position="top-right"

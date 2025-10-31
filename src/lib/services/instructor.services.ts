@@ -2,6 +2,16 @@ import axios from "axios";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
 
+export interface IJob {
+  id: string;
+  type: string;
+  status: string;
+  progress: number;
+  createdAt: string;
+  updatedAt: string;
+  metadata?: Record<string, any>;
+}
+
 const INSTRUCTOR_ENDPOINTS = {
   INSTRUCTOR_COURSES: BASE_API + "/instructor/my-courses",
   INSTRUCTOR_COURSE_DETAIL: (courseId: string) =>
@@ -93,6 +103,9 @@ const INSTRUCTOR_ENDPOINTS = {
   // PayOS Configuration endpoints
   CREATE_PAYOS_CONFIG: BASE_API + "/instructor/payos-configs",
   GET_MY_PAYOS_CONFIG: BASE_API + "/instructor/payos-configs/my-config",
+
+  // Job Management APIs
+  GET_MY_JOBS: BASE_API + "/instructor/my-jobs",
   UPDATE_PAYOS_CONFIG: (configId: string) =>
     BASE_API + `/instructor/payos-configs/${configId}`,
 } as const;
@@ -129,6 +142,7 @@ export interface ILessonRequest {
   content?: string;
   videoUrl?: string;
   quizId?: string;
+  fileUrl?: string;
 }
 
 export interface CourseFilters {
@@ -781,6 +795,19 @@ export const instructorServices = {
     return response;
   },
 
+  async getMyJobs(accessToken: string, page: number = 0, size: number = 10) {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    const response = await axios.get(
+      `${INSTRUCTOR_ENDPOINTS.GET_MY_JOBS}?${params}`,
+      {headers: {Authorization: `Bearer ${accessToken}`}},
+    );
+    return response;
+  },
+
   async updatePayOSConfig(
     configId: string,
     data: IUpdatePayOSConfigRequest,
@@ -1045,6 +1072,14 @@ export class InstructorService {
 
   static async getMyPayOSConfig(accessToken: string) {
     return instructorServices.getMyPayOSConfig(accessToken);
+  }
+
+  static async getMyJobs(
+    accessToken: string,
+    page: number = 0,
+    size: number = 10,
+  ) {
+    return instructorServices.getMyJobs(accessToken, page, size);
   }
 
   static async updatePayOSConfig(

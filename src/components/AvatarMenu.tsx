@@ -62,7 +62,7 @@ export default function AvatarMenu() {
             <span>Settings</span>
           </Link>
         </li>
-        <li>
+        <li className="hover:bg-red-50">
           <button className="text-red-500 font-semibold" onClick={handleLogout}>
             <LogOut size={20} />
             <span>Log out</span>

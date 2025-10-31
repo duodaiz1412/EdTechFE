@@ -101,9 +101,7 @@ export default function EditCourse() {
       } else {
         toast.error("Failed to publish course. Please try again.");
       }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error("Error publishing course:", error);
+    } catch {
       toast.error("An error occurred while publishing the course.");
     } finally {
       setIsPublishing(false);

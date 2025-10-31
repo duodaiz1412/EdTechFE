@@ -171,29 +171,15 @@ export default function CourseLandingPreview() {
                 </div>
               </div>
             </div>
-            {/* What you will learn: FIX */}
-            <div className="card border border-slate-200">
-              <div className="card-body">
-                <div className="card-title mb-4">What you'll learn</div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <span>✓</span>
-                    <span>Course content 1</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span>✓</span>
-                    <span>Course content 2</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span>✓</span>
-                    <span>Course content 3</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span>✓</span>
-                    <span>Course content 4</span>
-                  </div>
-                </div>
-              </div>
+            {/* Description */}
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Description</h3>
+              <div
+                className="ql-editor ql-snow h-auto p-0"
+                dangerouslySetInnerHTML={{
+                  __html: courseInfo?.description || "No description available",
+                }}
+              />
             </div>
             {/* Topics (tags) */}
             <div>
@@ -212,16 +198,6 @@ export default function CourseLandingPreview() {
               <CourseContentList
                 chapters={chapters || []}
                 courseSlug={courseInfo?.slug || ""}
-              />
-            </div>
-            {/* Description */}
-            <div>
-              <h3 className="text-xl font-semibold mb-4">Description</h3>
-              <div
-                className="ql-editor ql-snow h-auto p-0"
-                dangerouslySetInnerHTML={{
-                  __html: courseInfo?.description || "No description available",
-                }}
               />
             </div>
             {/* Skill level */}
@@ -284,12 +260,6 @@ export default function CourseLandingPreview() {
                   Preview Mode - No enrollment available
                 </p>
               </div>
-
-              <h3 className="font-semibold">This course includes:</h3>
-              <ul className="list-disc list-inside space-y-2">
-                <li>...lessons</li>
-                <li>Complete certification</li>
-              </ul>
             </div>
           </div>
         </div>

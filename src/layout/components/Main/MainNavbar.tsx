@@ -21,7 +21,7 @@ export default function MainNavbar() {
       )}
       {!isAuthenticated && (
         <div className="space-x-2">
-          <Link to="/register" className="btn btn-ghost">
+          <Link to="/register" className="btn rounded-lg">
             Register
           </Link>
           <Link to="/login" className="btn bg-neutral rounded-lg text-white">

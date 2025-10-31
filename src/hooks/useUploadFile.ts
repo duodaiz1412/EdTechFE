@@ -3,7 +3,6 @@ import {
   UploadPurpose,
   UploadState,
   UseUploadFileOptions,
-  Job,
 } from "../types/upload.types";
 import {
   generatePresignedUrl,
@@ -20,8 +19,6 @@ export const useUploadFile = (options?: UseUploadFileOptions) => {
     uploadedUrl: null,
   });
 
-  const [videoJob, setVideoJob] = useState<Job | null>(null);
-
   const resetState = useCallback(() => {
     setState({
       isUploading: false,
@@ -30,7 +27,6 @@ export const useUploadFile = (options?: UseUploadFileOptions) => {
       success: false,
       uploadedUrl: null,
     });
-    setVideoJob(null);
   }, []);
 
   const uploadFile = useCallback(
@@ -138,7 +134,7 @@ export const useUploadFile = (options?: UseUploadFileOptions) => {
           uploadedUrl: null,
         }));
 
-        const job = await uploadVideoForTranscoding(
+        const response = await uploadVideoForTranscoding(
           {file, entityId, purpose},
           (progress) => {
             setState((prev) => ({
@@ -151,7 +147,6 @@ export const useUploadFile = (options?: UseUploadFileOptions) => {
           },
         );
 
-        setVideoJob(job);
         setState((prev) => ({
           ...prev,
           isUploading: false,
@@ -159,10 +154,10 @@ export const useUploadFile = (options?: UseUploadFileOptions) => {
           uploadedUrl: null, // Video transcoding không trả về URL ngay
         }));
 
-        // Gọi callback thành công với job info
-        options?.onSuccess?.(job.id);
+        // Gọi callback thành công với entityId thay vì jobId
+        options?.onSuccess?.(response.entityId);
 
-        return job;
+        return response;
       } catch (error) {
         const errorMessage =
           error instanceof Error
@@ -188,7 +183,6 @@ export const useUploadFile = (options?: UseUploadFileOptions) => {
   return {
     // State
     ...state,
-    videoJob,
 
     // Actions
     uploadFile,

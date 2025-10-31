@@ -19,10 +19,29 @@ interface CourseLessonProps {
   status?: boolean;
 }
 
+const getFileNameFromUrl = (url: string): string => {
+  const urlObj = new URL(url);
+  const pathSegments = urlObj.pathname.split("/");
+
+  // Find the last segment that looks like a file
+  for (let i = pathSegments.length - 1; i >= 0; i--) {
+    const segment = pathSegments[i];
+    // Check if the segment has a file extension
+    if (segment && /\.[a-zA-Z0-9]+$/.test(segment)) {
+      // Remove any leading numbering (e.g., "01-") from the filename
+      const cleanFileName = segment.replace(/^\d+-/, "");
+      return cleanFileName;
+    }
+  }
+
+  return "Attachment";
+};
+
 export default function CourseLesson({lesson, status}: CourseLessonProps) {
   const [lessonType, setLessonType] = useState("video");
   const [isCompleted, setIsCompleted] = useState(status);
   const [downloadUrl, setDownloadUrl] = useState("");
+  const [filename, setFilename] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,16 +57,35 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
       }
 
       if (lesson.fileUrl) {
+        // Fetch file as blob
         const response = await axios.get(lesson.fileUrl, {
           responseType: "blob",
         });
-        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const contentType = response.headers["content-type"];
+
+        // Get filename
+        const extractedFileName = getFileNameFromUrl(lesson.fileUrl);
+        setFilename(extractedFileName);
+
+        // Create download URL
+        const url = window.URL.createObjectURL(
+          new Blob([response.data], {type: contentType}),
+        );
         setDownloadUrl(url);
       }
     };
 
     fetchData();
   }, [status, lesson]);
+
+  // Clean up the object URL when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (downloadUrl) {
+        window.URL.revokeObjectURL(downloadUrl);
+      }
+    };
+  }, [downloadUrl]);
 
   const handleComplete = async () => {
     const accessToken = await getAccessToken();
@@ -125,11 +163,11 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
                   <p>Attachments</p>
                   <a
                     href={downloadUrl}
-                    download={`${lesson?.title}-attachment`}
+                    download={filename}
                     className="p-3 text-blue-600 bg-blue-50 border border-blue-200 rounded-md flex items-center space-x-4"
                   >
                     <Download size={20} />
-                    <span>Download here</span>
+                    <span>Download</span>
                   </a>
                 </div>
               )}

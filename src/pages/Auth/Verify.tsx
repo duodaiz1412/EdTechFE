@@ -1,7 +1,8 @@
-import {authServices} from "@/lib/services/auth.services";
-import {useQuery} from "@tanstack/react-query";
-import {CircleCheck} from "lucide-react";
 import {useLocation} from "react-router-dom";
+import {useQuery} from "@tanstack/react-query";
+
+import {authServices} from "@/lib/services/auth.services";
+import verifyImg from "@/assets/verify.svg";
 
 export default function Verify() {
   const location = useLocation();
@@ -16,20 +17,20 @@ export default function Verify() {
   });
 
   return (
-    <div className="w-full h-screen bg-blue-500 flex justify-center items-center">
-      <div className="card w-96 border border-slate-300 bg-base-100">
+    <div className="w-full h-screen flex justify-center items-center">
+      <div className="card w-1/2 border border-slate-200 bg-slate-50">
         <figure className="p-4">
           {isLoading && (
             <div className="loading loading-spinner loading-xl"></div>
           )}
           {!isLoading && (
             <div>
-              <CircleCheck size={48} />
+              <img src={verifyImg} alt="Email Verified" className="w-96" />
             </div>
           )}
         </figure>
         <div className="card-body">
-          <h2 className="card-title justify-center">
+          <h2 className="card-title text-3xl justify-center p-4">
             {isLoading && "Verifying your email..."}
             {!isLoading && !error && "Email verified successfully!"}
             {!isLoading && error && "Verification failed!"}

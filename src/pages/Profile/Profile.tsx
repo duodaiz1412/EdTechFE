@@ -1,144 +1,132 @@
-import {userServices} from "@/lib/services/user.services";
-import {getAccessToken} from "@/lib/utils/getAccessToken";
-import {useAppSelector} from "@/redux/hooks";
 import {useState} from "react";
+import {useNavigate} from "react-router-dom";
 import {toast} from "react-toastify";
+import {Camera, Mail, ShieldUser, Trash2, User} from "lucide-react";
 
-import {useForm} from "react-hook-form";
-import {yupResolver} from "@hookform/resolvers/yup";
-import * as yup from "yup";
-
-interface IFormData {
-  fullName: string;
-  email: string;
-  username: string;
-}
+import {login} from "@/redux/slice/userSlice";
+import {useAppDispatch, useAppSelector} from "@/redux/hooks";
+import {getAccessToken} from "@/lib/utils/getAccessToken";
+import {userServices} from "@/lib/services/user.services";
+import ProfileAvatarForm from "./ProfileAvatarForm";
 
 export default function Profile() {
   const userData = useAppSelector((state) => state.user.data);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
-  const initialValue: IFormData = {
-    fullName: userData?.name || "",
-    email: userData?.email || "",
-    username: userData?.username || "",
-  };
+  const [fullName, setFullName] = useState(userData?.name || "");
+  const [isAvatarChoosing, setIsAvatarChoosing] = useState(false);
 
-  const schema = yup
-    .object({
-      fullName: yup.string().required(),
-      email: yup.string().email().required(),
-      username: yup.string().required(),
-    })
-    .required();
-
-  const {
-    register,
-    handleSubmit,
-    formState: {isDirty},
-  } = useForm({
-    resolver: yupResolver(schema),
-    defaultValues: initialValue,
-  });
-
-  const [image, setImage] = useState<File | string | undefined>(
-    userData?.image,
-  );
-  const [preview, setPreview] = useState<string | undefined>(undefined);
-
-  const handleUploadImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-
-    if (!file) return;
-
-    // Kiểm tra định dạng file
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please upload an image file");
-      return;
-    }
-
-    setImage(file);
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result as string);
-    };
-    reader.onerror = () => {
-      toast.error("Error reading file");
-    };
-
-    reader.readAsDataURL(file);
-  };
-
-  const onSubmit = async (data: IFormData) => {
+  const handleSaveFullName = async () => {
     const accessToken = await getAccessToken();
-    const response = await userServices.changeUserInfo(accessToken, data);
+    const response = await userServices.changeUserInfo(accessToken, {
+      fullName: fullName,
+    });
 
-    if (response.status !== 200) {
-      toast.error("Failed to change info, please try later.");
+    if (response.status === 200) {
+      toast.success("Fullname updated successfully");
+      dispatch(login({...userData, name: fullName}));
+    } else {
+      toast.error("Failed to update fullname");
     }
-    toast.success("Change info successfully");
+  };
+
+  const handleSaveAvatar = async (url: string) => {
+    const accessToken = await getAccessToken();
+    const response = await userServices.changeUserInfo(accessToken, {
+      fullName: userData?.name || "",
+      userImage: url,
+    });
+
+    if (response.status === 200) {
+      dispatch(login({...userData, image: url || undefined}));
+    } else {
+      toast.error("Failed to update avatar");
+    }
+
+    navigate(0);
   };
 
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-10">Your profile</h2>
-      <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
-        <div className="flex flex-col space-y-2">
-          <label htmlFor="fullname" className="font-semibold">
-            Fullname
-          </label>
-          <input
-            id="fullname"
-            type="text"
-            className="input w-full"
-            {...register("fullName")}
+    <div className="px-6">
+      <h2 className="text-xl font-bold mb-10">Profile</h2>
+      <div className="grid grid-cols-3 gap-6">
+        {/* General info */}
+        <div className="col-span-2 space-y-6">
+          <div className="space-y-2">
+            <p className="font-semibold">Fullname</p>
+            <div className="flex space-x-4">
+              <div className="px-2 space-x-2 w-full border border-slate-400 rounded-md flex items-center">
+                <User size={20} />
+                <input
+                  className="w-full py-2 outline-none cursor-pointer"
+                  autoFocus
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
+              </div>
+              <button
+                className="btn btn-neutral rounded-md"
+                disabled={fullName === userData?.name}
+                onClick={handleSaveFullName}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="font-semibold">Email</p>
+            <p className="flex items-center space-x-2 border border-slate-400 bg-slate-100 p-2 rounded-md">
+              <Mail size={20} />
+              <span>{userData?.email}</span>
+            </p>
+          </div>
+          <div className="space-y-2">
+            <p className="font-semibold">Username</p>
+            <p className="flex items-center space-x-2 border border-slate-400 bg-slate-100 p-2 rounded-md">
+              <ShieldUser size={20} />
+              <span>{userData?.username}</span>
+            </p>
+          </div>
+        </div>
+        {/* Image */}
+        <div className="col-span-1 flex flex-col items-center space-y-4">
+          <div className="w-56 h-56 border border-slate-300 rounded-md overflow-hidden">
+            {!userData?.image && (
+              <div className="w-full h-full flex flex-col space-y-2 justify-center items-center bg-slate-100 text-slate-500">
+                <span>No avatar</span>
+              </div>
+            )}
+            {userData?.image && (
+              <img
+                src={userData.image}
+                alt="Avatar"
+                className="w-full h-full object-cover"
+              />
+            )}
+          </div>
+          <button
+            className="btn btn-neutral rounded-md w-56 space-x-2"
+            onClick={() => setIsAvatarChoosing(true)}
+          >
+            <Camera size={20} />
+            <span>Change avatar</span>
+          </button>
+          {userData?.image && (
+            <button className="btn rounded-md w-56 space-x-2">
+              <Trash2 size={20} />
+              <span onClick={() => handleSaveAvatar("")}>Delete avatar</span>
+            </button>
+          )}
+        </div>
+        {/* Form change image */}
+        {isAvatarChoosing && (
+          <ProfileAvatarForm
+            setIsFormOpen={setIsAvatarChoosing}
+            handleSaveAvatar={handleSaveAvatar}
           />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col space-y-2">
-            <label htmlFor="email" className="font-semibold">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              className="input w-full"
-              {...register("email")}
-            />
-          </div>
-          <div className="flex flex-col space-y-2">
-            <label htmlFor="fullname" className="font-semibold">
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              className="input w-full"
-              {...register("username")}
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="h-96 bg-slate-200 border border-slate-200 flex justify-center">
-            <img src={preview} />
-          </div>
-          <div className="col-span-1 space-y-2 flex flex-col">
-            <label htmlFor="user-image" className="font-semibold">
-              User image
-            </label>
-            <input
-              id="user-image"
-              type="file"
-              accept="image/*"
-              className="file-input w-full"
-              onChange={handleUploadImage}
-            />
-          </div>
-        </div>
-        <button className="btn btn-primary" type="submit" disabled={!isDirty}>
-          Save
-        </button>
-      </form>
+        )}
+      </div>
     </div>
   );
 }

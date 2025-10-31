@@ -1,5 +1,5 @@
-import {MailWarning} from "lucide-react";
 import {useLocation} from "react-router-dom";
+import emailImg from "@/assets/email.svg";
 
 type EmailProvider = {
   name: string;
@@ -85,28 +85,27 @@ export default function Notify() {
   const emailProvider = getEmailProvider(email);
 
   return (
-    <div className="flex justify-center items-center bg-blue-500 h-screen">
-      <div className="card border border-slate-200 w-1/3 bg-base-100">
-        <figure className="pt-4">
-          <MailWarning size={48} />
+    <div className="flex justify-center items-center h-screen">
+      <div className="card border border-slate-200 w-2/3 bg-slate-50">
+        <figure>
+          <img src={emailImg} alt="Email Sent" className="w-96 h-96" />
         </figure>
         <div className="card-body">
-          <div className="card-title text-xl justify-center">
+          <div className="card-title text-3xl justify-center">
             Please check your email
           </div>
-          <div className="text-center">
-            <p className="p-2">
-              You're almost there. We've sent you an email to{" "}
-              <span className="font-bold">{email}</span>. If you don't see it,
-              you may need to check your spam folder.
+          <div className="flex flex-col items-center">
+            <p className="p-4 w-2/3 text-center text-lg">
+              You're almost there. We've sent you an email to your email:{" "}
+              {email}. If you don't see it, you may need to check your spam
+              folder. You can close this page now
             </p>
-            <p className="p-2">You can close this page now.</p>
             <div className="pt-2">
               <a
                 href={emailProvider.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn btn-primary"
+                className="btn btn-neutral btn-lg rounded-lg"
               >
                 Open {emailProvider.name}
               </a>

@@ -28,7 +28,7 @@ export default function Register() {
       <h1 className="text-2xl font-semibold text-center">
         Register with your email
       </h1>
-      <label className="input input-lg w-full">
+      <label className="input input-lg rounded-lg w-full">
         <User size={20} color="#aaa" />
         <input
           type="text"
@@ -38,7 +38,7 @@ export default function Register() {
           onChange={(e) => setFullName(e.target.value)}
         />
       </label>
-      <label className="input input-lg w-full">
+      <label className="input input-lg rounded-lg w-full">
         <Mail size={20} color="#aaa" />
         <input
           type="email"
@@ -51,7 +51,10 @@ export default function Register() {
           onChange={(e) => setEmail(e.target.value)}
         />
       </label>
-      <button type="submit" className="btn btn-lg btn-neutral w-full">
+      <button
+        type="submit"
+        className="btn btn-lg btn-neutral rounded-lg w-full"
+      >
         Register
       </button>
       <p className="text-center space-x-2">

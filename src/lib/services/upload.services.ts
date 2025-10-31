@@ -4,7 +4,6 @@ import {
   PresignedUrlRequest,
   PresignedUrlResponse,
   TranscodeRequest,
-  Job,
 } from "../../types/upload.types";
 import {convertUrlToRelatuvePath} from "../utils";
 import {getAccessToken} from "../utils/getAccessToken";
@@ -83,6 +82,7 @@ export const uploadFileToMinIO = async (
 
 /**
  * Upload video để transcoding
+ * Chỉ trả về status code 202 Accepted, không trả về job data
  */
 export const uploadVideoForTranscoding = async (
   request: TranscodeRequest,
@@ -91,7 +91,7 @@ export const uploadVideoForTranscoding = async (
     total: number;
     percentage: number;
   }) => void,
-): Promise<Job> => {
+): Promise<{status: number; entityId: string}> => {
   try {
     const formData = new FormData();
     formData.append("file", request.file);
@@ -99,29 +99,30 @@ export const uploadVideoForTranscoding = async (
     formData.append("purpose", request.purpose);
 
     const accessToken = await getAccessToken();
-    const response = await axios.post<Job>(
-      UPLOAD_ENDPOINTS.UPLOAD_VIDEO,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${accessToken}`,
-        },
-        onUploadProgress: (progressEvent) => {
-          if (onProgress && progressEvent.total) {
-            const progress = {
-              loaded: progressEvent.loaded,
-              total: progressEvent.total,
-              percentage: Math.round(
-                (progressEvent.loaded * 100) / progressEvent.total,
-              ),
-            };
-            onProgress(progress);
-          }
-        },
+    const response = await axios.post(UPLOAD_ENDPOINTS.UPLOAD_VIDEO, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        "Authorization": `Bearer ${accessToken}`,
       },
-    );
-    return response.data;
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const progress = {
+            loaded: progressEvent.loaded,
+            total: progressEvent.total,
+            percentage: Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total,
+            ),
+          };
+          onProgress(progress);
+        }
+      },
+    });
+
+    // Chỉ trả về status và entityId để tracking
+    return {
+      status: response.status,
+      entityId: request.entityId,
+    };
   } catch {
     toast.error("Cannot upload video for transcoding");
     throw new Error("Cannot upload video for transcoding");

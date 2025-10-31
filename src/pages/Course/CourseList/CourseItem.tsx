@@ -24,12 +24,18 @@ export default function CourseItem({course, isEnrolled}: CourseItemProps) {
     <Link
       key={course.id}
       to={`/course/${course.slug}`}
-      className="card border border-slate-300 shadow-sm hover:-translate-y-1 transition-all overflow-hidden"
+      className="card border border-slate-200 shadow-sm hover:-translate-y-1 transition-all overflow-hidden"
     >
       {/* Course image */}
       <figure className="h-56 border-b border-b-slate-200">
-        {course.image && <img className="w-full" src={course.image} />}
-        {!course.image && <div className="w-full h-full bg-slate-200"></div>}
+        {course.image && (
+          <img className="w-full h-full object-cover" src={course.image} />
+        )}
+        {!course.image && (
+          <div className="w-full h-full bg-slate-100 flex justify-center items-center text-slate-500">
+            No image
+          </div>
+        )}
       </figure>
       {/* Course info */}
       <div className="card-body">
@@ -50,9 +56,11 @@ export default function CourseItem({course, isEnrolled}: CourseItemProps) {
           <div className="badge bg-blue-600 text-white">Enrolled</div>
         )}
         {!isEnrolled && (
-          <div className="font-bold space-x-1">
-            {formatPrice(course.sellingPrice, course.currency)}
-          </div>
+          <span className="text-lg font-bold">
+            {course.paidCourse &&
+              formatPrice(course.sellingPrice, course.currency)}
+            {!course.paidCourse && "Free"}
+          </span>
         )}
       </div>
     </Link>
