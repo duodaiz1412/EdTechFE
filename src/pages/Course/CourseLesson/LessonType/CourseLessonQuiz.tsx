@@ -60,7 +60,7 @@ export default function CourseLessonQuiz({
   };
 
   return (
-    <div className="w-5/6 bg-white p-6 h-[600px] relative">
+    <div className="w-5/6 bg-white p-6 h-[600px] relative overflow-y-scroll">
       {/* Fetch questions */}
       {!isDoing && !haveResult && (
         <div className=" h-full flex flex-col justify-center items-center space-y-4">

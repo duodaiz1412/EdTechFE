@@ -24,11 +24,16 @@ export default function MyLearningCourses() {
     <div className="w-full">
       <div className="grid grid-cols-4 gap-6">
         {userData?.courseEnrollments &&
+          userData.courseEnrollments.length > 0 &&
           userData?.courseEnrollments?.map((enroll) => (
             <MyLearningCourseItem key={enroll.id} enroll={enroll} />
           ))}
-        {!userData?.courseEnrollments &&
-          "You have not enrolled in any courses yet."}
+        {userData?.courseEnrollments &&
+          userData.courseEnrollments.length === 0 && (
+            <span className="col-span-4">
+              You have not enrolled in any courses yet.
+            </span>
+          )}
       </div>
     </div>
   );

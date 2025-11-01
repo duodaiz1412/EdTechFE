@@ -8,6 +8,7 @@ import {formatPrice} from "@/lib/utils/formatPrice";
 import ReadOnlyRating from "@/components/ReadOnlyRating";
 import CourseReviewItem from "@/pages/Course/CourseLesson/Review/CourseReviewItem";
 import CourseContentList from "./CourseContent/CourseContentList";
+import HtmlDisplay from "@/components/HtmlDisplay";
 
 export default function CourseLandingPreview() {
   const navigate = useNavigate();
@@ -174,12 +175,7 @@ export default function CourseLandingPreview() {
             {/* Description */}
             <div>
               <h3 className="text-xl font-semibold mb-4">Description</h3>
-              <div
-                className="ql-editor ql-snow h-auto p-0"
-                dangerouslySetInnerHTML={{
-                  __html: courseInfo?.description || "No description available",
-                }}
-              />
+              <HtmlDisplay html={courseInfo?.description || "No description"} />
             </div>
             {/* Topics (tags) */}
             <div>
@@ -230,11 +226,12 @@ export default function CourseLandingPreview() {
                 <img
                   src={courseInfo.image}
                   alt={courseInfo.title || "Course image"}
+                  className="w-full h-full object-cover"
                 />
               )}
               {!courseInfo?.image && (
-                <div className="w-full h-full bg-slate-200 flex items-center justify-center">
-                  <span className="text-gray-500">No image</span>
+                <div className="w-full h-full bg-slate-50 flex items-center justify-center">
+                  <span className="text-slate-500">No image</span>
                 </div>
               )}
             </figure>
