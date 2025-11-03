@@ -83,7 +83,7 @@ export default function CourseLessonQuiz({quiz}: CourseLessonQuizProps) {
                     >
                       <input
                         type="radio"
-                        name="question"
+                        name={`question-${questions[currentIdx].id}`}
                         className="radio radio-neutral"
                         value={opt.option}
                         onChange={(e) =>

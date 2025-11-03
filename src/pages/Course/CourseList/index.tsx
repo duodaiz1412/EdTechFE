@@ -35,7 +35,6 @@ export default function CourseList() {
   };
 
   const handleClear = async () => {
-    if (search === "") return;
     setIsSearching(true);
     try {
       const allCourses = await publicServices.getCourses();
