@@ -12,6 +12,7 @@ import QuillMarkdownEditor from "@/components/QuillMarkdownEditor/QuillMarkdownE
 import {useCourseContext} from "@/context/CourseContext";
 import {UploadPurpose} from "@/types/upload.types";
 import {toast} from "react-toastify";
+import AddInstructor from "@/components/AddInstructor";
 
 export default function LandingPageContent() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export default function LandingPageContent() {
     // API State (from hook via context)
     state: courseState,
     updateCourse,
+    refetchCourse,
     isLoading,
     error,
   } = useCourseContext();
@@ -431,6 +433,14 @@ export default function LandingPageContent() {
             Paste YouTube link to display promotional video on landing page
           </p>
         </div>
+        <AddInstructor
+          typeAdd="course"
+          dataId={course?.id}
+          currentInstructors={course?.instructors || []}
+          onAddSuccess={() => {
+            refetchCourse?.();
+          }}
+        />
       </div>
     </div>
   );
