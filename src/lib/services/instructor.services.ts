@@ -79,6 +79,10 @@ const INSTRUCTOR_ENDPOINTS = {
     BASE_API + `/instructor/courses/${courseId}/instructors`,
   REMOVE_INSTRUCTOR_FROM_COURSE: (courseId: string, instructorId: string) =>
     BASE_API + `/instructor/courses/${courseId}/instructors/${instructorId}`,
+  UPSERT_INSTRUCTOR_TO_COURSE: (courseId: string) =>
+    BASE_API + `/instructor/courses/${courseId}/instructors`,
+
+  GET_ALL_INSTRUCTORS: BASE_API + "/instructor",
 
   // Lesson Management endpoints
   GET_LESSON_BY_ID: (lessonId: string) =>
@@ -637,31 +641,25 @@ export const instructorServices = {
   },
 
   // Course Instructor Management APIs
-  async addInstructorToCourse(
+
+  async upsertInstructorToCourse(
     courseId: string,
-    instructorId: string,
+    instructorIds: string[],
     accessToken: string,
   ) {
-    const response = await axios.post(
-      INSTRUCTOR_ENDPOINTS.ADD_INSTRUCTOR_TO_COURSE(courseId),
-      {instructorId},
+    const response = await axios.put(
+      INSTRUCTOR_ENDPOINTS.UPSERT_INSTRUCTOR_TO_COURSE(courseId),
+      {instructorIds},
       {headers: {Authorization: `Bearer ${accessToken}`}},
     );
     return response;
   },
 
-  async removeInstructorFromCourse(
-    courseId: string,
-    instructorId: string,
-    accessToken: string,
-  ) {
-    const response = await axios.delete(
-      INSTRUCTOR_ENDPOINTS.REMOVE_INSTRUCTOR_FROM_COURSE(
-        courseId,
-        instructorId,
-      ),
-      {headers: {Authorization: `Bearer ${accessToken}`}},
-    );
+  async getAllInstructors(accessToken: string) {
+    const response = await axios.get(INSTRUCTOR_ENDPOINTS.GET_ALL_INSTRUCTORS, {
+      headers: {Authorization: `Bearer ${accessToken}`},
+    });
+
     return response;
   },
 
@@ -970,28 +968,20 @@ export class InstructorService {
   }
 
   // Course Instructor Management APIs
-  static async addInstructorToCourse(
+  static async upsertInstructorToCourse(
     courseId: string,
-    instructorId: string,
+    instructorIds: string[],
     accessToken: string,
   ) {
-    return instructorServices.addInstructorToCourse(
+    return instructorServices.upsertInstructorToCourse(
       courseId,
-      instructorId,
+      instructorIds,
       accessToken,
     );
   }
 
-  static async removeInstructorFromCourse(
-    courseId: string,
-    instructorId: string,
-    accessToken: string,
-  ) {
-    return instructorServices.removeInstructorFromCourse(
-      courseId,
-      instructorId,
-      accessToken,
-    );
+  static async getAllInstructors(accessToken: string) {
+    return instructorServices.getAllInstructors(accessToken);
   }
 
   // Lesson Management APIs

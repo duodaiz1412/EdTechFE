@@ -114,6 +114,7 @@ interface CourseContextType {
   // API operations (from hook)
   createCourse: (formData?: CourseFormData) => Promise<string | null>;
   loadCourse: (courseId: string) => Promise<ICourse | null>;
+  refetchCourse: () => Promise<void>;
   updateCourse: (courseId: string, data: any) => Promise<boolean>;
   publishCourse: (courseId: string) => Promise<boolean>;
   deleteCourse: (courseId: string) => Promise<boolean>;
@@ -388,6 +389,13 @@ export function CourseProvider({children}: CourseProviderProps) {
     [loadCourseAPI, syncCourseToFormData],
   );
 
+  // Wrapper: refetch the current course from state
+  const refetchCourse = useCallback(async () => {
+    if (state.course?.id) {
+      await loadCourse(state.course.id);
+    }
+  }, [state.course, loadCourse]);
+
   // Batch Form Data Management
   const updateBatchFormData = useCallback((updates: Partial<BatchFormData>) => {
     setBatchFormData((prev) => ({...prev, ...updates}));
@@ -541,6 +549,7 @@ export function CourseProvider({children}: CourseProviderProps) {
     // API operations (from hook)
     createCourse: createCourseAPI,
     loadCourse,
+    refetchCourse,
     updateCourse: updateCourseAPI,
     publishCourse: publishCourseAPI,
     deleteCourse: deleteCourseAPI,
