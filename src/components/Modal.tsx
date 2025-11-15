@@ -58,6 +58,9 @@ export function Modal({
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!closeOnOverlayClick) return;
+    // Không đóng modal nếu đang select text
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) return;
     if (e.target === overlayRef.current) onClose();
   };
 
