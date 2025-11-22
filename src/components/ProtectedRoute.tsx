@@ -5,10 +5,11 @@ import {useAppDispatch, useAppSelector} from "@/redux/hooks";
 import {login} from "@/redux/slice/userSlice";
 import {Role} from "@/types";
 import {useQuery} from "@tanstack/react-query";
-import {Navigate, Outlet} from "react-router-dom";
+import {Navigate, Outlet, useLocation} from "react-router-dom";
 import React from "react";
 
 export default function ProtectedRoute() {
+  const location = useLocation();
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
 
@@ -53,7 +54,13 @@ export default function ProtectedRoute() {
     );
   }
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/" replace />;
+  if (isAuthenticated) {
+    return <Outlet />;
+  }
+
+  const currentPath = location.pathname;
+  localStorage.setItem("redirectAfterAuthen", currentPath);
+  return <Navigate to="/login" replace />;
 }
 
 // Role-based guard
