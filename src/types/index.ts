@@ -129,6 +129,12 @@ export interface CourseEnrollment {
   modified?: string;
 }
 
+export interface Purchase {
+  courseTitle?: string;
+  price?: number;
+  enrollmentDate?: string;
+}
+
 export interface QuizQuestion {
   id?: string;
   quizId?: string;

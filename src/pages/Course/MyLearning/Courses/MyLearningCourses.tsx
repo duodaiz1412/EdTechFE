@@ -14,7 +14,7 @@ export default function MyLearningCourses() {
     queryKey: ["enrollments"],
     queryFn: async () => {
       const accessToken = await getAccessToken();
-      const response = await enrollServices.getEnrollments(accessToken);
+      const response = await enrollServices.getCourseEnrollments(accessToken);
       dispatch(login({...userData, enrollments: response}));
       return response;
     },

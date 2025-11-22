@@ -46,7 +46,7 @@ export default function CourseList() {
   };
 
   return (
-    <div className="w-full p-6 space-y-10">
+    <div className="w-full max-w-[1400px] mx-auto p-6 space-y-10">
       {/* Search */}
       <div className="flex justify-between items-center">
         {/* Labels/Categories */}
@@ -87,7 +87,7 @@ export default function CourseList() {
       {isLoading ? (
         <CourseSkeleton count={6} />
       ) : (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           {courses?.map((course: Course) => {
             const isEnrolled = isCourseEnrolled(
               userData?.courseEnrollments || [],

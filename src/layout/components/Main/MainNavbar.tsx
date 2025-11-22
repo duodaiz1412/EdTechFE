@@ -1,4 +1,3 @@
-import {Bell} from "lucide-react";
 import {Link, useLocation} from "react-router";
 import {useAppSelector} from "@/redux/hooks";
 
@@ -18,11 +17,8 @@ export default function MainNavbar() {
     <nav className="fixed top-0 left-0 right-0 px-6 py-3 shadow flex items-center justify-between bg-white z-10">
       <Logo />
       {isAuthenticated && (
-        <div className="space-x-2 flex items-center">
+        <div className="space-x-4 flex items-center">
           <Link to="/learning">My learning</Link>
-          <button className="btn btn-circle btn-ghost">
-            <Bell size={20} color="#212121" />
-          </button>
           <AvatarMenu />
         </div>
       )}

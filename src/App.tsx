@@ -24,6 +24,7 @@ import Verify from "./pages/Auth/Verify.tsx";
 import MainLayout from "./layout/MainLayout.tsx";
 import Support from "./pages/Info/Support.tsx";
 import About from "./pages/Info/About.tsx";
+import Home from "./pages/Info/Home.tsx";
 
 import MyLearning from "./pages/Course/MyLearning/index.tsx";
 import CourseLayout from "./layout/CourseLayout.tsx";
@@ -33,7 +34,7 @@ import CourseDetail from "./pages/Course/CourseDetail.tsx";
 
 import ProfileLayout from "./layout/ProfileLayout.tsx";
 import Profile from "./pages/Profile/Profile.tsx";
-import Settings from "./pages/Profile/Settings.tsx";
+import PurchaseHistory from "./pages/Profile/PurchaseHistory.tsx";
 import UserList from "./pages/CMS/UserList.tsx";
 import UserDetail from "./pages/CMS/UserDetail.tsx";
 
@@ -54,7 +55,6 @@ import PromotionsContent from "./pages/Instructor/Courses/EditCourse/components/
 import {CourseProvider} from "./context/CourseContext.tsx";
 import BecomeInstructor from "./pages/Instructor/BecomeInstructor.tsx";
 import {enrollServices} from "./lib/services/enroll.services.ts";
-import PublicProfile from "./pages/Profile/PublicProfile.tsx";
 import EditLecture from "./pages/Instructor/Courses/EditCourse/components/EditLecture.tsx";
 import EditVideoLecture from "./pages/Instructor/Courses/EditCourse/components/EditVideoLecture.tsx";
 import EditArticleLecture from "./pages/Instructor/Courses/EditCourse/components/EditArticleLecture.tsx";
@@ -71,7 +71,7 @@ function App() {
       const accessToken = await getAccessToken();
       const response = await userServices.getUserInfo(accessToken);
       const courseEnrollments =
-        await enrollServices.getEnrollments(accessToken);
+        await enrollServices.getCourseEnrollments(accessToken);
 
       // Set global state
       dispatch(
@@ -118,12 +118,10 @@ function App() {
                 </MainLayout>
               }
             >
-              <Route path="/" element={<CourseList />} />
-              <Route path="/tag/:tag" element={<CoursesByTag />} />
-              <Route
-                path="/users/:userId/profile"
-                element={<PublicProfile />}
-              />
+              <Route path="/" element={<Home />} />
+
+              <Route path="/courses" element={<CourseList />} />
+              <Route path="/courses/tag/:tag" element={<CoursesByTag />} />
               <Route path="/course/:slug" element={<CourseDetail />} />
 
               <Route path="/help" element={<Support />} />
@@ -141,7 +139,7 @@ function App() {
                 }
               >
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<Settings />} />
+                <Route path="/purchases" element={<PurchaseHistory />} />
 
                 {/* Admin CMS routes */}
                 <Route

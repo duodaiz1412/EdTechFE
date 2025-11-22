@@ -35,12 +35,26 @@ export const enrollServices = {
     return response.data;
   },
 
-  async getEnrollments(accessToken: string): Promise<CourseEnrollment[]> {
+  async getCourseEnrollments(accessToken: string): Promise<CourseEnrollment[]> {
     const response = await axios.get(`${BASE_API}/enrollments/my-courses`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
+    return response.data;
+  },
+
+  async getPurchaseHistory(accessToken: string, page: number = 1) {
+    const size = 10;
+    const response = await axios.get(
+      BASE_API + "/enrollments/me" + `?page=${page}&size=${size}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
     return response.data;
   },
 };

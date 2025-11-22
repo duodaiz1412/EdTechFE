@@ -1,6 +1,6 @@
 import {useAppDispatch, useAppSelector} from "@/redux/hooks";
 import {logout} from "@/redux/slice/userSlice";
-import {Presentation, User, Settings, LogOut, UsersRound} from "lucide-react";
+import {Presentation, User, LogOut, UsersRound, CreditCard} from "lucide-react";
 import {Link, useNavigate} from "react-router-dom";
 
 export default function AvatarMenu() {
@@ -57,9 +57,9 @@ export default function AvatarMenu() {
           </Link>
         </li>
         <li>
-          <Link to="/settings">
-            <Settings size={20} />
-            <span>Settings</span>
+          <Link to="/purchases">
+            <CreditCard size={20} />
+            <span>Purchase History</span>
           </Link>
         </li>
         <li className="hover:bg-red-50">

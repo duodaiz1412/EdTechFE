@@ -19,7 +19,7 @@ export default function ProtectedRoute() {
       const accessToken = await getAccessToken();
       const response = await userServices.getUserInfo(accessToken);
       const courseEnrollments =
-        await enrollServices.getEnrollments(accessToken);
+        await enrollServices.getCourseEnrollments(accessToken);
 
       // Set global state
       dispatch(
