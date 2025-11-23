@@ -33,7 +33,16 @@ export default function Verify() {
           <h2 className="card-title text-3xl justify-center p-4">
             {isLoading && "Verifying your email..."}
             {!isLoading && !error && "Email verified successfully!"}
-            {!isLoading && error && "Verification failed!"}
+            {!isLoading && error && (
+              <div className="flex flex-col gap-2">
+                Verification failed!
+                <div className="flex justify-center mt-4">
+                  <a href="/login" className="btn btn-primary">
+                    Go back to login
+                  </a>
+                </div>
+              </div>
+            )}
           </h2>
         </div>
       </div>
