@@ -1,6 +1,6 @@
 import {Link} from "react-router-dom";
 
-const MainFooter = () => {
+const Footer = () => {
   const pages = [
     {name: "Home", path: "/"},
     {name: "Courses", path: "/courses"},
@@ -19,7 +19,7 @@ const MainFooter = () => {
   return (
     <footer className="bg-gray-900 text-gray-300 pt-8 mt-auto">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Column 1: Basic Pages */}
           <div className="md:col-span-1">
             <h3 className="text-white text-lg font-semibold mb-4">Pages</h3>
@@ -55,7 +55,7 @@ const MainFooter = () => {
           </div>
 
           {/* Column 3: Contact - Double width */}
-          <div className="md:col-span-1">
+          <div className="md:col-span-2">
             <h3 className="text-white text-lg font-semibold mb-4">
               Contact Us
             </h3>
@@ -80,4 +80,4 @@ const MainFooter = () => {
   );
 };
 
-export default MainFooter;
+export default Footer;

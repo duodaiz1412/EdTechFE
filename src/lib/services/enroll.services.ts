@@ -44,6 +44,35 @@ export const enrollServices = {
     return response.data;
   },
 
+  async enrollFreeBatch(batchSlug: string, accessToken: string) {
+    const response = await axios.post(
+      `${BASE_API}/batches/${batchSlug}/enroll-free`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response;
+  },
+
+  async enrollPaidBatch(
+    batchSlug: string,
+    accessToken: string,
+  ): Promise<Order> {
+    const response = await axios.post(
+      `${BASE_API}/batches/${batchSlug}/enroll-paid`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response.data;
+  },
+
   async getPurchaseHistory(accessToken: string, page: number = 1) {
     const size = 10;
     const response = await axios.get(

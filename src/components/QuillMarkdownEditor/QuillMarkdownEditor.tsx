@@ -30,7 +30,6 @@ export default function QuillMarkdownEditor({
       [{list: "ordered"}, {list: "bullet"}],
       [{indent: "-1"}, {indent: "+1"}],
       [{align: []}],
-      ["link", "image"],
       ["blockquote", "code-block"],
       ["clean"],
     ],

@@ -32,6 +32,11 @@ import CourseList from "./pages/Course/CourseList";
 import CoursesByTag from "./pages/Course/CourseList/CoursesByTag.tsx";
 import CourseDetail from "./pages/Course/CourseDetail.tsx";
 
+import BatchLayout from "./layout/BatchLayout.tsx";
+import BatchList from "./pages/Batch/BatchList/index.tsx";
+import BatchesByTag from "./pages/Batch/BatchList/BatchesByTag.tsx";
+import BatchDetail from "./pages/Batch/BatchDetail.tsx";
+
 import ProfileLayout from "./layout/ProfileLayout.tsx";
 import Profile from "./pages/Profile/Profile.tsx";
 import PurchaseHistory from "./pages/Profile/PurchaseHistory.tsx";
@@ -61,6 +66,7 @@ import EditArticleLecture from "./pages/Instructor/Courses/EditCourse/components
 import EditQuizLecture from "./pages/Instructor/Courses/EditCourse/components/EditQuizLecture.tsx";
 import CourseLandingPreview from "./pages/Instructor/Courses/PreviewCourse/CourseLandingPreview.tsx";
 import SetPayment from "./pages/Instructor/Payment/SetPayment.tsx";
+import MyBatches from "./pages/Instructor/MyBatches.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -124,6 +130,10 @@ function App() {
               <Route path="/courses/tag/:tag" element={<CoursesByTag />} />
               <Route path="/course/:slug" element={<CourseDetail />} />
 
+              <Route path="/batches" element={<BatchList />} />
+              <Route path="/batches/tag/:tag" element={<BatchesByTag />} />
+              <Route path="/batch/:slug" element={<BatchDetail />} />
+
               <Route path="/help" element={<Support />} />
               <Route path="/about" element={<About />} />
             </Route>
@@ -165,6 +175,7 @@ function App() {
                 path="/course/:courseSlug/learn/lesson/:lessonSlug"
                 element={<CourseLayout />}
               />
+              <Route path="/batch/:batchSlug/learn" element={<BatchLayout />} />
               <Route
                 path="/learning"
                 element={
@@ -176,6 +187,23 @@ function App() {
 
               {/* Instructor routes */}
               <Route path="/teaching" element={<BecomeInstructor />} />
+
+              {/* Instructor: Batches management */}
+              <Route path="/batch/:batchSlug/teach" element={<BatchLayout />} />
+              <Route
+                element={
+                  <RoleProtectedRoute
+                    requiredRole="COURSE_CREATOR"
+                    redirectTo="/teaching"
+                  >
+                    <MainLayout>
+                      <Outlet />
+                    </MainLayout>
+                  </RoleProtectedRoute>
+                }
+              >
+                <Route path="/my-batches" element={<MyBatches />} />
+              </Route>
 
               <Route
                 element={

@@ -2,7 +2,7 @@ import MyLearningCourses from "./Courses/MyLearningCourses";
 
 export default function MyLearning() {
   return (
-    <div className="w-full p-6">
+    <div className="w-full max-w-[1400px] mx-auto p-6">
       <h2 className="text-2xl font-semibold mb-6 ml-2">My Learning</h2>
       <div className="tabs tabs-lg tabs-border">
         {/* Courses */}

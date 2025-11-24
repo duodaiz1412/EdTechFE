@@ -279,3 +279,38 @@ export interface Order {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export interface Batch {
+  id?: string;
+  title?: string;
+  description?: string;
+  slug?: string;
+  image?: string;
+  videoLink?: string;
+  paidBatch?: boolean;
+  actualPrice?: number;
+  sellingPrice?: number;
+  language?: string;
+  startTime?: string;
+  endTime?: string;
+  status?: string;
+  maxCapacity?: number;
+  tag?: CourseTag[];
+  label?: CourseLabel[];
+}
+
+export interface BatchPost {
+  id?: string;
+  title?: string;
+  content?: string;
+  author?: User;
+  createdAt?: string;
+  documents?: BatchPostDocument[];
+}
+
+export interface BatchPostDocument {
+  id?: string;
+  batchDiscussionId?: string;
+  fileUrl?: string;
+  uploadedAt?: string;
+}

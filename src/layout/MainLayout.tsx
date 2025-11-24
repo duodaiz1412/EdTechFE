@@ -1,4 +1,4 @@
-import MainFooter from "./components/Main/MainFooter";
+import Footer from "../components/Footer";
 import MainNavbar from "./components/Main/MainNavbar";
 import MainSidebar from "./components/Main/MainSidebar";
 
@@ -12,7 +12,7 @@ export default function MainLayout({children}: MainLayoutProps) {
       <MainNavbar />
       <MainSidebar />
       <main className="mt-16 ml-32 px-4 py-6 min-h-[720px]">{children}</main>
-      <MainFooter />
+      <Footer />
     </div>
   );
 }

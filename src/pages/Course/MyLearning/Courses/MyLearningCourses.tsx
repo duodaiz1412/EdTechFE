@@ -22,7 +22,7 @@ export default function MyLearningCourses() {
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-3 gap-6">
         {userData?.courseEnrollments &&
           userData.courseEnrollments.length > 0 &&
           userData?.courseEnrollments?.map((enroll) => (

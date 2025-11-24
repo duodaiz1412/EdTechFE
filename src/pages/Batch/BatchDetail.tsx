@@ -3,37 +3,28 @@ import {useQuery} from "@tanstack/react-query";
 import {Link, useParams} from "react-router-dom";
 import ReactPlayer from "react-player";
 
-import {Chapter, Course, CourseLabel, CourseTag, Review} from "@/types";
+import {Batch, CourseLabel, CourseTag} from "@/types";
 import {publicServices} from "@/lib/services/public.services";
 import {enrollServices} from "@/lib/services/enroll.services";
-import {progressServices} from "@/lib/services/progress.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {formatPrice} from "@/lib/utils/formatPrice";
-import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
 
 import {toast} from "react-toastify";
 import {useAppSelector} from "@/redux/hooks";
-import {Languages, PlayCircle, XIcon} from "lucide-react";
-import ReadOnlyRating from "@/components/ReadOnlyRating";
-import CourseContentList from "./CourseContent/CourseContentList";
-import CourseReviewItem from "./CourseLesson/Review/CourseReviewItem";
+import {Clock, Languages, PlayCircle, XIcon} from "lucide-react";
 
 import {usePayOS} from "@payos/payos-checkout";
 import HtmlDisplay from "@/components/HtmlDisplay";
 
-export default function CourseDetail() {
+export default function BatchDetail() {
   // Data states
   const {slug} = useParams();
-  const [courseInfo, setCourseInfo] = useState<Course>();
-  const [chapters, setChapters] = useState<Chapter[]>([]);
-  const [averageRating, setAverageRating] = useState<number>(0);
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [batchInfo, setBatchInfo] = useState<Batch>();
   const [isEnrolled, setIsEnrolled] = useState(false);
-  const [currentLessonSlug, setCurrentLessonSlug] = useState("");
 
   // Redux states
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
-  const userData = useAppSelector((state) => state.user.data);
+  //   const userData = useAppSelector((state) => state.user.data);
 
   // Preview states
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -56,47 +47,14 @@ export default function CourseDetail() {
 
   // Fetch course info
   useQuery({
-    queryKey: ["course-info", slug],
+    queryKey: ["batch-info", slug],
     queryFn: async () => {
       if (!slug) return null;
-      const course = await publicServices.getCourseBySlug(slug);
-      setCourseInfo(course);
+      const course = await publicServices.getBatchBySlug(slug);
+      setBatchInfo(course);
       return course;
     },
   });
-
-  // Fetch chapters, reviews, enrollment status, progress
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!slug) return;
-
-      // Get chapters and lessons
-      const chapters = await publicServices.getChapters(slug);
-      setChapters(chapters);
-
-      // Get reviews
-      const avgRating = await publicServices.getAverageRating(slug);
-      setAverageRating(avgRating);
-      const reviews = await publicServices.getReviews(slug);
-      setReviews(reviews.content);
-
-      // Check if user is enrolled this course
-      const enrolled = isCourseEnrolled(
-        userData?.courseEnrollments || [],
-        slug,
-      );
-      setIsEnrolled(enrolled);
-
-      // Get progress
-      if (enrolled) {
-        const accessToken = await getAccessToken();
-        const progress = await progressServices.getProgress(slug, accessToken);
-        setCurrentLessonSlug(progress.currentLessonSlug || "");
-      }
-    };
-
-    fetchData();
-  }, [slug, userData]);
 
   const handleEnroll = async () => {
     if (!isAuthenticated) {
@@ -105,8 +63,8 @@ export default function CourseDetail() {
 
     const accessToken = await getAccessToken();
 
-    if (!courseInfo?.paidCourse) {
-      const response = await enrollServices.enrollFreeCourse(
+    if (!batchInfo?.paidBatch) {
+      const response = await enrollServices.enrollFreeBatch(
         slug || "",
         accessToken,
       );
@@ -116,7 +74,7 @@ export default function CourseDetail() {
       }
     } else {
       setIsPaying(true);
-      const order = await enrollServices.enrollPaidCourse(
+      const order = await enrollServices.enrollPaidBatch(
         slug || "",
         accessToken,
       );
@@ -148,36 +106,31 @@ export default function CourseDetail() {
       <div className="flex items-start space-x-12 pt-6">
         {/* Course info */}
         <div className="w-2/3 space-y-10">
-          <h2 className="text-3xl font-bold">{courseInfo?.title}</h2>
+          <h2 className="text-3xl font-bold">{batchInfo?.title}</h2>
           {/* General info */}
           <div className="space-y-3 text-sm">
-            <p className="text-xl">{courseInfo?.shortIntroduction}</p>
-            <div className="flex space-x-2 items-start">
-              <span className="font-semibold text-orange-900">
-                {averageRating || 0}
-              </span>
-              <ReadOnlyRating rating={averageRating || 0} size="xs" />
-              <span>({courseInfo?.enrollments || 0} students)</span>
+            {/* Time */}
+            <div className="flex items-center space-x-2">
+              <div className="flex space-x-2">
+                <Clock size={20} />
+                <span>Duration:</span>
+              </div>
+              <p>
+                {new Date(batchInfo?.startTime || "").toLocaleDateString(
+                  "vi-VN",
+                )}{" "}
+                -{" "}
+                {new Date(batchInfo?.endTime || "").toLocaleDateString("vi-VN")}
+              </p>
             </div>
-            {/* Instructors */}
-            <div>
-              <span className="font-semibold">Create by: </span>
-              {courseInfo?.instructors?.map((instructor) => (
-                <Link
-                  to={`/users/${instructor.id}/profile`}
-                  key={instructor.id}
-                  className="link link-hover"
-                >
-                  {instructor.fullName}
-                </Link>
-              ))}
-            </div>
+            {/* Instructor */}
+            {/* Language and labels */}
             <div className="flex items-center space-x-6">
               <div className="flex space-x-2">
-                <Languages size={20} />: <span>{courseInfo?.language}</span>
+                <Languages size={20} />: <span>{batchInfo?.language}</span>
               </div>
               <div className="flex space-x-2">
-                {courseInfo?.labels?.map((label: CourseLabel) => (
+                {batchInfo?.label?.map((label: CourseLabel) => (
                   <span key={label.id} className="badge bg-blue-600 text-white">
                     {label.name}
                   </span>
@@ -185,19 +138,14 @@ export default function CourseDetail() {
               </div>
             </div>
           </div>
-          {/* Description */}
-          <div>
-            <h3 className="text-xl font-semibold mb-4">Description</h3>
-            <HtmlDisplay html={courseInfo?.description || "No description"} />
-          </div>
           {/* Topics (tags) */}
           <div>
             <h3 className="text-xl font-semibold mb-4">
               Explore related topics
             </h3>
-            {courseInfo?.tags?.map((tag: CourseTag) => (
+            {batchInfo?.tag?.map((tag: CourseTag) => (
               <Link
-                to={`/courses/tag/${tag.name}`}
+                to={`/batches/tag/${tag.name}`}
                 key={tag.id}
                 className="btn rounded-lg mr-4"
               >
@@ -205,49 +153,28 @@ export default function CourseDetail() {
               </Link>
             ))}
           </div>
-          {/* List of lessons */}
+          {/* Max capacity */}
           <div>
-            <h3 className="text-xl font-semibold mb-4">Course contents</h3>
-            <CourseContentList
-              chapters={chapters}
-              courseSlug={courseInfo?.slug}
-            />
+            <h3 className="text-xl font-semibold mb-4">Max capacity</h3>
+            <p className="text-lg font-semibold">{batchInfo?.maxCapacity}</p>
           </div>
-          {/* Skill level */}
+          {/* Description */}
           <div>
-            <h3 className="text-xl font-semibold mb-4">Course level</h3>
-            <p>{courseInfo?.skillLevel || "Not specified"}</p>
-          </div>
-          {/* Who is this course for*/}
-          <div>
-            <h3 className="text-xl font-semibold mb-4">
-              Who is this course for?
-            </h3>
-            <p>{courseInfo?.targetAudience || "Not specified"}</p>
-          </div>
-          {/* Reviews */}
-          <div>
-            <h3 className="text-xl font-semibold mb-4">Reviews</h3>
-            <div className="grid grid-cols-2 gap-6">
-              {reviews.length > 0 &&
-                reviews.map((review) => (
-                  <CourseReviewItem key={review.id} review={review} />
-                ))}
-              {reviews.length === 0 && <p>No reviews yet.</p>}
-            </div>
+            <h3 className="text-xl font-semibold mb-4">Description</h3>
+            <HtmlDisplay html={batchInfo?.description || "No description"} />
           </div>
         </div>
-        {/* Course enroll */}
+        {/* Batch enroll */}
         <div className="w-1/3 space-y-4">
           <div className="card border border-slate-200 shadow-sm rounded-lg">
             <figure className="h-56 border-b border-b-slate-200">
-              {courseInfo?.image && (
+              {batchInfo?.image && (
                 <img
                   className="w-full h-full object-cover"
-                  src={courseInfo.image}
+                  src={batchInfo.image}
                 />
               )}
-              {!courseInfo?.image && (
+              {!batchInfo?.image && (
                 <div className="w-full h-full bg-slate-100 text-slate-500 flex justify-center items-center">
                   No image
                 </div>
@@ -257,27 +184,24 @@ export default function CourseDetail() {
               {!isEnrolled ? (
                 <>
                   <p className="text-2xl font-bold">
-                    {courseInfo?.paidCourse &&
-                      formatPrice(
-                        courseInfo?.sellingPrice,
-                        courseInfo?.currency,
-                      )}
-                    {!courseInfo?.paidCourse && "Free Course"}
+                    {batchInfo?.paidBatch &&
+                      formatPrice(batchInfo?.sellingPrice, "VND")}
+                    {!batchInfo?.paidBatch && "Free Batch"}
                   </p>
                   <button className="btn btn-neutral" onClick={handleEnroll}>
-                    Enroll this course
+                    Enroll this batch
                   </button>
                 </>
               ) : (
                 <Link
-                  to={`/course/${courseInfo?.slug}/learn/lesson/${currentLessonSlug || chapters?.[0]?.lessons?.[0]?.slug}`}
+                  to={`/course/${batchInfo?.slug}/learn`}
                   className="btn btn-neutral"
                 >
                   Continue learning
                 </Link>
               )}
               <button className="btn" onClick={() => setIsPreviewOpen(true)}>
-                Course introduction
+                Batch introduction
               </button>
             </div>
           </div>
@@ -286,9 +210,9 @@ export default function CourseDetail() {
       {/* Preview video modal */}
       {isPreviewOpen && (
         <div className="fixed top-0 left-0 right-0 bottom-0 z-50 bg-[rgba(0,0,0,0.5)] flex justify-center items-center">
-          {courseInfo?.videoLink && (
+          {batchInfo?.videoLink && (
             <ReactPlayer
-              src={courseInfo?.videoLink}
+              src={batchInfo?.videoLink}
               style={{
                 width: "calc(100% / 3 * 2)",
                 height: "calc(100% / 4 * 3)",
@@ -296,7 +220,7 @@ export default function CourseDetail() {
               controls
             />
           )}
-          {!courseInfo?.videoLink && (
+          {!batchInfo?.videoLink && (
             <div className="w-2/3 h-2/3 bg-slate-100 flex items-center justify-center text-slate-500">
               <PlayCircle size={40} />
               <span className="ml-4 font-semibold text-lg">
@@ -318,7 +242,7 @@ export default function CourseDetail() {
         <div className="flex flex-col items-center space-y-4 bg-white opacity-100 rounded-lg p-4">
           <div id="embedded-payment-container" className="w-96 h-96"></div>
           <p className="text-xl font-semibold">
-            Total: {formatPrice(courseInfo?.sellingPrice, courseInfo?.currency)}
+            Total: {formatPrice(batchInfo?.sellingPrice, "VND")}
           </p>
           <button className="btn btn-outline" onClick={handleCancelPayment}>
             Cancel
