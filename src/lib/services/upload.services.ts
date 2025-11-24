@@ -13,6 +13,7 @@ const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
 // Upload API Endpoints
 const UPLOAD_ENDPOINTS = {
   GENERATE_PRESIGNED_URL: BASE_API + "/uploads/generate-url",
+  GET_URL: BASE_API + "/uploads/get-url",
   UPLOAD_VIDEO: BASE_API + "/uploads/videos",
 } as const;
 
@@ -126,5 +127,29 @@ export const uploadVideoForTranscoding = async (
   } catch {
     toast.error("Cannot upload video for transcoding");
     throw new Error("Cannot upload video for transcoding");
+  }
+};
+
+/**
+ * Lấy URL của file từ MinIO bằng objectName
+ */
+export const getFileUrlFromMinIO = async (
+  objectName: string,
+): Promise<{uploadUrl: string; objectName: string}> => {
+  try {
+    const accessToken = await getAccessToken();
+    const response = await axios.get<{uploadUrl: string; objectName: string}>(
+      UPLOAD_ENDPOINTS.GET_URL,
+      {
+        params: {objectName},
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response.data;
+  } catch {
+    toast.error("Cannot get file URL");
+    throw new Error("Cannot get file URL");
   }
 };

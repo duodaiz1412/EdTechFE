@@ -6,6 +6,7 @@ import {
   Wrench,
   HelpCircle,
   CreditCard,
+  Video,
 } from "lucide-react";
 import {InstructorSidebarItem} from "./InstructorSidebarItem";
 import Logo from "@/components/Logo";
@@ -18,6 +19,11 @@ export default function InstructorSidebar() {
       to: "/instructor",
       icon: <BookOpen className="w-5 h-5" />,
       label: "Courses",
+    },
+    {
+      to: "/instructor/batch",
+      icon: <Video className="w-5 h-5" />,
+      label: "Batches",
     },
     {
       to: "/instructor/communication",

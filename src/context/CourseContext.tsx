@@ -72,11 +72,25 @@ export interface CourseWizardState {
 // Batch Management Types
 export interface BatchFormData {
   title: string;
-  description?: string;
-  startDate?: string;
-  endDate?: string;
-  maxStudents?: number;
-  courseId: string;
+  timeCommitment: string;
+  tags: {name: string}[];
+  labels: {name: string}[];
+  actualPrice: number;
+  sellingPrice: number;
+  amountUsd: number;
+  currency: string;
+  image: string;
+  videoLink: string;
+  maxCapacity: number;
+  description: string;
+  openTime?: string;
+  closeTime?: string;
+  maxStudents: number;
+  language: string;
+  startTime?: string;
+  endTime?: string;
+  paidBatch?: boolean;
+  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
 }
 
 export interface BatchWizardState {
@@ -102,10 +116,11 @@ interface CourseContextType {
   setCurrentStep: (step: number) => void;
   nextStep: () => void;
   prevStep: () => void;
-  canProceed: boolean;
+  canProceed: (type: "course" | "batch") => boolean;
 
   // Validation
   validateField: (field: keyof CourseFormData) => string | null;
+  validateBatchField: (field: keyof BatchFormData) => string | null;
 
   // Constants
   totalSteps: number;
@@ -144,16 +159,6 @@ interface CourseContextType {
   // Enrollment Management APIs
   getCourseEnrollments: (courseId: string) => Promise<EnrollmentData[]>;
   removeEnrollment: (enrollmentId: string) => Promise<boolean>;
-
-  // Course Instructor Management APIs
-  addInstructorToCourse: (
-    courseId: string,
-    instructorId: string,
-  ) => Promise<boolean>;
-  removeInstructorFromCourse: (
-    courseId: string,
-    instructorId: string,
-  ) => Promise<boolean>;
 
   // Batch Management APIs
   createBatch: (batchData: IBatchRequest) => Promise<IBatch | null>;
@@ -232,10 +237,22 @@ const initialWizardState: CourseWizardState = {
 const initialBatchFormData: BatchFormData = {
   title: "",
   description: "",
-  startDate: "",
-  endDate: "",
   maxStudents: 0,
-  courseId: "",
+  maxCapacity: 0,
+  timeCommitment: "",
+  tags: [],
+  labels: [],
+  actualPrice: 0,
+  language: "",
+  sellingPrice: 0,
+  startTime: "",
+  endTime: "",
+  paidBatch: false,
+  status: "DRAFT",
+  image: "",
+  videoLink: "",
+  currency: "",
+  amountUsd: 0,
 };
 
 const initialBatchWizardState: BatchWizardState = {
@@ -285,8 +302,6 @@ export function CourseProvider({children}: CourseProviderProps) {
     getCourseQuizSubmissions,
     getCourseEnrollments,
     removeEnrollment,
-    addInstructorToCourse,
-    removeInstructorFromCourse,
     createBatch,
     updateBatch,
     deleteBatch,
@@ -303,7 +318,7 @@ export function CourseProvider({children}: CourseProviderProps) {
   const {isLoading, error, isSubmitting} = state;
 
   const totalSteps = 3;
-  const stepTitles = ["Course Title", "Tags & Labels", "Working Hours"];
+  const stepTitles = ["Title", "Tags & Labels", "Working Hours"];
 
   // Memoized current step
   const currentStep = useMemo(
@@ -506,19 +521,94 @@ export function CourseProvider({children}: CourseProviderProps) {
     [formData],
   );
 
-  // Check if can proceed to next step
-  const canProceed = useMemo(() => {
-    switch (currentStep) {
-      case 0: // Course Title
-        return !validateField("title");
-      case 1: // Tags & Labels
-        return !validateField("tag") && !validateField("label");
-      case 2: // Working Hours - optional
-        return true; // Working hours is optional
-      default:
-        return false;
+  const validateBatchField = (field: keyof BatchFormData): string | null => {
+    const value = batchFormData[field];
+
+    switch (field) {
+      case "title":
+        if (!value || (value as string).trim().length === 0) {
+          return "Batch title is required";
+        }
+        if ((value as string).trim().length < 3) {
+          return "Title must be at least 3 characters";
+        }
+        if ((value as string).trim().length > 100) {
+          return "Title cannot exceed 100 characters";
+        }
+        break;
+
+      case "description":
+        if (!value || (value as string).trim().length === 0) {
+          return "Batch description is required";
+        }
+        if ((value as string).trim().length < 10) {
+          return "Description must be at least 10 characters";
+        }
+        break;
+
+      case "actualPrice":
+        if (typeof value !== "number" || value < 0) {
+          return "Batch price must be a positive number";
+        }
+        break;
+
+      case "timeCommitment":
+        if (!value || (value as string).trim().length === 0) {
+          return "Time commitment is required";
+        }
+        break;
+
+      case "tags":
+        if (Array.isArray(value) && value.length > 10) {
+          return "Cannot have more than 10 tags";
+        }
+        break;
+
+      case "labels":
+        if (Array.isArray(value) && value.length > 5) {
+          return "Cannot have more than 5 labels";
+        }
+        break;
     }
-  }, [currentStep, validateField]);
+
+    return null;
+  };
+
+  // Check if can proceed to the next step for either wizard
+  const canProceed = useCallback(
+    (type: "course" | "batch"): boolean => {
+      if (type === "course") {
+        switch (wizardState.currentStep) {
+          case 0: // Course Title
+            return !validateField("title");
+          case 1: // Tags & Labels
+            return !validateField("tag") && !validateField("label");
+          case 2: // Working Hours - optional
+            return true; // This step is optional
+          default:
+            return false;
+        }
+      } else {
+        // Assuming similar step logic for batch creation
+        switch (batchWizardState.currentStep) {
+          case 0: // Batch Title
+            return !validateBatchField("title");
+          case 1: // Tags & Labels
+            return !validateBatchField("tags") && !validateBatchField("labels");
+          case 2: // Working Hours - optional
+            return true; // This step is optional
+          default:
+            return false;
+        }
+      }
+    },
+    [
+      wizardState.currentStep,
+      validateField,
+      batchWizardState.currentStep,
+      validateBatchField,
+    ],
+  );
 
   const value: CourseContextType = {
     // Form data
@@ -541,6 +631,7 @@ export function CourseProvider({children}: CourseProviderProps) {
 
     // Validation
     validateField,
+    validateBatchField,
 
     // Constants
     totalSteps,
@@ -575,10 +666,6 @@ export function CourseProvider({children}: CourseProviderProps) {
     // Enrollment Management APIs
     getCourseEnrollments,
     removeEnrollment,
-
-    // Course Instructor Management APIs
-    addInstructorToCourse,
-    removeInstructorFromCourse,
 
     // Batch Management APIs
     createBatch,

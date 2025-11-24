@@ -3,6 +3,7 @@ export enum UploadPurpose {
   COURSE_THUMBNAIL = "COURSE_THUMBNAIL",
   LESSON_RESOURCE = "LESSON_RESOURCE",
   LESSON_VIDEO = "LESSON_VIDEO",
+  BATCH_THUMBNAIL = "BATCH_THUMBNAIL",
 }
 
 export interface PresignedUrlRequest {

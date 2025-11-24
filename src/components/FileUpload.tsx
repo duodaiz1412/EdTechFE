@@ -28,6 +28,7 @@ export default function FileUpload({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [displaySrc, setDisplaySrc] = useState<string | null>(null);
 
   const uploadHook = useUploadFile({
     onSuccess: (url) => {
@@ -91,26 +92,43 @@ export default function FileUpload({
     };
   }, [previewUrl]);
 
+  useEffect(() => {
+    // If src (objectName) is provided and it's not a full URL, fetch the presigned URL
+    if (src && !src.startsWith("http")) {
+      const fetchUrl = async () => {
+        try {
+          const url = await uploadHook.getFileUrl(src);
+          setDisplaySrc(url?.uploadUrl != undefined ? url?.uploadUrl : "");
+        } catch {
+          setDisplaySrc(null);
+        }
+      };
+      fetchUrl();
+    } else {
+      setDisplaySrc(src || null);
+    }
+  }, [src, uploadHook.getFileUrl]);
+
   const isImage = accept === "image/*";
 
   return (
     <div className={`space-y-4 ${className}`}>
       <h4 className="text-lg font-semibold text-gray-900">{title}</h4>
 
-      <div className="flex gap-6">
+      <div className="flex flex-wrap gap-6">
         {/* Preview Area */}
         <div className="w-64 h-40 bg-gray-200 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden">
-          {previewUrl || src ? (
+          {previewUrl || displaySrc ? (
             <div className="relative w-full h-full">
               {isImage ? (
                 <img
-                  src={previewUrl || src || ""}
+                  src={previewUrl || displaySrc || ""}
                   alt="Preview"
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <video
-                  src={previewUrl || src || ""}
+                  src={previewUrl || displaySrc || ""}
                   className="w-full h-full object-cover"
                   controls
                   muted
@@ -144,7 +162,7 @@ export default function FileUpload({
               )}
 
               {/* Current File Badge - chỉ hiện khi không có previewUrl (file mới) */}
-              {src && !previewUrl && !uploadedUrl && (
+              {displaySrc && !previewUrl && !uploadedUrl && (
                 <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded-full text-xs">
                   Current
                 </div>
