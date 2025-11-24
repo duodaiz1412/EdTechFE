@@ -61,6 +61,9 @@ import EditArticleLecture from "./pages/Instructor/Courses/EditCourse/components
 import EditQuizLecture from "./pages/Instructor/Courses/EditCourse/components/EditQuizLecture.tsx";
 import CourseLandingPreview from "./pages/Instructor/Courses/PreviewCourse/CourseLandingPreview.tsx";
 import SetPayment from "./pages/Instructor/Payment/SetPayment.tsx";
+import InstructorBatch from "./pages/Instructor/Batchs/index.tsx";
+import CreateBatch from "./pages/Instructor/Batchs/CreateBatch/index.tsx";
+import EditBatch from "./pages/Instructor/Batchs/EditBatch/index.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -192,9 +195,37 @@ function App() {
                 }
               >
                 <Route path="/instructor" element={<InstructorCourse />} />
+                <Route path="/instructor/batch" element={<InstructorBatch />} />
                 <Route path="/instructor/payment" element={<SetPayment />} />
               </Route>
 
+              {/* Instructor - Create/Edit Batch routes (without sidebar) */}
+              <Route
+                path="/instructor/batch/create"
+                element={
+                  <RoleProtectedRoute
+                    requiredRole="COURSE_CREATOR"
+                    redirectTo="/teaching"
+                  >
+                    <CourseProvider>
+                      <CreateBatch />
+                    </CourseProvider>
+                  </RoleProtectedRoute>
+                }
+              />
+              <Route
+                path="/instructor/batch/:batchId/edit"
+                element={
+                  <RoleProtectedRoute
+                    requiredRole="COURSE_CREATOR"
+                    redirectTo="/teaching"
+                  >
+                    <CourseProvider>
+                      <EditBatch />
+                    </CourseProvider>
+                  </RoleProtectedRoute>
+                }
+              />
               {/* Instructor - Create/Edit Course routes (without sidebar) */}
               <Route
                 path="/instructor/courses/create"

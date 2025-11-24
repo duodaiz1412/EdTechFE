@@ -258,20 +258,37 @@ export interface CourseProgressResponse {
 export interface IBatchRequest {
   title: string;
   description?: string;
-  startDate?: string;
-  endDate?: string;
-  maxStudents?: number;
-  courseId: string;
+  image?: string;
+  videoLink?: string;
+  paidBatch?: boolean;
+  actualPrice?: number; // Maps to BigDecimal
+  sellingPrice?: number; // Maps to BigDecimal
+  amountUsd?: number;
+  currency?: string;
+  language?: string;
+  startTime?: Date; // Maps to LocalDateTime
+  endTime?: Date; // Maps to LocalDateTime
+  openTime?: Date;
+  closeTime?: Date;
+  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  maxCapacity?: number; // Maps to Integer
+  languate?: string;
+  tags: Array<{
+    name: string;
+  }>;
+  labels: Array<{
+    name: string;
+  }>;
 }
 
 export interface IBatch {
   id: string;
   title: string;
   description?: string;
-  startDate?: string;
-  endDate?: string;
+  image?: string;
+  videoLink: string;
   maxStudents?: number;
-  status: "DRAFT" | "PUBLISHED" | "ACTIVE" | "COMPLETED";
+  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
   course: ICourse;
   instructors: Array<{
     id: string;
@@ -279,8 +296,27 @@ export interface IBatch {
     email: string;
   }>;
   enrollments: number;
+  maxCapacity: number;
+  tags: Array<{
+    id: string;
+    name: string;
+  }>;
+  labels: Array<{
+    id: string;
+    name: string;
+  }>;
+  actualPrice?: number;
+  sellingPrice?: number;
+  amountUsd?: number;
+  currency?: string;
+  startTime: Date;
+  endTime: Date;
+  openTime: Date;
+  closeTime: Date;
   createdAt: string;
   updatedAt: string;
+  language: string;
+  paidBatch: boolean;
 }
 
 export interface IInstructorIdRequest {

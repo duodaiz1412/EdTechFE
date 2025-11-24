@@ -5,6 +5,7 @@ import {
   UseUploadFileOptions,
 } from "../types/upload.types";
 import {
+  getFileUrlFromMinIO,
   generatePresignedUrl,
   uploadFileToMinIO,
   uploadVideoForTranscoding,
@@ -180,6 +181,11 @@ export const useUploadFile = (options?: UseUploadFileOptions) => {
     [options],
   );
 
+  const getFileUrl = useCallback(async (objectName: string) => {
+    if (!objectName) return null;
+    return getFileUrlFromMinIO(objectName);
+  }, []);
+
   return {
     // State
     ...state,
@@ -191,6 +197,7 @@ export const useUploadFile = (options?: UseUploadFileOptions) => {
     uploadLessonResource,
     uploadLessonVideo,
     uploadVideo,
+    getFileUrl,
     resetState,
   };
 };

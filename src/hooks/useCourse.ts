@@ -95,16 +95,6 @@ export interface UseCourseReturn {
   getCourseEnrollments: (courseId: string) => Promise<EnrollmentData[]>;
   removeEnrollment: (enrollmentId: string) => Promise<boolean>;
 
-  // Course Instructor Management APIs
-  addInstructorToCourse: (
-    courseId: string,
-    instructorId: string,
-  ) => Promise<boolean>;
-  removeInstructorFromCourse: (
-    courseId: string,
-    instructorId: string,
-  ) => Promise<boolean>;
-
   // Batch Management APIs
   createBatch: (batchData: IBatchRequest) => Promise<IBatch | null>;
   updateBatch: (batchId: string, batchData: IBatchRequest) => Promise<boolean>;
@@ -942,61 +932,6 @@ const useCourse = (): UseCourseReturn => {
     [getAccessToken, handleError, setLoading, clearError],
   );
 
-  // Course Instructor Management APIs
-  const addInstructorToCourse = useCallback(
-    async (courseId: string, instructorId: string): Promise<boolean> => {
-      try {
-        setLoading(true);
-        clearError();
-
-        const accessToken = getAccessToken();
-        if (!accessToken) {
-          throw new Error("No access token found");
-        }
-
-        await CourseService.addInstructorToCourse(
-          courseId,
-          instructorId,
-          accessToken,
-        );
-        return true;
-      } catch (err) {
-        handleError(err, "addInstructorToCourse");
-        return false;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [getAccessToken, handleError, setLoading, clearError],
-  );
-
-  const removeInstructorFromCourse = useCallback(
-    async (courseId: string, instructorId: string): Promise<boolean> => {
-      try {
-        setLoading(true);
-        clearError();
-
-        const accessToken = getAccessToken();
-        if (!accessToken) {
-          throw new Error("No access token found");
-        }
-
-        await CourseService.removeInstructorFromCourse(
-          courseId,
-          instructorId,
-          accessToken,
-        );
-        return true;
-      } catch (err) {
-        handleError(err, "removeInstructorFromCourse");
-        return false;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [getAccessToken, handleError, setLoading, clearError],
-  );
-
   // Batch Management APIs
   const createBatch = useCallback(
     async (batchData: IBatchRequest): Promise<IBatch | null> => {
@@ -1244,11 +1179,6 @@ const useCourse = (): UseCourseReturn => {
     // Enrollment Management APIs
     getCourseEnrollments,
     removeEnrollment,
-
-    // Course Instructor Management APIs
-    addInstructorToCourse,
-    removeInstructorFromCourse,
-
     // Batch Management APIs
     createBatch,
     updateBatch,
