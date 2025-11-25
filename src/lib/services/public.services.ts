@@ -9,9 +9,12 @@ export const publicServices = {
     search: string = "",
     tags: string = "",
     labels: string = "",
+    size: number = 10,
   ) {
     const response = await axios.get(
-      BASE_API + "/courses" + `?search=${search}&tags=${tags}&labels=${labels}`,
+      BASE_API +
+        "/courses" +
+        `?search=${search}&tags=${tags}&labels=${labels}&size=${size}`,
     );
     return response.data;
   },
@@ -48,9 +51,12 @@ export const publicServices = {
     search: string = "",
     tags: string = "",
     labels: string = "",
+    size: number = 10,
   ) {
     const response = await axios.get(
-      BASE_API + "/batches" + `?search=${search}&tags=${tags}&labels=${labels}`,
+      BASE_API +
+        "/batches" +
+        `?search=${search}&tags=${tags}&labels=${labels}&size=${size}`,
     );
     return response.data;
   },

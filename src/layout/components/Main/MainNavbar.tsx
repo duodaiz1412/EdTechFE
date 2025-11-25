@@ -7,6 +7,7 @@ import AvatarMenu from "@/components/AvatarMenu";
 export default function MainNavbar() {
   const location = useLocation();
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
+  const userData = useAppSelector((state) => state.user.data);
 
   const handleAuthen = () => {
     const redirectPath = location.pathname;
@@ -18,6 +19,9 @@ export default function MainNavbar() {
       <Logo />
       {isAuthenticated && (
         <div className="space-x-4 flex items-center">
+          {userData?.roles.includes("COURSE_CREATOR") && (
+            <Link to="/my-batches">My batches</Link>
+          )}
           <Link to="/learning">My learning</Link>
           <AvatarMenu />
         </div>

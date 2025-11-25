@@ -68,12 +68,12 @@ export interface User {
   roles?: Role[];
 }
 
-export interface CourseTag {
+export interface Tag {
   id?: string;
   name?: string;
 }
 
-export interface CourseLabel {
+export interface Label {
   id?: string;
   name?: string;
 }
@@ -107,8 +107,8 @@ export interface Course {
   skillLevel?: string;
   targetAudience?: string;
   learnerProfileDesc?: string;
-  tags?: CourseTag[];
-  labels?: CourseLabel[];
+  tags?: Tag[];
+  labels?: Label[];
   instructors?: CourseInstructor[];
 }
 
@@ -295,8 +295,8 @@ export interface Batch {
   endTime?: string;
   status?: string;
   maxCapacity?: number;
-  tag?: CourseTag[];
-  label?: CourseLabel[];
+  tags?: Tag[];
+  labels?: Label[];
 }
 
 export interface BatchPost {

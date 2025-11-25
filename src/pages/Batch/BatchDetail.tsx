@@ -3,7 +3,7 @@ import {useQuery} from "@tanstack/react-query";
 import {Link, useParams} from "react-router-dom";
 import ReactPlayer from "react-player";
 
-import {Batch, CourseLabel, CourseTag} from "@/types";
+import {Batch, Label, Tag} from "@/types";
 import {publicServices} from "@/lib/services/public.services";
 import {enrollServices} from "@/lib/services/enroll.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
@@ -130,7 +130,7 @@ export default function BatchDetail() {
                 <Languages size={20} />: <span>{batchInfo?.language}</span>
               </div>
               <div className="flex space-x-2">
-                {batchInfo?.label?.map((label: CourseLabel) => (
+                {batchInfo?.labels?.map((label: Label) => (
                   <span key={label.id} className="badge bg-blue-600 text-white">
                     {label.name}
                   </span>
@@ -143,7 +143,7 @@ export default function BatchDetail() {
             <h3 className="text-xl font-semibold mb-4">
               Explore related topics
             </h3>
-            {batchInfo?.tag?.map((tag: CourseTag) => (
+            {batchInfo?.tags?.map((tag: Tag) => (
               <Link
                 to={`/batches/tag/${tag.name}`}
                 key={tag.id}

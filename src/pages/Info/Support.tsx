@@ -26,7 +26,7 @@ export default function Support() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 p-6">
+    <div className="max-w-7xl mx-auto space-y-8 p-6">
       {/* Header */}
       <div className="text-center space-y-3">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-2">

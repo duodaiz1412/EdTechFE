@@ -3,7 +3,7 @@ import {useQuery} from "@tanstack/react-query";
 import {Link, useParams} from "react-router-dom";
 import ReactPlayer from "react-player";
 
-import {Chapter, Course, CourseLabel, CourseTag, Review} from "@/types";
+import {Chapter, Course, Label, Tag, Review} from "@/types";
 import {publicServices} from "@/lib/services/public.services";
 import {enrollServices} from "@/lib/services/enroll.services";
 import {progressServices} from "@/lib/services/progress.services";
@@ -177,7 +177,7 @@ export default function CourseDetail() {
                 <Languages size={20} />: <span>{courseInfo?.language}</span>
               </div>
               <div className="flex space-x-2">
-                {courseInfo?.labels?.map((label: CourseLabel) => (
+                {courseInfo?.labels?.map((label: Label) => (
                   <span key={label.id} className="badge bg-blue-600 text-white">
                     {label.name}
                   </span>
@@ -195,7 +195,7 @@ export default function CourseDetail() {
             <h3 className="text-xl font-semibold mb-4">
               Explore related topics
             </h3>
-            {courseInfo?.tags?.map((tag: CourseTag) => (
+            {courseInfo?.tags?.map((tag: Tag) => (
               <Link
                 to={`/courses/tag/${tag.name}`}
                 key={tag.id}

@@ -1,13 +1,6 @@
 import {useAppDispatch, useAppSelector} from "@/redux/hooks";
 import {logout} from "@/redux/slice/userSlice";
-import {
-  Presentation,
-  User,
-  LogOut,
-  UsersRound,
-  CreditCard,
-  Video,
-} from "lucide-react";
+import {Presentation, User, LogOut, UsersRound, CreditCard} from "lucide-react";
 import {Link, useNavigate} from "react-router-dom";
 
 export default function AvatarMenu() {
@@ -63,14 +56,6 @@ export default function AvatarMenu() {
             <span>Instructor</span>
           </Link>
         </li>
-        {userData?.roles.includes("COURSE_CREATOR") && (
-          <li>
-            <Link to="/my-batches">
-              <Video size={20} />
-              <span>Published Batches</span>
-            </Link>
-          </li>
-        )}
         <li>
           <Link to="/purchases">
             <CreditCard size={20} />

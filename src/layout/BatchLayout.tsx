@@ -22,18 +22,36 @@ export default function BatchLayout() {
   return (
     <div>
       <BatchNavbar batchSlug={batchSlug || ""} batchName={data?.title} />
-      <div className="mt-16 w-full max-w-[1400px] mx-auto px-4 py-6 space-y-6">
+      <div className="mt-16 w-full max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* Basic batches info */}
-        <div className="h-96 w-full rounded-2xl bg-blue-600 p-10 space-y-4 text-white">
-          <h2 className="text-5xl font-bold">{data?.title}</h2>
-          <p>
-            <span className="font-semibold">Instructor: </span>
-          </p>
-          <p>
-            <span className="font-semibold">Duration: </span>
-            {new Date(data?.startTime || "").toLocaleDateString("vi-VN")} -{" "}
-            {new Date(data?.endTime || "").toLocaleDateString("vi-VN")}
-          </p>
+        <div className="relative h-96 w-full rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-10 shadow-xl overflow-hidden">
+          {/* Decorative background elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+
+          {/* Content */}
+          <div className="relative z-10 h-full flex flex-col justify-between text-white">
+            <div className="space-y-4">
+              <h2 className="text-5xl font-bold leading-tight tracking-tight">
+                {data?.title}
+              </h2>
+              <div className="space-y-2 text-blue-50">
+                <p className="flex items-center gap-2">
+                  <span className="font-semibold text-white">Instructor:</span>
+                </p>
+                <p className="flex items-center gap-2">
+                  <span className="font-semibold text-white">Duration:</span>
+                  <span>
+                    {new Date(data?.startTime || "").toLocaleDateString(
+                      "vi-VN",
+                    )}{" "}
+                    -{" "}
+                    {new Date(data?.endTime || "").toLocaleDateString("vi-VN")}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
         {/* Discussion, Records and Info */}
         <div className="grid grid-cols-5 gap-6">

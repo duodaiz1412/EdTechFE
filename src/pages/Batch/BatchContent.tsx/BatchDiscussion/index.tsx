@@ -53,7 +53,7 @@ export default function BatchDiscussion({batchId}: BatchDiscussionProps) {
             {/* All posts */}
             <div>
               {posts.map((post) => (
-                <BatchPostItem key={post.id} post={post} />
+                <BatchPostItem key={post.id} post={post} batchId={batchId} />
               ))}
             </div>
             {/* Pagination */}
