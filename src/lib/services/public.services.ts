@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import {Batch, Chapter, Course, User} from "@/types";
+import {Batch, Chapter, Course} from "@/types";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1/public";
 
@@ -9,13 +9,14 @@ export const publicServices = {
     search: string = "",
     tags: string = "",
     labels: string = "",
-    size: number = 10,
+    size?: number,
   ) {
-    const response = await axios.get(
+    const api =
       BASE_API +
-        "/courses" +
-        `?search=${search}&tags=${tags}&labels=${labels}&size=${size}`,
-    );
+      "/courses" +
+      `?search=${search}&tags=${tags}&labels=${labels}` +
+      (size ? `&size=${size}` : "");
+    const response = await axios.get(api);
     return response.data;
   },
 
@@ -42,22 +43,18 @@ export const publicServices = {
     return response.data;
   },
 
-  async getPublicProfile(userId: string): Promise<User> {
-    const response = await axios.get(BASE_API + `/users/${userId}`);
-    return response.data;
-  },
-
   async getBatches(
     search: string = "",
     tags: string = "",
     labels: string = "",
-    size: number = 10,
+    size?: number,
   ) {
-    const response = await axios.get(
+    const api =
       BASE_API +
-        "/batches" +
-        `?search=${search}&tags=${tags}&labels=${labels}&size=${size}`,
-    );
+      "/batches" +
+      `?search=${search}&tags=${tags}&labels=${labels}` +
+      (size ? `&size=${size}` : "");
+    const response = await axios.get(api);
     return response.data;
   },
 

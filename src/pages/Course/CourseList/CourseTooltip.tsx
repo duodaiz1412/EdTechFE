@@ -1,13 +1,13 @@
 import ReactPlayer from "react-player";
 import HtmlDisplay from "@/components/HtmlDisplay";
 import {Course} from "@/types";
+import {Link} from "react-router-dom";
 
 interface CourseTooltipProps {
   course: Course;
-  isEnrolled?: boolean;
 }
 
-export function CourseTooltip({course, isEnrolled}: CourseTooltipProps) {
+export function CourseTooltip({course}: CourseTooltipProps) {
   return (
     <div className="w-96 p-0 bg-white rounded-lg shadow-lg overflow-hidden">
       {/* Video Preview */}
@@ -50,17 +50,13 @@ export function CourseTooltip({course, isEnrolled}: CourseTooltipProps) {
           <HtmlDisplay html={course.description || ""} />
         </div>
 
-        {/* Enroll Button */}
-        {!isEnrolled && (
-          <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
-            Enroll this course
-          </button>
-        )}
-        {isEnrolled && (
-          <div className="w-full bg-green-600 text-white font-semibold py-2.5 px-4 rounded-lg text-center">
-            You enrolled this course
-          </div>
-        )}
+        {/* View Button */}
+        <Link
+          to={`/course/${course.slug}`}
+          className="w-full block text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+        >
+          View this course
+        </Link>
       </div>
     </div>
   );

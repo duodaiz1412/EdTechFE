@@ -1,10 +1,10 @@
 import ReactPlayer from "react-player";
 import HtmlDisplay from "@/components/HtmlDisplay";
 import {Batch} from "@/types";
+import {Link} from "react-router-dom";
 
 interface BatchTooltipProps {
   batch: Batch;
-  isEnrolled?: boolean;
 }
 
 export function BatchTooltip({batch}: BatchTooltipProps) {
@@ -53,17 +53,13 @@ export function BatchTooltip({batch}: BatchTooltipProps) {
           <HtmlDisplay html={batch.description || ""} />
         </div>
 
-        {/* Enroll Button */}
-        {/* {!isEnrolled && (
-          <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
-            Enroll this batch
-          </button>
-        )}
-        {isEnrolled && (
-          <div className="w-full bg-green-600 text-white font-semibold py-2.5 px-4 rounded-lg text-center">
-            You enrolled this batch
-          </div>
-        )} */}
+        {/* View Button */}
+        <Link
+          to={`/batch/${batch.slug}`}
+          className="w-full block text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+        >
+          View this batch
+        </Link>
       </div>
     </div>
   );

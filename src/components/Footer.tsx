@@ -20,9 +20,17 @@ const Footer = () => {
     <footer className="bg-gray-900 text-gray-300 pt-8 mt-auto">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Column 1: Basic Pages */}
+          {/* Column 1: Logo and Description */}
           <div className="md:col-span-1">
-            <h3 className="text-white text-lg font-semibold mb-4">Pages</h3>
+            <h2 className="text-3xl font-bold text-white mb-4">Edtech</h2>
+            <p className="max-w-80 w-full">
+              Providing reliable education since 2015
+            </p>
+          </div>
+
+          {/* Column 2: Services */}
+          <div className="md:col-span-1">
+            <h3 className="text-white text-lg font-semibold mb-4">Services</h3>
             <ul className="space-y-2">
               {pages.map((page) => (
                 <li key={page.name}>
@@ -37,7 +45,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Column 2: Personal Links */}
+          {/* Column 3: Account */}
           <div className="md:col-span-1">
             <h3 className="text-white text-lg font-semibold mb-4">Account</h3>
             <ul className="space-y-2">
@@ -54,8 +62,8 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Column 3: Contact - Double width */}
-          <div className="md:col-span-2">
+          {/* Column 4: Contact */}
+          <div className="md:col-span-1">
             <h3 className="text-white text-lg font-semibold mb-4">
               Contact Us
             </h3>

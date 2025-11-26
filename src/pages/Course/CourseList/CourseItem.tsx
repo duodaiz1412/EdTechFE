@@ -77,7 +77,7 @@ export default function CourseItem({course, isEnrolled}: CourseItemProps) {
         clickable
         delayShow={50}
       >
-        <CourseTooltip course={course} isEnrolled={isEnrolled} />
+        <CourseTooltip course={course} />
       </Tooltip>
     </>
   );
