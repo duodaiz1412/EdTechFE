@@ -322,3 +322,49 @@ export interface Item {
   status: "Draft" | "Published";
   publishedAt?: string;
 }
+
+// Live Types
+export interface LiveSession {
+  id?: string;
+  janusSessionId?: number;
+  janusHandleId?: number;
+  roomId?: number;
+  instructorId?: string;
+  instructorName?: string;
+  batchId?: string;
+  batchTitle?: string;
+  status?: "PUBLISHED" | "ENDED";
+  title?: string;
+  description?: string;
+  startedAt?: string;
+  endedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface JanusResponse {
+  janus?: string;
+  transaction?: string;
+  sessionId?: number;
+  handleId?: number;
+  plugindata?: Record<string, object>;
+  jsep?: Record<string, object>;
+  data?: Record<string, object>;
+  error?: string;
+  errorCode?: number;
+}
+
+export interface PublishResponse {
+  sdpAnswer?: string;
+  type?: string;
+  sessionId?: number;
+  handleId?: number;
+  error?: string;
+  errorCode?: number;
+}
+
+export interface RoomParticipant {
+  id?: number;
+  display?: string;
+  publisher?: boolean;
+}

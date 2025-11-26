@@ -36,6 +36,7 @@ import BatchLayout from "./layout/BatchLayout.tsx";
 import BatchList from "./pages/Batch/BatchList/index.tsx";
 import BatchesByTag from "./pages/Batch/BatchList/BatchesByTag.tsx";
 import BatchDetail from "./pages/Batch/BatchDetail.tsx";
+import BatchLive from "./pages/Batch/BatchContent/BatchVideo/BatchLive.tsx";
 
 import ProfileLayout from "./layout/ProfileLayout.tsx";
 import Profile from "./pages/Profile/Profile.tsx";
@@ -186,6 +187,10 @@ function App() {
                     <MyLearning />
                   </MainLayout>
                 }
+              />
+              <Route
+                path="/batch/:batchSlug/live/:roomId"
+                element={<BatchLive />}
               />
 
               {/* Instructor routes */}

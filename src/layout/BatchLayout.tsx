@@ -1,15 +1,24 @@
-import {useLocation, useParams} from "react-router-dom";
+import {useLocation, useNavigate, useParams} from "react-router-dom";
 import BatchNavbar from "./components/Batch/BatchNavbar";
 import {publicServices} from "@/lib/services/public.services";
 import {useQuery} from "@tanstack/react-query";
 import {LogIn, Video} from "lucide-react";
-import BatchDiscussion from "@/pages/Batch/BatchContent.tsx/BatchDiscussion";
-import BatchRecords from "@/pages/Batch/BatchContent.tsx/BatchVideo/BatchRecords";
+import BatchDiscussion from "@/pages/Batch/BatchContent/BatchDiscussion";
+import BatchRecords from "@/pages/Batch/BatchContent/BatchVideo/BatchRecords";
 import Footer from "@/components/Footer";
+import {useAppSelector} from "@/redux/hooks";
+import {useEffect, useState} from "react";
+import {getAccessToken} from "@/lib/utils/getAccessToken";
+import {liveServices} from "@/lib/services/live.services";
+import {toast} from "react-toastify";
 
 export default function BatchLayout() {
   const {batchSlug} = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+  const userData = useAppSelector((state) => state.user.data);
+
+  const [isStartLive, setIsStartLive] = useState(false);
 
   const {data, isLoading} = useQuery({
     queryKey: ["batch", batchSlug],
@@ -18,6 +27,34 @@ export default function BatchLayout() {
       return response;
     },
   });
+
+  useEffect(() => {
+    if (
+      location.pathname.includes("teach") &&
+      !userData?.roles.includes("COURSE_CREATOR")
+    ) {
+      navigate(`/batch/${batchSlug}/learn`);
+    }
+  }, [batchSlug, location.pathname, navigate, userData]);
+
+  const handleStartLive = async () => {
+    setIsStartLive(true);
+    const accessToken = await getAccessToken();
+
+    const response = await liveServices.startLive(
+      accessToken,
+      data?.id || "",
+      data?.title || "",
+      data?.description || "",
+    );
+
+    if (response.status === 201) {
+      navigate(`/batch/${batchSlug}/live/${response.data.roomId}`);
+    } else {
+      toast.error("Failed to create new meeting");
+    }
+    setIsStartLive(false);
+  };
 
   return (
     <div>
@@ -53,12 +90,21 @@ export default function BatchLayout() {
             </div>
           </div>
         </div>
+
         {/* Discussion, Records and Info */}
         <div className="grid grid-cols-5 gap-6">
           <div className="col-span-1 flex flex-col items-start space-y-4 mt-2">
             {location.pathname.includes("teach") && (
-              <button className="btn btn-neutral rounded-lg space-x-2">
-                <Video size={20} />
+              <button
+                className="btn btn-neutral rounded-lg space-x-2"
+                disabled={isStartLive}
+                onClick={handleStartLive}
+              >
+                {isStartLive ? (
+                  <div className="loading loading-spinner loading-sm text-slate-400"></div>
+                ) : (
+                  <Video size={20} />
+                )}
                 <span>New meeting</span>
               </button>
             )}
@@ -107,6 +153,7 @@ export default function BatchLayout() {
           </div>
         </div>
       </div>
+
       {/* Footer */}
       <Footer />
     </div>
