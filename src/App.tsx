@@ -24,6 +24,7 @@ import Verify from "./pages/Auth/Verify.tsx";
 import MainLayout from "./layout/MainLayout.tsx";
 import Support from "./pages/Info/Support.tsx";
 import About from "./pages/Info/About.tsx";
+import Home from "./pages/Info/Home.tsx";
 
 import MyLearning from "./pages/Course/MyLearning/index.tsx";
 import CourseLayout from "./layout/CourseLayout.tsx";
@@ -31,9 +32,14 @@ import CourseList from "./pages/Course/CourseList";
 import CoursesByTag from "./pages/Course/CourseList/CoursesByTag.tsx";
 import CourseDetail from "./pages/Course/CourseDetail.tsx";
 
+import BatchLayout from "./layout/BatchLayout.tsx";
+import BatchList from "./pages/Batch/BatchList/index.tsx";
+import BatchesByTag from "./pages/Batch/BatchList/BatchesByTag.tsx";
+import BatchDetail from "./pages/Batch/BatchDetail.tsx";
+
 import ProfileLayout from "./layout/ProfileLayout.tsx";
 import Profile from "./pages/Profile/Profile.tsx";
-import Settings from "./pages/Profile/Settings.tsx";
+import PurchaseHistory from "./pages/Profile/PurchaseHistory.tsx";
 import UserList from "./pages/CMS/UserList.tsx";
 import UserDetail from "./pages/CMS/UserDetail.tsx";
 
@@ -54,7 +60,6 @@ import PromotionsContent from "./pages/Instructor/Courses/EditCourse/components/
 import {CourseProvider} from "./context/CourseContext.tsx";
 import BecomeInstructor from "./pages/Instructor/BecomeInstructor.tsx";
 import {enrollServices} from "./lib/services/enroll.services.ts";
-import PublicProfile from "./pages/Profile/PublicProfile.tsx";
 import EditLecture from "./pages/Instructor/Courses/EditCourse/components/EditLecture.tsx";
 import EditVideoLecture from "./pages/Instructor/Courses/EditCourse/components/EditVideoLecture.tsx";
 import EditArticleLecture from "./pages/Instructor/Courses/EditCourse/components/EditArticleLecture.tsx";
@@ -64,6 +69,7 @@ import SetPayment from "./pages/Instructor/Payment/SetPayment.tsx";
 import InstructorBatch from "./pages/Instructor/Batchs/index.tsx";
 import CreateBatch from "./pages/Instructor/Batchs/CreateBatch/index.tsx";
 import EditBatch from "./pages/Instructor/Batchs/EditBatch/index.tsx";
+import MyBatches from "./pages/Instructor/MyBatches.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -74,7 +80,7 @@ function App() {
       const accessToken = await getAccessToken();
       const response = await userServices.getUserInfo(accessToken);
       const courseEnrollments =
-        await enrollServices.getEnrollments(accessToken);
+        await enrollServices.getCourseEnrollments(accessToken);
 
       // Set global state
       dispatch(
@@ -121,13 +127,15 @@ function App() {
                 </MainLayout>
               }
             >
-              <Route path="/" element={<CourseList />} />
-              <Route path="/tag/:tag" element={<CoursesByTag />} />
-              <Route
-                path="/users/:userId/profile"
-                element={<PublicProfile />}
-              />
+              <Route path="/" element={<Home />} />
+
+              <Route path="/courses" element={<CourseList />} />
+              <Route path="/courses/tag/:tag" element={<CoursesByTag />} />
               <Route path="/course/:slug" element={<CourseDetail />} />
+
+              <Route path="/batches" element={<BatchList />} />
+              <Route path="/batches/tag/:tag" element={<BatchesByTag />} />
+              <Route path="/batch/:slug" element={<BatchDetail />} />
 
               <Route path="/help" element={<Support />} />
               <Route path="/about" element={<About />} />
@@ -144,7 +152,7 @@ function App() {
                 }
               >
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<Settings />} />
+                <Route path="/purchases" element={<PurchaseHistory />} />
 
                 {/* Admin CMS routes */}
                 <Route
@@ -170,6 +178,7 @@ function App() {
                 path="/course/:courseSlug/learn/lesson/:lessonSlug"
                 element={<CourseLayout />}
               />
+              <Route path="/batch/:batchSlug/learn" element={<BatchLayout />} />
               <Route
                 path="/learning"
                 element={
@@ -181,6 +190,23 @@ function App() {
 
               {/* Instructor routes */}
               <Route path="/teaching" element={<BecomeInstructor />} />
+
+              {/* Instructor: Batches management */}
+              <Route path="/batch/:batchSlug/teach" element={<BatchLayout />} />
+              <Route
+                element={
+                  <RoleProtectedRoute
+                    requiredRole="COURSE_CREATOR"
+                    redirectTo="/teaching"
+                  >
+                    <MainLayout>
+                      <Outlet />
+                    </MainLayout>
+                  </RoleProtectedRoute>
+                }
+              >
+                <Route path="/my-batches" element={<MyBatches />} />
+              </Route>
 
               <Route
                 element={

@@ -1,5 +1,5 @@
 import {useAppSelector} from "@/redux/hooks";
-import {CircleUserRound, Settings, UsersRound} from "lucide-react";
+import {CircleUserRound, CreditCard, UsersRound} from "lucide-react";
 import {ProfileSidebarItem} from "./ProfileSidebarItem";
 import Logo from "@/components/Logo";
 import {useLocation} from "react-router-dom";
@@ -20,9 +20,9 @@ export default function ProfileSidebar() {
       label: "User Management",
     },
     {
-      to: "/settings",
-      icon: <Settings />,
-      label: "Settings",
+      to: "/purchases",
+      icon: <CreditCard />,
+      label: "Purchase History",
     },
   ];
 

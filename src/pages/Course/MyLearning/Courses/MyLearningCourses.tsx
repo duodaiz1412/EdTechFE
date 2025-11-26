@@ -14,7 +14,7 @@ export default function MyLearningCourses() {
     queryKey: ["enrollments"],
     queryFn: async () => {
       const accessToken = await getAccessToken();
-      const response = await enrollServices.getEnrollments(accessToken);
+      const response = await enrollServices.getCourseEnrollments(accessToken);
       dispatch(login({...userData, enrollments: response}));
       return response;
     },
@@ -22,7 +22,7 @@ export default function MyLearningCourses() {
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-3 gap-6">
         {userData?.courseEnrollments &&
           userData.courseEnrollments.length > 0 &&
           userData?.courseEnrollments?.map((enroll) => (

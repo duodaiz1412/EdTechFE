@@ -11,7 +11,9 @@ export default function Verify() {
     queryKey: ["verify", location.state?.token],
     queryFn: async () => {
       const response = await authServices.verify(location.state?.token);
-      window.location.href = "/";
+      const redirectPath = localStorage.getItem("redirectAfterAuthen") || "/";
+      localStorage.removeItem("redirectAfterAuthen");
+      window.location.href = redirectPath;
       return response;
     },
   });

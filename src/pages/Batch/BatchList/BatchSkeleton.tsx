@@ -1,10 +1,10 @@
 import {Skeleton} from "@/components/Skeleton";
 
-interface CourseSkeletonProps {
+interface BatchSkeletonProps {
   count?: number;
 }
 
-export function CourseSkeleton({count = 8}: CourseSkeletonProps) {
+export function BatchSkeleton({count = 8}: BatchSkeletonProps) {
   return (
     <div className="grid grid-cols-3 gap-4" role="status" aria-live="polite">
       {Array.from({length: count}).map((_, index) => (

@@ -1,25 +1,22 @@
-import {useState} from "react";
-import {useQuery} from "@tanstack/react-query";
-
-import {Course} from "@/types";
-import {useAppSelector} from "@/redux/hooks";
 import {publicServices} from "@/lib/services/public.services";
-import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
+// import {useAppSelector} from "@/redux/hooks";
+import {Batch} from "@/types";
+import {useQuery} from "@tanstack/react-query";
+import {useState} from "react";
+import {BatchSkeleton} from "./BatchSkeleton";
+import BatchItem from "./BatchItem";
 
-import CourseItem from "./CourseItem";
-import {CourseSkeleton} from "./CourseSkeleton";
-
-export default function CourseList() {
-  const [courses, setCourses] = useState<Course[]>();
+export default function BatchList() {
+  const [batches, setBatches] = useState<Batch[]>();
   const [search, setSearch] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const userData = useAppSelector((state) => state.user.data);
+  //   const userData = useAppSelector((state) => state.user.data);
 
   const {isLoading} = useQuery({
-    queryKey: ["courses"],
+    queryKey: ["batches"],
     queryFn: async () => {
-      const response = await publicServices.getCourses();
-      setCourses(response.content);
+      const response = await publicServices.getBatches();
+      setBatches(response.content);
       return response;
     },
   });
@@ -27,8 +24,8 @@ export default function CourseList() {
   const handleSearch = async () => {
     setIsSearching(true);
     try {
-      const searchedCourses = await publicServices.getCourses(search);
-      setCourses(searchedCourses.content);
+      const searchedCourses = await publicServices.getBatches(search);
+      setBatches(searchedCourses.content);
     } finally {
       setIsSearching(false);
     }
@@ -37,8 +34,8 @@ export default function CourseList() {
   const handleClear = async () => {
     setIsSearching(true);
     try {
-      const allCourses = await publicServices.getCourses();
-      setCourses(allCourses.content);
+      const allCourses = await publicServices.getBatches();
+      setBatches(allCourses.content);
       setSearch("");
     } finally {
       setIsSearching(false);
@@ -55,7 +52,7 @@ export default function CourseList() {
         <div className="flex items-center space-x-2">
           <input
             type="text"
-            placeholder="Search for courses"
+            placeholder="Search for batches"
             className="input w-96 rounded-lg"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -85,22 +82,11 @@ export default function CourseList() {
       </div>
       {/* List of courses */}
       {isLoading ? (
-        <CourseSkeleton count={6} />
+        <BatchSkeleton count={6} />
       ) : (
         <div className="grid grid-cols-3 gap-4">
-          {courses?.map((course: Course) => {
-            const isEnrolled = isCourseEnrolled(
-              userData?.courseEnrollments || [],
-              course?.slug || "",
-            );
-
-            return (
-              <CourseItem
-                key={course.id}
-                course={course}
-                isEnrolled={isEnrolled}
-              />
-            );
+          {batches?.map((batch: Batch) => {
+            return <BatchItem key={batch.id} batch={batch} />;
           })}
         </div>
       )}

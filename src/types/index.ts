@@ -129,6 +129,12 @@ export interface CourseEnrollment {
   modified?: string;
 }
 
+export interface Purchase {
+  courseTitle?: string;
+  price?: number;
+  enrollmentDate?: string;
+}
+
 export interface QuizQuestion {
   id?: string;
   quizId?: string;
@@ -272,6 +278,41 @@ export interface Order {
   webhookReceived?: boolean;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface Batch {
+  id?: string;
+  title?: string;
+  description?: string;
+  slug?: string;
+  image?: string;
+  videoLink?: string;
+  paidBatch?: boolean;
+  actualPrice?: number;
+  sellingPrice?: number;
+  language?: string;
+  startTime?: string;
+  endTime?: string;
+  status?: string;
+  maxCapacity?: number;
+  tags?: Tag[];
+  labels?: Label[];
+}
+
+export interface BatchPost {
+  id?: string;
+  title?: string;
+  content?: string;
+  author?: User;
+  createdAt?: string;
+  documents?: BatchPostDocument[];
+}
+
+export interface BatchPostDocument {
+  id?: string;
+  batchDiscussionId?: string;
+  fileUrl?: string;
+  uploadedAt?: string;
 }
 
 export interface Item {
