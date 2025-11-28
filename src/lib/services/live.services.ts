@@ -1,4 +1,9 @@
-import {JanusResponse, LiveSession} from "@/types";
+import {
+  JanusResponse,
+  LiveSession,
+  PublishRequest,
+  PublishResponse,
+} from "@/types";
 import axios, {AxiosResponse} from "axios";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1/live";
@@ -47,15 +52,16 @@ export const liveServices = {
     return response;
   },
 
-  async getRoomStatus(
-    accessToken: string,
-    roomId: number,
-  ): Promise<AxiosResponse<LiveSession>> {
-    const response = await axios.get(BASE_API + `/status/${roomId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
+  async leaveRoom(accessToken: string, roomId: number) {
+    const response = await axios.post(
+      BASE_API + `/leave/${roomId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       },
-    });
+    );
     return response;
   },
 
@@ -77,8 +83,8 @@ export const liveServices = {
 
   async keepAlive(
     accessToken: string,
-    sessionId: string,
-  ): Promise<JanusResponse> {
+    sessionId: number,
+  ): Promise<AxiosResponse<JanusResponse>> {
     const response = await axios.post(
       BASE_API + `/keepalive/${sessionId}`,
       {},
@@ -88,7 +94,7 @@ export const liveServices = {
         },
       },
     );
-    return response.data;
+    return response;
   },
 
   async getParticipants(accessToken: string, roomId: number) {
@@ -98,5 +104,107 @@ export const liveServices = {
       },
     });
     return response.data;
+  },
+
+  async publishMedia(
+    accessToken: string,
+    request: PublishRequest,
+  ): Promise<AxiosResponse<PublishResponse>> {
+    const response = await axios.post(
+      BASE_API + `/publish`,
+      {...request},
+      {
+        headers: {Authorization: `Bearer ${accessToken}`},
+      },
+    );
+    return response;
+  },
+
+  async publishScreen(
+    accessToken: string,
+    request: PublishRequest,
+  ): Promise<AxiosResponse<PublishResponse>> {
+    const response = await axios.post(
+      BASE_API + `/publish-screen`,
+      {...request},
+      {
+        headers: {Authorization: `Bearer ${accessToken}`},
+      },
+    );
+    return response;
+  },
+
+  async unpublishMedia(
+    accessToken: string,
+    roomId: number,
+  ): Promise<AxiosResponse<JanusResponse>> {
+    const response = await axios.post(
+      BASE_API + `/unpublish/${roomId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response;
+  },
+
+  async unPublishScreen(
+    accessToken: string,
+    roomId: number,
+  ): Promise<AxiosResponse<JanusResponse>> {
+    const response = await axios.post(
+      BASE_API + `/unpublish-screen/${roomId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response;
+  },
+
+  async subscribeFeed(
+    accessToken: string,
+    roomId: number,
+    feedId: number,
+  ): Promise<AxiosResponse<PublishResponse>> {
+    const response = await axios.post(
+      BASE_API + `/subscribe`,
+      {
+        roomId: roomId,
+        feedId: feedId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response;
+  },
+
+  async startSubscribe(
+    accessToken: string,
+    sessionId: number,
+    handleId: number,
+    sdpAnswer: string,
+  ): Promise<AxiosResponse<JanusResponse>> {
+    const response = await axios.post(
+      BASE_API + `/start-subscriber`,
+      {
+        sessionId: sessionId,
+        handleId: handleId,
+        sdpAnswer: sdpAnswer,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response;
   },
 };

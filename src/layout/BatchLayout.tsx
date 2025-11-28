@@ -30,7 +30,7 @@ export default function BatchLayout() {
 
   useEffect(() => {
     if (
-      location.pathname.includes("teach") &&
+      location.pathname.includes("/teach") &&
       !userData?.roles.includes("COURSE_CREATOR")
     ) {
       navigate(`/batch/${batchSlug}/learn`);

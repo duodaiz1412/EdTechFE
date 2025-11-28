@@ -36,7 +36,7 @@ import BatchLayout from "./layout/BatchLayout.tsx";
 import BatchList from "./pages/Batch/BatchList/index.tsx";
 import BatchesByTag from "./pages/Batch/BatchList/BatchesByTag.tsx";
 import BatchDetail from "./pages/Batch/BatchDetail.tsx";
-import BatchLive from "./pages/Batch/BatchContent/BatchVideo/BatchLive.tsx";
+import BatchLive from "./pages/Batch/BatchContent/BatchVideo/BatchLive/BatchLive.tsx";
 
 import ProfileLayout from "./layout/ProfileLayout.tsx";
 import Profile from "./pages/Profile/Profile.tsx";

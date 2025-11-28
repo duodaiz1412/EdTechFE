@@ -354,7 +354,14 @@ export interface JanusResponse {
   errorCode?: number;
 }
 
+export interface PublishRequest {
+  roomId?: number;
+  sdp?: string;
+  streamType?: string;
+}
+
 export interface PublishResponse {
+  sdpOffer?: string;
   sdpAnswer?: string;
   type?: string;
   sessionId?: number;
@@ -367,4 +374,10 @@ export interface RoomParticipant {
   id?: number;
   display?: string;
   publisher?: boolean;
+}
+
+export interface RemoteStream {
+  feedId?: number;
+  stream?: MediaStream;
+  displayName?: string;
 }
