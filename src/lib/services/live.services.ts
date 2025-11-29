@@ -103,7 +103,7 @@ export const liveServices = {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response;
   },
 
   async publishMedia(

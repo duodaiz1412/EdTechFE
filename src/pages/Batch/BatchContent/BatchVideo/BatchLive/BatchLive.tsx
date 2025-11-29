@@ -12,7 +12,7 @@ import {
   Video,
   VideoOff,
 } from "lucide-react";
-import {useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import {useQuery} from "@tanstack/react-query";
 import {toast} from "react-toastify";
@@ -20,9 +20,14 @@ import {toast} from "react-toastify";
 import {useAppSelector} from "@/redux/hooks";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {liveServices} from "@/lib/services/live.services";
+import {usePublishMedia} from "@/hooks/usePublishMedia";
+import {RoomParticipant} from "@/types";
 
+import Avatar from "@/components/Avatar";
 import BatchLiveError from "./BatchLiveError";
 import BatchLiveButton from "./BatchLiveButton";
+import BatchScreen from "./BatchScreen";
+import BatchParticipantList from "./BatchParticipantList";
 
 export default function BatchLive() {
   const userData = useAppSelector((state) => state.user.data);
@@ -34,13 +39,27 @@ export default function BatchLive() {
   const [sessionId, setSessionId] = useState<number>();
 
   const [isPin, setIsPin] = useState(false);
-  // Camera, mic, screen share
-  const [isCamOn, setIsCamOn] = useState(false);
-  const [isMicOn, setIsMicOn] = useState(false);
+  // Camera, mic
+  const {
+    publishMedia,
+    isCamOn,
+    isMicOn,
+    isMediaPublished,
+    localMediaStream,
+    toggleCam,
+    toggleMic,
+    unpublishMedia,
+  } = usePublishMedia();
+  const localMediaRef = useRef<HTMLVideoElement | null>(null);
+
+  // Share screen
   const [isScreenOn, setIsScreenOn] = useState(false);
 
-  // Participants and chat
+  // Participants
   const [isShowParticipants, setIsShowParticipants] = useState(false);
+  const [participants, setParticipants] = useState<RoomParticipant[]>([]);
+
+  // Chat
   const [isShowChat, setIsShowChat] = useState(false);
 
   // Join room
@@ -62,6 +81,22 @@ export default function BatchLive() {
     },
   });
 
+  // Publish media when joined
+  useQuery({
+    queryKey: ["publish-media", isJoin, roomId],
+    queryFn: async () => {
+      if (!isJoin) return null;
+
+      const response = await publishMedia(Number(roomId));
+      return response;
+    },
+  });
+  useEffect(() => {
+    if (isMediaPublished && localMediaRef.current && localMediaStream.current) {
+      localMediaRef.current.srcObject = localMediaStream.current;
+    }
+  }, [isMediaPublished, localMediaStream]);
+
   // Keep alive and auto leave room
   useQuery({
     queryKey: ["keep-alive", sessionId],
@@ -76,7 +111,28 @@ export default function BatchLive() {
       }
       return response;
     },
-    refetchInterval: 5000,
+    refetchInterval: 30000,
+  });
+
+  // Fetch participants
+  useQuery({
+    queryKey: ["participants", roomId],
+    queryFn: async () => {
+      if (!isJoin) return null;
+
+      const accessToken = await getAccessToken();
+      const response = await liveServices.getParticipants(
+        accessToken,
+        Number(roomId),
+      );
+
+      const publishers = response.data.participants?.filter(
+        (p: RoomParticipant) => p.publisher,
+      );
+      setParticipants(publishers || []);
+      return response;
+    },
+    refetchInterval: 2000,
   });
 
   // Handlers
@@ -84,19 +140,22 @@ export default function BatchLive() {
     setIsPin((prev) => !prev);
   };
   const handleToggleCam = () => {
-    setIsCamOn((prev) => !prev);
+    toggleCam();
   };
   const handleToggleMic = () => {
-    setIsMicOn((prev) => !prev);
+    toggleMic();
   };
   const handleToggleScreen = () => {
     setIsScreenOn((prev) => !prev);
   };
+
   const handleShowParticipants = () => setIsShowParticipants((prev) => !prev);
   const handleShowChat = () => setIsShowChat((prev) => !prev);
 
   const handleLeaveRoom = async () => {
     const accessToken = await getAccessToken();
+    await unpublishMedia(Number(roomId));
+
     if (userData?.roles.includes("COURSE_CREATOR")) {
       await liveServices.endRoom(accessToken, Number(roomId));
     } else {
@@ -122,7 +181,7 @@ export default function BatchLive() {
     <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       {/* Main layout */}
       <div
-        className="absolute top-0 left-0 right-0 bottom-24 z-10 p-6 grid gap-4"
+        className="absolute top-0 left-0 right-0 bottom-24 overflow-y-scroll z-10 p-6 grid gap-4 items-start"
         style={{
           gridTemplateColumns: `${
             isPin
@@ -133,36 +192,58 @@ export default function BatchLive() {
                 ? "4fr 1fr"
                 : "1fr"
           }`,
+          scrollbarWidth: "thin",
+          scrollbarColor: "#4B5563 transparent",
         }}
       >
-        {/* Share screen */}
+        {/* Pin screen */}
         {isPin && (
           <div className="h-full bg-gradient-to-br from-gray-800 to-gray-700 rounded-xl shadow-2xl flex items-center justify-center border border-gray-600">
-            <span className="text-white text-xl font-semibold">
-              Screen Share
-            </span>
+            <span className="text-white text-xl font-semibold">Pin screen</span>
           </div>
         )}
 
         {/* Other participants */}
         <div
-          className={`h-full overflow-y-auto bg-transparent grid gap-4 transition-all 
-            ${isPin ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"}
+          className={`bg-transparent grid gap-4 transition-all 
+            ${isPin ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"}
           `}
-          style={{
-            scrollbarWidth: "thin",
-            scrollbarColor: "#4B5563 transparent",
-          }}
         >
-          <div className="col-span-1 rounded-xl bg-gradient-to-br from-gray-700 to-gray-600 border border-gray-500 shadow-lg flex items-center justify-center h-56 relative"></div>
+          <div className="col-span-1 bg-transparent h-40 md:h-48 lg:h-52 xl:h-56 relative">
+            <video
+              ref={localMediaRef}
+              autoPlay
+              playsInline
+              muted={!isMicOn}
+              className={`${isCamOn ? "w-full h-full" : "w-0 h-0"} rounded-lg object-cover`}
+            ></video>
+            {!isMediaPublished ||
+              (!isCamOn && (
+                <div className="w-full h-full rounded-lg bg-gray-600 flex items-center justify-center">
+                  <Avatar name={userData?.name} isBig={true} />
+                </div>
+              ))}
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-center font-semibold text-white">
+              {userData?.name || ""} (You)
+            </div>
+          </div>
+          {participants.length > 0 &&
+            participants.map((p: RoomParticipant) => (
+              <BatchScreen key={p.id} p={p} />
+            ))}
         </div>
 
         {/* Chat and participants */}
         {(isShowChat || isShowParticipants) && (
-          <div className="h-full bg-gradient-to-br from-gray-800 to-gray-700 rounded-xl shadow-2xl border border-gray-600 p-4">
+          <div className="h-full bg-gradient-to-br from-gray-800 to-gray-700 rounded-xl shadow-2xl border border-gray-600 p-6">
             <h3 className="text-white font-semibold text-lg mb-4">
               {isShowParticipants ? "Participants" : "Chat"}
             </h3>
+            {isShowParticipants ? (
+              <BatchParticipantList participants={participants} />
+            ) : (
+              <div>{/* Chat layout here */}</div>
+            )}
           </div>
         )}
       </div>

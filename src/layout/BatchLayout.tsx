@@ -4,7 +4,7 @@ import {publicServices} from "@/lib/services/public.services";
 import {useQuery} from "@tanstack/react-query";
 import {LogIn, Video} from "lucide-react";
 import BatchDiscussion from "@/pages/Batch/BatchContent/BatchDiscussion";
-import BatchRecords from "@/pages/Batch/BatchContent/BatchVideo/BatchRecords";
+import BatchRecords from "@/pages/Batch/BatchContent/BatchVideo/BatchRecords/BatchRecords";
 import Footer from "@/components/Footer";
 import {useAppSelector} from "@/redux/hooks";
 import {useEffect, useState} from "react";
