@@ -98,11 +98,26 @@ export const liveServices = {
   },
 
   async getParticipants(accessToken: string, roomId: number) {
-    const response = await axios.get(BASE_API + `/participants/${roomId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
+    const response = await axios.get(
+      BASE_API + `/participants-names/${roomId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       },
-    });
+    );
+    return response;
+  },
+
+  async getPublishers(accessToken: string, roomId: number) {
+    const response = await axios.get(
+      BASE_API + `/participants-feeds/${roomId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
     return response;
   },
 

@@ -5,7 +5,7 @@ import {
   Mic,
   MicOff,
   PhoneOff,
-  Pin,
+  PinOff,
   ScreenShare,
   ScreenShareOff,
   Users,
@@ -17,7 +17,7 @@ import {useNavigate, useParams} from "react-router-dom";
 import {useQuery} from "@tanstack/react-query";
 import {toast} from "react-toastify";
 
-import {RoomParticipant} from "@/types";
+import {RoomPublisher} from "@/types";
 import {useAppSelector} from "@/redux/hooks";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {liveServices} from "@/lib/services/live.services";
@@ -41,6 +41,8 @@ export default function BatchLive() {
 
   // Pin screen
   const [isPin, setIsPin] = useState(false);
+  const [pinStream, setPinStream] = useState<MediaStream | null>(null);
+  const pinVideoRef = useRef<HTMLVideoElement | null>(null);
 
   // Camera, mic
   const {
@@ -62,7 +64,7 @@ export default function BatchLive() {
 
   // Participants
   const [isShowParticipants, setIsShowParticipants] = useState(false);
-  const [participants, setParticipants] = useState<RoomParticipant[]>([]);
+  const [publishers, setPublishers] = useState<RoomPublisher[]>([]);
 
   // Chat
   const [isShowChat, setIsShowChat] = useState(false);
@@ -119,38 +121,49 @@ export default function BatchLive() {
     refetchInterval: 30000,
   });
 
-  // Fetch participants
+  // Fetch publishers
   useQuery({
-    queryKey: ["participants", roomId],
+    queryKey: ["publishers", roomId],
     queryFn: async () => {
       if (!isJoin) return null;
 
       const accessToken = await getAccessToken();
-      const response = await liveServices.getParticipants(
+      const response = await liveServices.getPublishers(
         accessToken,
         Number(roomId),
       );
 
       const publishers = response.data.participants?.filter(
-        (p: RoomParticipant) => p.publisher,
+        (p: RoomPublisher) => p.publisher,
       );
-      setParticipants(publishers || []);
+      setPublishers(publishers || []);
       return response;
     },
     refetchInterval: 1000,
   });
 
-  // Handlers
-  const handlePinScreen = () => {
-    setIsPin((prev) => !prev);
+  // Handlers pin stream
+  const handlePin = (stream: MediaStream) => {
+    setIsPin(true);
+    setPinStream(stream);
   };
+  const handleUnpin = () => {
+    setIsPin(false);
+    setPinStream(null);
+  };
+  useEffect(() => {
+    if (isPin && pinStream && pinVideoRef.current) {
+      pinVideoRef.current.srcObject = pinStream;
+    }
+  }, [isPin, pinStream]);
+
+  // Handlers cam, mic and screen
   const handleToggleCam = () => {
     toggleCam();
   };
   const handleToggleMic = () => {
     toggleMic();
   };
-
   const handleToggleScreen = () => {
     if (isScreenPublished) {
       unpublishScreen(Number(roomId));
@@ -168,9 +181,17 @@ export default function BatchLive() {
     }
   }, [isScreenPublished, localScreenStream]);
 
-  const handleShowParticipants = () => setIsShowParticipants((prev) => !prev);
-  const handleShowChat = () => setIsShowChat((prev) => !prev);
+  // Handlers show participants and chat
+  const handleShowParticipants = () => {
+    setIsShowParticipants((prev) => !prev);
+    if (isShowChat) setIsShowChat(false);
+  };
+  const handleShowChat = () => {
+    setIsShowChat((prev) => !prev);
+    if (isShowParticipants) setIsShowParticipants(false);
+  };
 
+  // Handler leave room
   const handleLeaveRoom = async () => {
     // 1. Unpublish all local feeds
     await unpublishMedia(Number(roomId));
@@ -190,6 +211,7 @@ export default function BatchLive() {
     navigate(`/batch/${batchSlug}/teach`);
   };
 
+  // Render loading, error state
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen w-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white space-y-4">
@@ -198,7 +220,6 @@ export default function BatchLive() {
       </div>
     );
   }
-
   if (isError) {
     return <BatchLiveError batchSlug={batchSlug} />;
   }
@@ -223,11 +244,24 @@ export default function BatchLive() {
         }}
       >
         {/* Pin screen */}
-        {isPin && (
-          <div className="h-full bg-gradient-to-br from-gray-800 to-gray-700 rounded-xl shadow-2xl flex items-center justify-center border border-gray-600">
-            <span className="text-white text-xl font-semibold">Pin screen</span>
-          </div>
-        )}
+        <div
+          className={`${!isPin && "hidden"} relative h-full bg-gradient-to-br from-gray-800 to-gray-700 rounded-xl shadow-2xl flex items-center justify-center border border-gray-600`}
+        >
+          {isPin && (
+            <button
+              onClick={handleUnpin}
+              className="absolute top-4 left-4 rounded-full p-2 text-white hover:bg-slate-200 hover:text-black transition-all z-10"
+            >
+              <PinOff size={24} />
+            </button>
+          )}
+          <video
+            autoPlay
+            playsInline
+            ref={pinVideoRef}
+            className="w-full h-full rounded-xl object-cover"
+          ></video>
+        </div>
 
         {/* Other participants */}
         <div
@@ -269,9 +303,14 @@ export default function BatchLive() {
               </div>
             )}
           </div>
-          {participants.length > 0 &&
-            participants.map((p: RoomParticipant) => (
-              <BatchScreen key={p.id} p={p} />
+          {publishers.length > 0 &&
+            publishers.map((p: RoomPublisher) => (
+              <BatchScreen
+                key={p.id}
+                p={p}
+                roomId={Number(roomId)}
+                handlePin={handlePin}
+              />
             ))}
         </div>
 
@@ -282,7 +321,7 @@ export default function BatchLive() {
               {isShowParticipants ? "Participants" : "Chat"}
             </h3>
             {isShowParticipants ? (
-              <BatchParticipantList participants={participants} />
+              <BatchParticipantList roomId={Number(roomId)} />
             ) : (
               <div>{/* Chat layout here */}</div>
             )}
@@ -302,13 +341,6 @@ export default function BatchLive() {
 
           {/* Main Controls */}
           <div className="flex items-center space-x-3">
-            <BatchLiveButton
-              isSwitch={true}
-              state={isPin}
-              title="Pin screen"
-              onClick={handlePinScreen}
-              switchIcon={[<Pin size={22} />, <Pin size={22} />]}
-            />
             <BatchLiveButton
               isSwitch={true}
               state={isCamOn}

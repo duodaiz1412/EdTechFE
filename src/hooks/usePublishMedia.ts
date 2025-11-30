@@ -55,7 +55,6 @@ export function usePublishMedia() {
 
         pc.onicecandidate = (event) => {
           if (event.candidate) {
-            // Send candidate to server
             console.log(
               `ICE candidate: ${event.candidate.type} - ${event.candidate.address || event.candidate.candidate}`,
             );

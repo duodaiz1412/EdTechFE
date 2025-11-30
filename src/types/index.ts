@@ -372,6 +372,11 @@ export interface PublishResponse {
 
 export interface RoomParticipant {
   id?: number;
+  displayName?: string;
+}
+
+export interface RoomPublisher {
+  id?: number;
   display?: string;
   publisher?: boolean;
 }

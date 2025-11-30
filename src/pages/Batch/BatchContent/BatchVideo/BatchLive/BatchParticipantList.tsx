@@ -1,48 +1,37 @@
-import {useMemo, useState} from "react";
-import {RoomParticipant} from "@/types";
+import {useQuery} from "@tanstack/react-query";
 
+import {RoomParticipant} from "@/types";
+import {getAccessToken} from "@/lib/utils/getAccessToken";
+import {liveServices} from "@/lib/services/live.services";
 import Avatar from "@/components/Avatar";
 
-interface BatchParticipantList {
-  participants: RoomParticipant[];
+interface BatchParticipantListProps {
+  roomId: number;
 }
 
 export default function BatchParticipantList({
-  participants,
-}: BatchParticipantList) {
-  const [search, setSearch] = useState("");
-
-  const filteredParticipants = useMemo(() => {
-    if (!search.trim()) return participants;
-
-    return participants.filter((person) =>
-      person.display?.toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [participants, search]);
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-  };
+  roomId,
+}: BatchParticipantListProps) {
+  const {data} = useQuery({
+    queryKey: ["participants", roomId],
+    queryFn: async () => {
+      const accessToken = await getAccessToken();
+      const response = await liveServices.getParticipants(accessToken, roomId);
+      return response.data.participants;
+    },
+    refetchInterval: 1000,
+  });
 
   return (
-    <div className="space-y-4 ">
-      <input
-        className="input w-full rounded-lg bg-transparent border border-slate-600 text-white"
-        placeholder="Search for participants..."
-        value={search}
-        onChange={handleSearch}
-      />
+    <div className="space-y-4">
       <div className="space-y-3 p-4 border border-slate-600 rounded-lg">
-        {filteredParticipants.length > 0 &&
-          filteredParticipants.map((person: RoomParticipant) => (
-            <div key={person.id} className="flex items-center space-x-3">
-              <Avatar name={person.display} />
-              <p className="text-white">{person.display}</p>
+        {data &&
+          data?.map((p: RoomParticipant) => (
+            <div key={p.id} className="space-x-3 flex items-center">
+              <Avatar name={p.displayName} />
+              <span className="font-medium text-white">{p.displayName}</span>
             </div>
           ))}
-        {filteredParticipants.length === 0 && (
-          <p className="text-white/50 text-center">No participant found.</p>
-        )}
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ import verifyImg from "@/assets/verify.svg";
 export default function Verify() {
   const location = useLocation();
 
-  const {isLoading, error} = useQuery({
+  const {isLoading, isSuccess, isError} = useQuery({
     queryKey: ["verify", location.state?.token],
     queryFn: async () => {
       const response = await authServices.verify(location.state?.token);
@@ -25,17 +25,15 @@ export default function Verify() {
           {isLoading && (
             <div className="loading loading-spinner loading-xl"></div>
           )}
-          {!isLoading && (
-            <div>
-              <img src={verifyImg} alt="Email Verified" className="w-96" />
-            </div>
-          )}
+          <div>
+            <img src={verifyImg} alt="Email Verified" className="w-96" />
+          </div>
         </figure>
         <div className="card-body">
           <h2 className="card-title text-3xl justify-center p-4">
             {isLoading && "Verifying your email..."}
-            {!isLoading && !error && "Email verified successfully!"}
-            {!isLoading && error && (
+            {isSuccess && "Email verified successfully!"}
+            {!isLoading && isError && (
               <div className="flex flex-col gap-2">
                 Verification failed!
                 <div className="flex justify-center mt-4">
