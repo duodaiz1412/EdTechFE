@@ -2,33 +2,31 @@ import {useRef, useState} from "react";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {liveServices} from "@/lib/services/live.services";
 
-export function usePublishMedia() {
-  const localMediaRef = useRef<MediaStream | null>(null);
+export function usePublishScreen() {
+  const localScreenRef = useRef<MediaStream | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
 
-  const [isCamOn, setIsCamOn] = useState(true);
-  const [isMicOn, setIsMicOn] = useState(true);
-  const [isMediaPublished, setIsMediaPublished] = useState(false);
+  const [isScreenPublished, setIsScreenPublished] = useState(false);
 
-  const publishMedia = async (roomId: number) => {
+  const publishScreen = async (roomId: number) => {
     if (!roomId) {
-      console.log("[PUBLISH MEDIA]: No room ID");
+      console.log("[PUBLISH SCREEN]: No room ID");
       return;
     }
 
     if (pcRef.current) {
-      console.log("[PUBLISH MEDIA]: Already publishing media");
+      console.log("[PUBLISH SCREEN]: Already publishing screen");
       return;
     }
 
     try {
-      // 1. Get local media stream
-      const stream = await navigator.mediaDevices.getUserMedia({
+      // 1. Get local screen stream
+      const stream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
-        audio: true,
+        audio: false,
       });
-      localMediaRef.current = stream;
-      setIsMediaPublished(true);
+      localScreenRef.current = stream;
+      setIsScreenPublished(true);
 
       // 2. Create peer connection with RTC servers
       const pcConfig = {
@@ -51,7 +49,7 @@ export function usePublishMedia() {
 
       // 5. Handle ICE candidates
       if (pc.iceGatheringState !== "complete") {
-        console.log("[PUBLISH MEDIA]: Gathering ICE candidates...");
+        console.log("[PUBLISH SCREEN]: Gathering ICE candidates...");
 
         pc.onicecandidate = (event) => {
           if (event.candidate) {
@@ -60,14 +58,14 @@ export function usePublishMedia() {
               `ICE candidate: ${event.candidate.type} - ${event.candidate.address || event.candidate.candidate}`,
             );
           } else {
-            console.log("[PUBLISH MEDIA]: ICE gathering complete");
+            console.log("[PUBLISH SCREEN]: ICE gathering complete");
           }
         };
 
         await new Promise((resolve) => {
           const checkState = () => {
             if (pc.iceGatheringState === "complete") {
-              console.log("[PUBLISH MEDIA]: ICE gathering complete");
+              console.log("[PUBLISH SCREEN]: ICE gathering complete");
               resolve(true);
             }
           };
@@ -76,12 +74,12 @@ export function usePublishMedia() {
 
           setTimeout(() => {
             pc.removeEventListener("icegatheringstatechange", checkState);
-            console.log("[PUBLISH MEDIA]: ICE gathering timeout");
+            console.log("[PUBLISH SCREEN]: ICE gathering timeout");
             resolve(true);
           }, 5000);
         });
       } else {
-        console.log("[PUBLISH MEDIA]: ICE gathering already complete");
+        console.log("[PUBLISH SCREEN]: ICE gathering already complete");
       }
 
       // 6. Update SDP with gathered ICE candidates
@@ -89,10 +87,9 @@ export function usePublishMedia() {
       console.log("[PUBLISH MEDIA]: Publishing media");
 
       const accessToken = await getAccessToken();
-      const response = await liveServices.publishMedia(accessToken, {
+      const response = await liveServices.publishScreen(accessToken, {
         roomId,
         sdp: finalOffer?.sdp,
-        streamType: "camera",
       });
       const data = response.data;
       if (data.error) {
@@ -106,43 +103,24 @@ export function usePublishMedia() {
 
       return;
     } catch (error) {
-      console.error("[PUBLISH MEDIA]: Error publishing media", error);
-      setIsMediaPublished(false);
+      console.error("[PUBLISH SCREEN]: Error publishing screen", error);
+      setIsScreenPublished(false);
     }
   };
 
-  const toggleCam = () => {
-    const stream = localMediaRef.current;
-    if (!stream) return;
-
-    const videoTrack = stream.getVideoTracks()[0];
-    if (videoTrack) {
-      videoTrack.enabled = !videoTrack.enabled;
-      setIsCamOn(videoTrack.enabled);
-    }
-  };
-
-  const toggleMic = () => {
-    const stream = localMediaRef.current;
-    if (!stream) return;
-    const audioTrack = stream.getAudioTracks()[0];
-    if (audioTrack) {
-      audioTrack.enabled = !audioTrack.enabled;
-      setIsMicOn(audioTrack.enabled);
-    }
-  };
-
-  const unpublishMedia = async (roomId: number) => {
+  const unpublishScreen = async (roomId: number) => {
     if (!roomId) {
-      console.log("[UNPUBLISH MEDIA]: No room ID");
+      console.log("[UNPUBLISH SCREEN]: No room ID");
       return;
     }
 
     try {
-      // 1. Shut down all local media tracks
-      if (localMediaRef.current) {
-        localMediaRef.current.getTracks().forEach((track) => track.stop());
-        localMediaRef.current = null;
+      setIsScreenPublished(false);
+
+      // 1. Shut down local stream tracks
+      if (localScreenRef.current) {
+        localScreenRef.current.getTracks().forEach((track) => track.stop());
+        localScreenRef.current = null;
       }
 
       // 2. Stop track sending and close peer connection
@@ -154,9 +132,9 @@ export function usePublishMedia() {
         pcRef.current = null;
       }
 
-      // 3. Notify server to unpublish media
+      // 3. Notify server to unpublish
       const accessToken = await getAccessToken();
-      const response = await liveServices.unpublishMedia(accessToken, roomId);
+      const response = await liveServices.unPublishScreen(accessToken, roomId);
       const data = response.data;
       if (data.error) {
         throw new Error(data.error);
@@ -164,18 +142,14 @@ export function usePublishMedia() {
 
       return;
     } catch (error) {
-      console.error("[UNPUBLISH MEDIA]: Error unpublishing media", error);
+      console.error("[UNPUBLISH SCREEN]: Error unpublishing screen", error);
     }
   };
 
   return {
-    publishMedia,
-    isCamOn,
-    isMicOn,
-    isMediaPublished,
-    localMediaStream: localMediaRef,
-    toggleCam,
-    toggleMic,
-    unpublishMedia,
+    publishScreen,
+    localScreenStream: localScreenRef,
+    isScreenPublished,
+    unpublishScreen,
   };
 }

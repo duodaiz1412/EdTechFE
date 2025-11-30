@@ -19,6 +19,8 @@ export default function BatchLayout() {
   const userData = useAppSelector((state) => state.user.data);
 
   const [isStartLive, setIsStartLive] = useState(false);
+  const [isJoinRoom, setIsJoinRoom] = useState(false);
+  const [roomId, setRoomId] = useState("");
 
   const {data, isLoading} = useQuery({
     queryKey: ["batch", batchSlug],
@@ -54,6 +56,11 @@ export default function BatchLayout() {
       toast.error("Failed to create new meeting");
     }
     setIsStartLive(false);
+  };
+
+  const handleJoinRoom = () => {
+    setIsJoinRoom(false);
+    navigate(`/batch/${batchSlug}/live/${roomId}`);
   };
 
   return (
@@ -94,22 +101,27 @@ export default function BatchLayout() {
         {/* Discussion, Records and Info */}
         <div className="grid grid-cols-5 gap-6">
           <div className="col-span-1 flex flex-col items-start space-y-4 mt-2">
-            {location.pathname.includes("teach") && (
+            {location.pathname.includes("teach") &&
+              userData?.roles.includes("COURSE_CREATOR") && (
+                <button
+                  className="btn btn-neutral rounded-lg space-x-2"
+                  disabled={isStartLive}
+                  onClick={handleStartLive}
+                >
+                  {isStartLive ? (
+                    <div className="loading loading-spinner loading-sm text-slate-400"></div>
+                  ) : (
+                    <Video size={20} />
+                  )}
+                  <span>New meeting</span>
+                </button>
+              )}
+            {(!location.pathname.includes("teach") ||
+              !userData?.roles.includes("COURSE_CREATOR")) && (
               <button
                 className="btn btn-neutral rounded-lg space-x-2"
-                disabled={isStartLive}
-                onClick={handleStartLive}
+                onClick={() => setIsJoinRoom(true)}
               >
-                {isStartLive ? (
-                  <div className="loading loading-spinner loading-sm text-slate-400"></div>
-                ) : (
-                  <Video size={20} />
-                )}
-                <span>New meeting</span>
-              </button>
-            )}
-            {!location.pathname.includes("teach") && (
-              <button className="btn btn-neutral rounded-lg space-x-2">
                 <LogIn size={20} />
                 <span>Join meeting</span>
               </button>
@@ -156,6 +168,35 @@ export default function BatchLayout() {
 
       {/* Footer */}
       <Footer />
+
+      {/* Join Room Form */}
+      {isJoinRoom && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
+          <div className="w-full max-w-3xl bg-white rounded-lg p-6 space-y-6">
+            <h2 className="font-bold text-2xl">Enter Room ID</h2>
+            <input
+              className="input w-full rounded-lg"
+              placeholder="Example: 123456"
+              value={roomId}
+              onChange={(e) => setRoomId(e.target.value)}
+            />
+            <div className="w-full flex justify-end space-x-4">
+              <button
+                className="btn btn-neutral rounded-lg"
+                onClick={handleJoinRoom}
+              >
+                Join room
+              </button>
+              <button
+                className="btn rounded-lg"
+                onClick={() => setIsJoinRoom(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -17,11 +17,12 @@ import {useNavigate, useParams} from "react-router-dom";
 import {useQuery} from "@tanstack/react-query";
 import {toast} from "react-toastify";
 
+import {RoomParticipant} from "@/types";
 import {useAppSelector} from "@/redux/hooks";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {liveServices} from "@/lib/services/live.services";
 import {usePublishMedia} from "@/hooks/usePublishMedia";
-import {RoomParticipant} from "@/types";
+import {usePublishScreen} from "@/hooks/usePublishScreen";
 
 import Avatar from "@/components/Avatar";
 import BatchLiveError from "./BatchLiveError";
@@ -38,7 +39,9 @@ export default function BatchLive() {
   const [isJoin, setIsJoin] = useState(false);
   const [sessionId, setSessionId] = useState<number>();
 
+  // Pin screen
   const [isPin, setIsPin] = useState(false);
+
   // Camera, mic
   const {
     publishMedia,
@@ -53,7 +56,9 @@ export default function BatchLive() {
   const localMediaRef = useRef<HTMLVideoElement | null>(null);
 
   // Share screen
-  const [isScreenOn, setIsScreenOn] = useState(false);
+  const {publishScreen, isScreenPublished, localScreenStream, unpublishScreen} =
+    usePublishScreen();
+  const localScreenRef = useRef<HTMLVideoElement | null>(null);
 
   // Participants
   const [isShowParticipants, setIsShowParticipants] = useState(false);
@@ -132,7 +137,7 @@ export default function BatchLive() {
       setParticipants(publishers || []);
       return response;
     },
-    refetchInterval: 2000,
+    refetchInterval: 1000,
   });
 
   // Handlers
@@ -145,22 +150,43 @@ export default function BatchLive() {
   const handleToggleMic = () => {
     toggleMic();
   };
+
   const handleToggleScreen = () => {
-    setIsScreenOn((prev) => !prev);
+    if (isScreenPublished) {
+      unpublishScreen(Number(roomId));
+    } else {
+      publishScreen(Number(roomId));
+    }
   };
+  useEffect(() => {
+    if (
+      isScreenPublished &&
+      localScreenRef.current &&
+      localScreenStream.current
+    ) {
+      localScreenRef.current.srcObject = localScreenStream.current;
+    }
+  }, [isScreenPublished, localScreenStream]);
 
   const handleShowParticipants = () => setIsShowParticipants((prev) => !prev);
   const handleShowChat = () => setIsShowChat((prev) => !prev);
 
   const handleLeaveRoom = async () => {
-    const accessToken = await getAccessToken();
+    // 1. Unpublish all local feeds
     await unpublishMedia(Number(roomId));
+    if (isScreenPublished) {
+      await unpublishScreen(Number(roomId));
+    }
 
+    // 2. Leave room or end room
+    const accessToken = await getAccessToken();
     if (userData?.roles.includes("COURSE_CREATOR")) {
       await liveServices.endRoom(accessToken, Number(roomId));
     } else {
       await liveServices.leaveRoom(accessToken, Number(roomId));
     }
+
+    // 3. Navigate back to batch discussion
     navigate(`/batch/${batchSlug}/teach`);
   };
 
@@ -227,6 +253,22 @@ export default function BatchLive() {
               {userData?.name || ""} (You)
             </div>
           </div>
+          <div
+            className={`${isScreenPublished ? "col-span-1 h-40 md:h-48 lg:h-52 xl:h-56" : "hidden h-0"} bg-transparent relative`}
+          >
+            <video
+              ref={localScreenRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full rounded-lg object-cover"
+            ></video>
+            {isScreenPublished && (
+              <div className="absolute bottom-0 left-0 right-0 p-6 text-center font-semibold text-white">
+                {userData?.name || ""} (You)
+              </div>
+            )}
+          </div>
           {participants.length > 0 &&
             participants.map((p: RoomParticipant) => (
               <BatchScreen key={p.id} p={p} />
@@ -283,7 +325,7 @@ export default function BatchLive() {
             />
             <BatchLiveButton
               isSwitch={true}
-              state={isScreenOn}
+              state={isScreenPublished}
               title="Share screen"
               onClick={handleToggleScreen}
               switchIcon={[
