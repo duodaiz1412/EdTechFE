@@ -70,6 +70,7 @@ import InstructorBatch from "./pages/Instructor/Batchs/index.tsx";
 import CreateBatch from "./pages/Instructor/Batchs/CreateBatch/index.tsx";
 import EditBatch from "./pages/Instructor/Batchs/EditBatch/index.tsx";
 import MyBatches from "./pages/Instructor/MyBatches.tsx";
+import InstructorStatistic from "./pages/Instructor/Statistic/index.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -223,6 +224,10 @@ function App() {
                 <Route path="/instructor" element={<InstructorCourse />} />
                 <Route path="/instructor/batch" element={<InstructorBatch />} />
                 <Route path="/instructor/payment" element={<SetPayment />} />
+                <Route
+                  path="/instructor/statistic"
+                  element={<InstructorStatistic />}
+                />
               </Route>
 
               {/* Instructor - Create/Edit Batch routes (without sidebar) */}
