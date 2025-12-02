@@ -112,6 +112,15 @@ const INSTRUCTOR_ENDPOINTS = {
   GET_MY_JOBS: BASE_API + "/instructor/my-jobs",
   UPDATE_PAYOS_CONFIG: (configId: string) =>
     BASE_API + `/instructor/payos-configs/${configId}`,
+
+  // Statistic APIs
+  STATISTICS_OVERVIEW: BASE_API + "/instructor/statistics/overview",
+  STATISTICS_REVENUE_OVER_TIME:
+    BASE_API + "/instructor/statistics/revenue-over-time",
+  STATISTICS_COURSE_PERFORMANCE:
+    BASE_API + "/instructor/statistics/course-performance",
+  STATISTICS_BATCH_PERFORMANCE:
+    BASE_API + "/instructor/statistics/batch-performance",
 } as const;
 
 // Types
@@ -854,6 +863,66 @@ export const instructorServices = {
     );
     return response;
   },
+
+  // Statistic APIs
+  async getStatisticsOverview(accessToken: string) {
+    const response = await axios.get(INSTRUCTOR_ENDPOINTS.STATISTICS_OVERVIEW, {
+      headers: {Authorization: `Bearer ${accessToken}`},
+    });
+    return response;
+  },
+
+  async getStatisticsRevenueOverTime(
+    accessToken: string,
+    params: {
+      period?: "WEEK" | "MONTH" | "YEAR" | "ALL_TIME";
+      type?: "COURSE" | "BATCH";
+    },
+  ) {
+    const urlParams = new URLSearchParams();
+    if (params.period) urlParams.append("period", params.period);
+    if (params.type) urlParams.append("type", params.type);
+
+    const response = await axios.get(
+      `${INSTRUCTOR_ENDPOINTS.STATISTICS_REVENUE_OVER_TIME}?${urlParams}`,
+      {headers: {Authorization: `Bearer ${accessToken}`}},
+    );
+    return response;
+  },
+
+  async getStatisticsCoursePerformance(
+    accessToken: string,
+    page: number = 0,
+    size: number = 10,
+  ) {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    const response = await axios.get(
+      `${INSTRUCTOR_ENDPOINTS.STATISTICS_COURSE_PERFORMANCE}?${params}`,
+      {headers: {Authorization: `Bearer ${accessToken}`}},
+    );
+    return response;
+  },
+
+  async getStatisticsBatchPerformance(
+    accessToken: string,
+    page: number = 0,
+    size: number = 10,
+  ) {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    const response = await axios.get(
+      `${INSTRUCTOR_ENDPOINTS.STATISTICS_BATCH_PERFORMANCE}?${params}`,
+      {headers: {Authorization: `Bearer ${accessToken}`}},
+    );
+    return response;
+  },
 };
 
 export class InstructorService {
@@ -1114,5 +1183,44 @@ export class InstructorService {
     accessToken: string,
   ) {
     return instructorServices.updatePayOSConfig(configId, data, accessToken);
+  }
+
+  // Statistic APIs
+  static async getStatisticsOverview(accessToken: string) {
+    return instructorServices.getStatisticsOverview(accessToken);
+  }
+
+  static async getStatisticsRevenueOverTime(
+    accessToken: string,
+    params: {
+      period?: "WEEK" | "MONTH" | "YEAR" | "ALL_TIME";
+      type?: "COURSE" | "BATCH";
+    },
+  ) {
+    return instructorServices.getStatisticsRevenueOverTime(accessToken, params);
+  }
+
+  static async getStatisticsCoursePerformance(
+    accessToken: string,
+    page: number = 0,
+    size: number = 10,
+  ) {
+    return instructorServices.getStatisticsCoursePerformance(
+      accessToken,
+      page,
+      size,
+    );
+  }
+
+  static async getStatisticsBatchPerformance(
+    accessToken: string,
+    page: number = 0,
+    size: number = 10,
+  ) {
+    return instructorServices.getStatisticsBatchPerformance(
+      accessToken,
+      page,
+      size,
+    );
   }
 }

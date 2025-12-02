@@ -322,3 +322,30 @@ export interface Item {
   status: "Draft" | "Published";
   publishedAt?: string;
 }
+
+export interface InstructorStats {
+  totalCoursePublished: number;
+  totalBatchPublished: number;
+  courseRevenue: number;
+  batchRevenue: number;
+}
+
+export interface RevenueOverTime {
+  type: string;
+  period: string;
+  groupBy: string;
+  currency: string;
+  dataPoints: RevenueDataPoint[];
+}
+
+export interface RevenueDataPoint {
+  date: string;
+  revenue: number;
+}
+
+export interface PerformanceReportItem {
+  id: string;
+  title: string;
+  totalRevenue: number;
+  enrollmentCount: number;
+}

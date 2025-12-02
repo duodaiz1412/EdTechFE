@@ -1,13 +1,5 @@
 import {useLocation} from "react-router-dom";
-import {
-  BookOpen,
-  MessageCircle,
-  BarChart3,
-  Wrench,
-  HelpCircle,
-  CreditCard,
-  Video,
-} from "lucide-react";
+import {BookOpen, BarChart3, CreditCard, Video} from "lucide-react";
 import {InstructorSidebarItem} from "./InstructorSidebarItem";
 import Logo from "@/components/Logo";
 
@@ -26,24 +18,9 @@ export default function InstructorSidebar() {
       label: "Batches",
     },
     {
-      to: "/instructor/communication",
-      icon: <MessageCircle className="w-5 h-5" />,
-      label: "Communication",
-    },
-    {
-      to: "/instructor/performance",
+      to: "/instructor/statistic",
       icon: <BarChart3 className="w-5 h-5" />,
-      label: "Performance",
-    },
-    {
-      to: "/instructor/tools",
-      icon: <Wrench className="w-5 h-5" />,
-      label: "Tools",
-    },
-    {
-      to: "/instructor/resources",
-      icon: <HelpCircle className="w-5 h-5" />,
-      label: "Resources",
+      label: "Statistics",
     },
     {
       to: "/instructor/payment",
