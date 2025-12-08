@@ -39,7 +39,10 @@ export function useSubscribeFeed() {
         iceServers: [
           {urls: "stun:stun.l.google.com:19302"},
           {urls: "stun:stun1.l.google.com:19302"},
+          {urls: "stun:stun2.l.google.com:19302"},
         ],
+        sdpSematics: "unified-plan",
+        iceCandidatePoolSize: 10,
       };
       const pc = new RTCPeerConnection(pcConfig);
       pcRef.current = pc;
@@ -49,7 +52,7 @@ export function useSubscribeFeed() {
         const stream = event.streams[0];
         if (stream) {
           console.log(
-            `[SUBSCRIBE FEED] - Stream ID: ${stream.id}, tracks: ${stream.getTracks().length}`,
+            `[SUBSCRIBE FEED]: Stream ID - ${stream.id}, tracks - ${stream.getTracks().length}`,
           );
           localMediaRef.current = stream;
           setIsReceived(true);
@@ -70,47 +73,50 @@ export function useSubscribeFeed() {
       await pc.setLocalDescription(answer);
 
       // 3. Handle ICE candidates
-      if (pc.iceGatheringState !== "complete") {
-        console.log("[SUBSCRIBE FEED]: Gathering ICE candidates...");
+      const timeout = 10000;
+      const sdp = await new Promise((resolve) => {
+        if (pc.iceGatheringState === "complete") {
+          resolve(pc.localDescription?.sdp);
+          return;
+        }
+
+        let candidateCount = 0;
+
+        const timeoutId = setTimeout(() => {
+          console.log("[SUBSCRIBE FEED]: ICE gathering timeout");
+          resolve(pc.localDescription?.sdp);
+        }, timeout);
 
         pc.onicecandidate = (event) => {
           if (event.candidate) {
-            console.log(
-              `ICE candidate: ${event.candidate.type} - ${event.candidate.address || event.candidate.candidate}`,
-            );
+            candidateCount++;
           } else {
-            console.log("[SUBSCRIBE FEED]: ICE gathering complete");
+            clearTimeout(timeoutId);
+            console.log(
+              `[SUBSCRIBE FEED]: ICE gathering complete with ${candidateCount} candidates`,
+            );
+            resolve(pc.localDescription?.sdp);
           }
         };
 
-        await new Promise((resolve) => {
-          const checkState = () => {
-            if (pc.iceGatheringState === "complete") {
-              console.log("[SUBSCRIBE FEED]: ICE gathering complete");
-              resolve(true);
-            }
-          };
-
-          pc.addEventListener("icegatheringstatechange", checkState);
-
-          setTimeout(() => {
-            pc.removeEventListener("icegatheringstatechange", checkState);
-            console.log("[SUBSCRIBE FEED]: ICE gathering timeout");
-            resolve(true);
-          }, 5000);
-        });
-      }
+        pc.onicegatheringstatechange = () => {
+          if (pc.iceGatheringState === "complete") {
+            clearTimeout(timeoutId);
+            resolve(pc.localDescription?.sdp);
+          }
+        };
+      });
 
       // 4. Send SDP answer to server
-      const finalAnswer = pc.localDescription;
-      console.log("[SUBSCRIBE FEED]: Sending SDP answer to server");
+      console.log("[SUBSCRIBE FEED]: Creating SDP answer...");
 
       const response = await liveServices.startSubscribe(
         accessToken,
         subscribeData.sessionId!,
         subscribeData.handleId!,
-        finalAnswer?.sdp || "",
+        sdp as string,
       );
+
       const data = response.data;
       if (data.error) {
         throw new Error(data.error);

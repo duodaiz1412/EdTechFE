@@ -18,9 +18,11 @@ export default function Avatar({
       )}
       {!imageUrl && (
         <div
-          className={`bg-blue-500 text-neutral-content ${isBig ? "w-16" : "w-10"} rounded-full`}
+          className={`bg-black text-neutral-content ${isBig ? "w-16" : "w-10"} rounded-full`}
         >
-          <span className="text-xl">{name?.[0]}</span>
+          <span className={`${isBig ? "text-2xl" : "text-xl"}`}>
+            {name?.[0]}
+          </span>
         </div>
       )}
     </div>

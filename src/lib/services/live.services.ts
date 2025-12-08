@@ -152,10 +152,16 @@ export const liveServices = {
   async unpublishMedia(
     accessToken: string,
     roomId: number,
+    sessionId?: number,
+    handleId?: number,
   ): Promise<AxiosResponse<JanusResponse>> {
     const response = await axios.post(
-      BASE_API + `/unpublish/${roomId}`,
-      {},
+      BASE_API + `/unpublish`,
+      {
+        roomId: roomId,
+        sessionId: sessionId,
+        handleId: handleId,
+      },
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -165,13 +171,19 @@ export const liveServices = {
     return response;
   },
 
-  async unPublishScreen(
+  async unpublishScreen(
     accessToken: string,
     roomId: number,
+    sessionId?: number,
+    handleId?: number,
   ): Promise<AxiosResponse<JanusResponse>> {
     const response = await axios.post(
-      BASE_API + `/unpublish-screen/${roomId}`,
-      {},
+      BASE_API + `/unpublish-screen`,
+      {
+        roomId: roomId,
+        sessionId: sessionId,
+        handleId: handleId,
+      },
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

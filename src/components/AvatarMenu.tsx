@@ -24,7 +24,7 @@ export default function AvatarMenu() {
         tabIndex={0}
       >
         <div
-          className={`w-9 rounded-full ${!haveAvatarImage && "bg-blue-500 text-white"}`}
+          className={`w-9 rounded-full ${!haveAvatarImage && "bg-black text-white"}`}
         >
           {haveAvatarImage && <img src={userData?.image} />}
           {!haveAvatarImage && (

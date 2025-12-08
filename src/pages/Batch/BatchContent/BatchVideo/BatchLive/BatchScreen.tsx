@@ -32,12 +32,12 @@ export default function BatchScreen({p, roomId, handlePin}: BatchScreenProps) {
   }, [isReceived, remoteStream]);
 
   const handlePinClick = () => {
-    // if (!isReceived) return;
+    if (!isReceived) return;
     handlePin(remoteStream.current!);
   };
 
   return (
-    <div className="col-span-1 bg-gray-600 h-40 md:h-48 lg:h-52 xl:h-56 rounded-lg relative flex items-center justify-center">
+    <div className="col-span-1 bg-blue-600 h-40 md:h-48 lg:h-52 xl:h-56 rounded-lg relative flex items-center justify-center">
       <video
         autoPlay
         playsInline

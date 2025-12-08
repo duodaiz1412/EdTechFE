@@ -24,7 +24,6 @@ import {liveServices} from "@/lib/services/live.services";
 import {usePublishMedia} from "@/hooks/usePublishMedia";
 import {usePublishScreen} from "@/hooks/usePublishScreen";
 
-import Avatar from "@/components/Avatar";
 import BatchLiveError from "./BatchLiveError";
 import BatchLiveButton from "./BatchLiveButton";
 import BatchScreen from "./BatchScreen";
@@ -94,7 +93,11 @@ export default function BatchLive() {
     queryFn: async () => {
       if (!isJoin) return null;
 
-      const response = await publishMedia(Number(roomId));
+      const response = await publishMedia(
+        Number(roomId),
+        sessionId!,
+        setSessionId,
+      );
       return response;
     },
   });
@@ -168,7 +171,7 @@ export default function BatchLive() {
     if (isScreenPublished) {
       unpublishScreen(Number(roomId));
     } else {
-      publishScreen(Number(roomId));
+      publishScreen(Number(roomId), sessionId!, setSessionId);
     }
   };
   useEffect(() => {
@@ -269,7 +272,7 @@ export default function BatchLive() {
             ${isPin ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"}
           `}
         >
-          <div className="col-span-1 bg-transparent h-40 md:h-48 lg:h-52 xl:h-56 relative">
+          <div className="col-span-1 bg-blue-600 rounded-lg h-40 md:h-48 lg:h-52 xl:h-56 relative">
             <video
               ref={localMediaRef}
               autoPlay
@@ -277,18 +280,12 @@ export default function BatchLive() {
               muted={!isMicOn}
               className={`${isCamOn ? "w-full h-full" : "w-0 h-0"} rounded-lg object-cover`}
             ></video>
-            {!isMediaPublished ||
-              (!isCamOn && (
-                <div className="w-full h-full rounded-lg bg-gray-600 flex items-center justify-center">
-                  <Avatar name={userData?.name} isBig={true} />
-                </div>
-              ))}
             <div className="absolute bottom-0 left-0 right-0 p-6 text-center font-semibold text-white">
               {userData?.name || ""} (You)
             </div>
           </div>
           <div
-            className={`${isScreenPublished ? "col-span-1 h-40 md:h-48 lg:h-52 xl:h-56" : "hidden h-0"} bg-transparent relative`}
+            className={`${isScreenPublished ? "col-span-1 h-40 md:h-48 lg:h-52 xl:h-56" : "hidden h-0"} bg-blue-600 rounded-lg relative`}
           >
             <video
               ref={localScreenRef}

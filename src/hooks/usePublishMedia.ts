@@ -5,12 +5,18 @@ import {liveServices} from "@/lib/services/live.services";
 export function usePublishMedia() {
   const localMediaRef = useRef<MediaStream | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
+  const sessionIdRef = useRef<number>();
+  const handleIdRef = useRef<number>();
 
   const [isCamOn, setIsCamOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isMediaPublished, setIsMediaPublished] = useState(false);
 
-  const publishMedia = async (roomId: number) => {
+  const publishMedia = async (
+    roomId: number,
+    sessionId: number,
+    setSessionId: (value: number) => void,
+  ) => {
     if (!roomId) {
       console.log("[PUBLISH MEDIA]: No room ID");
       return;
@@ -24,7 +30,10 @@ export function usePublishMedia() {
     try {
       // 1. Get local media stream
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: {
+          width: {ideal: 1280},
+          height: {ideal: 720},
+        },
         audio: true,
       });
       localMediaRef.current = stream;
@@ -35,7 +44,10 @@ export function usePublishMedia() {
         iceServers: [
           {urls: "stun:stun.l.google.com:19302"},
           {urls: "stun:stun1.l.google.com:19302"},
+          {urls: "stun:stun2.l.google.com:19302"},
         ],
+        sdpSematics: "unified-plan",
+        iceCandidatePoolSize: 10,
       };
       const pc = new RTCPeerConnection(pcConfig);
       pcRef.current = pc;
@@ -46,62 +58,80 @@ export function usePublishMedia() {
       });
 
       // 4. Create offer and send to server
-      const offer = await pc.createOffer();
+      const offerOptions = {
+        offerToReceiveAudio: false,
+        offerToReceiveVideo: false,
+        iceRestart: false,
+      };
+      const offer = await pc.createOffer(offerOptions);
       await pc.setLocalDescription(offer);
 
       // 5. Handle ICE candidates
-      if (pc.iceGatheringState !== "complete") {
-        console.log("[PUBLISH MEDIA]: Gathering ICE candidates...");
+      const timeout = 10000;
+      const sdp = await new Promise((resolve) => {
+        if (pc.iceGatheringState === "complete") {
+          resolve(pc.localDescription?.sdp);
+          return;
+        }
+
+        let candidateCount = 0;
+
+        const timeoutId = setTimeout(() => {
+          console.log("[PUBLISH MEDIA]: ICE gathering timeout");
+          resolve(pc.localDescription?.sdp);
+        }, timeout);
 
         pc.onicecandidate = (event) => {
           if (event.candidate) {
-            console.log(
-              `ICE candidate: ${event.candidate.type} - ${event.candidate.address || event.candidate.candidate}`,
-            );
+            candidateCount++;
           } else {
-            console.log("[PUBLISH MEDIA]: ICE gathering complete");
+            clearTimeout(timeoutId);
+            console.log(
+              `[PUBLISH MEDIA]: ICE gathering complete with ${candidateCount} candidates`,
+            );
+            resolve(pc.localDescription?.sdp);
           }
         };
 
-        await new Promise((resolve) => {
-          const checkState = () => {
-            if (pc.iceGatheringState === "complete") {
-              console.log("[PUBLISH MEDIA]: ICE gathering complete");
-              resolve(true);
-            }
-          };
-
-          pc.addEventListener("icegatheringstatechange", checkState);
-
-          setTimeout(() => {
-            pc.removeEventListener("icegatheringstatechange", checkState);
-            console.log("[PUBLISH MEDIA]: ICE gathering timeout");
-            resolve(true);
-          }, 5000);
-        });
-      } else {
-        console.log("[PUBLISH MEDIA]: ICE gathering already complete");
-      }
+        pc.onicegatheringstatechange = () => {
+          if (pc.iceGatheringState === "complete") {
+            clearTimeout(timeoutId);
+            resolve(pc.localDescription?.sdp);
+          }
+        };
+      });
 
       // 6. Update SDP with gathered ICE candidates
-      const finalOffer = pc.localDescription;
       console.log("[PUBLISH MEDIA]: Publishing media");
 
       const accessToken = await getAccessToken();
       const response = await liveServices.publishMedia(accessToken, {
         roomId,
-        sdp: finalOffer?.sdp,
+        sdp: sdp as string,
         streamType: "camera",
       });
-      const data = response.data;
-      if (data.error) {
-        throw new Error(data.error);
-      }
 
-      await pc.setRemoteDescription({
-        type: "answer",
-        sdp: data.sdpAnswer,
-      });
+      const data = response.data;
+      if (!data.error && data.sdpAnswer) {
+        if (data.sessionId) {
+          setSessionId(data.sessionId);
+          sessionIdRef.current = data.sessionId;
+        } else {
+          sessionIdRef.current = sessionId;
+        }
+
+        if (data.handleId) {
+          handleIdRef.current = data.handleId;
+        }
+
+        await pc.setRemoteDescription({
+          type: "answer",
+          sdp: data.sdpAnswer,
+        });
+        console.log("[PUBLISH MEDIA]: Media published successfully");
+      } else {
+        throw new Error(data.error || "No SDP answer from server");
+      }
 
       return;
     } catch (error) {
@@ -138,28 +168,38 @@ export function usePublishMedia() {
     }
 
     try {
-      // 1. Shut down all local media tracks
+      // 1. Notify server to unpublish media
+      const accessToken = await getAccessToken();
+      const response = await liveServices.unpublishMedia(
+        accessToken,
+        roomId,
+        sessionIdRef.current,
+        handleIdRef.current,
+      );
+      const data = response.data;
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      // 2. Shut down all local media tracks
       if (localMediaRef.current) {
         localMediaRef.current.getTracks().forEach((track) => track.stop());
         localMediaRef.current = null;
       }
 
-      // 2. Stop track sending and close peer connection
+      // 3. Stop track sending and close peer connection
       if (pcRef.current) {
-        pcRef.current.getSenders().forEach((sender) => {
-          pcRef.current?.removeTrack(sender);
-        });
+        // pcRef.current.getSenders().forEach((sender) => {
+        //   pcRef.current?.removeTrack(sender);
+        // });
         pcRef.current.close();
         pcRef.current = null;
       }
 
-      // 3. Notify server to unpublish media
-      const accessToken = await getAccessToken();
-      const response = await liveServices.unpublishMedia(accessToken, roomId);
-      const data = response.data;
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      // 4. Reset states
+      sessionIdRef.current = undefined;
+      handleIdRef.current = undefined;
+      setIsMediaPublished(false);
 
       return;
     } catch (error) {
