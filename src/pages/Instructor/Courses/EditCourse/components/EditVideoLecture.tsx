@@ -14,6 +14,8 @@ import MuxPlayer from "@mux/mux-player-react/lazy";
 import {useTaskActions, useTaskSelectors} from "@/stores/taskStore";
 import {useGlobalPollingContext} from "@/components/GlobalPollingProvider";
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB in bytes
+
 interface VideoLectureFormValues {
   title: string;
   videoFile: File | null;
@@ -48,7 +50,6 @@ export default function EditVideoLecture() {
     progress,
     error: uploadError,
     success: uploadSuccess,
-    videoJob,
     uploadVideo,
     resetState: resetUploadState,
   } = useUploadFile({
@@ -81,7 +82,12 @@ export default function EditVideoLecture() {
 
   const validationSchema = Yup.object({
     title: Yup.string().trim().required("Title is required"),
-    videoFile: Yup.mixed<File>().nullable(),
+    videoFile: Yup.mixed<File>()
+      .nullable()
+      .test("file-size", "File size must be less than 5GB", function (value) {
+        if (!value) return true;
+        return value.size <= MAX_FILE_SIZE;
+      }),
     videoUrl: Yup.string().test(
       "video-url-required",
       "Video is required",
@@ -250,6 +256,14 @@ export default function EditVideoLecture() {
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
+
+    // Check file size before setting
+    if (file && file.size > MAX_FILE_SIZE) {
+      toast.error("File size exceeds 5GB limit. Please choose a smaller file.");
+      e.target.value = ""; // Reset input
+      return;
+    }
+
     formik.setFieldValue("videoFile", file);
     // Reset upload state when selecting new file
     resetUploadState();
@@ -300,6 +314,13 @@ export default function EditVideoLecture() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Video File <span className="text-red-500">*</span>
             </label>
+
+            {/* File size warning */}
+            <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-xs text-yellow-800">
+                ⚠️ Maximum file size: 5GB
+              </p>
+            </div>
 
             {/* Display current video if available */}
             {formik.values.videoUrl && !formik.values.videoFile && (
@@ -396,18 +417,20 @@ export default function EditVideoLecture() {
             )}
 
             {/* Upload success */}
-            {uploadSuccess && videoJob && (
-              <div className="mt-3 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md">
-                <p className="text-sm font-medium">
-                  ✓ Video queued for transcoding successfully!
-                </p>
-                <p className="text-xs mt-1">Job ID: {videoJob.id}</p>
-                <p className="text-xs mt-1">Status: {videoJob.status}</p>
-                <p className="text-xs mt-1 text-blue-600">
-                  Video will be available after transcoding is complete.
-                </p>
-              </div>
-            )}
+            {uploadSuccess &&
+              formik.values.videoUrl?.startsWith("transcoding:") && (
+                <div className="mt-3 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md">
+                  <p className="text-sm font-medium">
+                    ✓ Video queued for transcoding successfully!
+                  </p>
+                  <p className="text-xs mt-1">
+                    Job ID: {formik.values.videoUrl.replace("transcoding:", "")}
+                  </p>
+                  <p className="text-xs mt-1 text-blue-600">
+                    Video will be available after transcoding is complete.
+                  </p>
+                </div>
+              )}
 
             {/* Upload error */}
             {uploadError && (

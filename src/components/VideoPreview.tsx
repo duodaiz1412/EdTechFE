@@ -1,6 +1,8 @@
+import {useEffect, useState, useRef} from "react";
 import {PlayCircle} from "lucide-react";
 import Button from "./Button";
 import MuxPlayer from "@mux/mux-player-react/lazy";
+import {getFileUrl} from "@/lib/services/upload.services";
 
 interface VideoPreviewProps {
   videoUrl: string;
@@ -13,6 +15,63 @@ export default function VideoPreview({
   onEdit,
   className = "",
 }: VideoPreviewProps) {
+  const [resolvedVideoUrl, setResolvedVideoUrl] = useState<string>("");
+  const isMountedRef = useRef(true);
+  const currentVideoUrlRef = useRef<string>("");
+
+  useEffect(() => {
+    // Reset mounted flag
+    isMountedRef.current = true;
+
+    const fetchVideoUrl = async () => {
+      if (!videoUrl) {
+        if (isMountedRef.current) {
+          setResolvedVideoUrl("");
+          currentVideoUrlRef.current = "";
+        }
+        return;
+      }
+
+      // Nếu đã là URL đầy đủ, sử dụng luôn
+      if (videoUrl.startsWith("http://") || videoUrl.startsWith("https://")) {
+        if (isMountedRef.current) {
+          setResolvedVideoUrl(videoUrl);
+          currentVideoUrlRef.current = videoUrl;
+        }
+        return;
+      }
+
+      // Nếu đã fetch URL này rồi, không fetch lại
+      if (currentVideoUrlRef.current === videoUrl) {
+        return;
+      }
+
+      // Đánh dấu videoUrl hiện tại
+      currentVideoUrlRef.current = videoUrl;
+
+      // Nếu là objectName, lấy URL từ API
+      try {
+        const url = await getFileUrl(videoUrl);
+        // Chỉ set state nếu component vẫn mounted và videoUrl vẫn là videoUrl hiện tại
+        if (isMountedRef.current && currentVideoUrlRef.current === videoUrl) {
+          setResolvedVideoUrl(url);
+        }
+      } catch {
+        // Ignore errors if component unmounted or videoUrl changed
+        if (isMountedRef.current && currentVideoUrlRef.current === videoUrl) {
+          setResolvedVideoUrl("");
+        }
+      }
+    };
+
+    fetchVideoUrl();
+
+    // Cleanup function
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [videoUrl]);
+
   return (
     <div
       className={`flex items-center justify-between p-3 bg-blue-50 rounded-lg ${className}`}
@@ -42,7 +101,8 @@ export default function VideoPreview({
           <div className="flex justify-center">
             <MuxPlayer
               src={
-                videoUrl || "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+                resolvedVideoUrl ||
+                "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
               }
               videoTitle="Video preview"
               className="w-2/3 aspect-video"

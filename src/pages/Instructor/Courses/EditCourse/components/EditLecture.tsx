@@ -14,6 +14,8 @@ import useCourse from "@/hooks/useCourse";
 
 type LectureType = "video" | "article";
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB in bytes
+
 interface LectureFormValues {
   title: string;
   type: LectureType;
@@ -74,6 +76,10 @@ export default function EditLecture() {
       .test("video-required", "Video is required", function (value) {
         const type = this.parent.type as LectureType;
         return type === "video" ? !!value : true;
+      })
+      .test("file-size", "File size must be less than 5GB", function (value) {
+        if (!value) return true;
+        return value.size <= MAX_FILE_SIZE;
       }),
     videoUrl: Yup.string().test(
       "video-url-required",
@@ -185,6 +191,14 @@ export default function EditLecture() {
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
+
+    // Check file size before setting
+    if (file && file.size > MAX_FILE_SIZE) {
+      toast.error("File size exceeds 5GB limit. Please choose a smaller file.");
+      e.target.value = ""; // Reset input
+      return;
+    }
+
     formik.setFieldValue("videoFile", file);
 
     const entityId = lessonId || chapterId;
@@ -287,6 +301,11 @@ export default function EditLecture() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Video
               </label>
+              <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-xs text-yellow-800">
+                  ⚠️ Maximum file size: 5GB
+                </p>
+              </div>
               <input
                 type="file"
                 accept="video/*"

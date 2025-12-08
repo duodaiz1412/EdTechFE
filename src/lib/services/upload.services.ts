@@ -132,13 +132,15 @@ export const uploadVideoForTranscoding = async (
 
 /**
  * Lấy URL của file từ MinIO bằng objectName
+ * @param objectName - Tên object trong MinIO
+ * @returns Object chứa uploadUrl và objectName
  */
 export const getFileUrlFromMinIO = async (
   objectName: string,
-): Promise<{uploadUrl: string; objectName: string}> => {
+): Promise<PresignedUrlResponse> => {
   try {
     const accessToken = await getAccessToken();
-    const response = await axios.get<{uploadUrl: string; objectName: string}>(
+    const response = await axios.get<PresignedUrlResponse>(
       UPLOAD_ENDPOINTS.GET_URL,
       {
         params: {objectName},
@@ -152,4 +154,19 @@ export const getFileUrlFromMinIO = async (
     toast.error("Cannot get file URL");
     throw new Error("Cannot get file URL");
   }
+};
+
+/**
+ * Lấy URL của file từ objectName (chỉ trả về URL string)
+ * Helper function để dễ sử dụng hơn khi chỉ cần URL
+ * @param objectName - Tên object trong MinIO
+ * @returns URL string để truy cập file
+ */
+export const getFileUrl = async (objectName: string): Promise<string> => {
+  if (!objectName) {
+    return "";
+  }
+
+  const result = await getFileUrlFromMinIO(objectName);
+  return result.uploadUrl;
 };

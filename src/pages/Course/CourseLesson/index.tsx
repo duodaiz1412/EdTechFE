@@ -5,6 +5,7 @@ import {motion} from "motion/react";
 import {Lesson} from "@/types";
 import {progressServices} from "@/lib/services/progress.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
+import {getFileUrl} from "@/lib/services/upload.services";
 
 import {Download} from "lucide-react";
 import CourseLessonVideo from "./LessonType/CourseLessonVideo";
@@ -18,24 +19,6 @@ interface CourseLessonProps {
   lesson?: Lesson;
   status?: boolean;
 }
-
-const getFileNameFromUrl = (url: string): string => {
-  const urlObj = new URL(url);
-  const pathSegments = urlObj.pathname.split("/");
-
-  // Find the last segment that looks like a file
-  for (let i = pathSegments.length - 1; i >= 0; i--) {
-    const segment = pathSegments[i];
-    // Check if the segment has a file extension
-    if (segment && /\.[a-zA-Z0-9]+$/.test(segment)) {
-      // Remove any leading numbering (e.g., "01-") from the filename
-      const cleanFileName = segment.replace(/^\d+-/, "");
-      return cleanFileName;
-    }
-  }
-
-  return "Attachment";
-};
 
 export default function CourseLesson({lesson, status}: CourseLessonProps) {
   const [lessonType, setLessonType] = useState("video");
@@ -57,21 +40,33 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
       }
 
       if (lesson.fileUrl) {
-        // Fetch file as blob
-        const response = await axios.get(lesson.fileUrl, {
-          responseType: "blob",
-        });
-        const contentType = response.headers["content-type"];
+        try {
+          // Lấy URL từ objectName
+          const fileUrl = await getFileUrl(lesson.fileUrl);
 
-        // Get filename
-        const extractedFileName = getFileNameFromUrl(lesson.fileUrl);
-        setFilename(extractedFileName);
+          // Fetch file as blob từ URL đã lấy được
+          const response = await axios.get(fileUrl, {
+            responseType: "blob",
+          });
+          const contentType = response.headers["content-type"];
 
-        // Create download URL
-        const url = window.URL.createObjectURL(
-          new Blob([response.data], {type: contentType}),
-        );
-        setDownloadUrl(url);
+          // Get filename từ objectName
+          const pathSegments = lesson.fileUrl.split("/");
+          const lastSegment = pathSegments[pathSegments.length - 1];
+          const extractedFileName = lastSegment
+            ? lastSegment.replace(/^\d+-/, "")
+            : "Attachment";
+
+          setFilename(extractedFileName);
+
+          // Create download URL
+          const url = window.URL.createObjectURL(
+            new Blob([response.data], {type: contentType}),
+          );
+          setDownloadUrl(url);
+        } catch {
+          toast.error("Cannot load file attachment");
+        }
       }
     };
 
@@ -107,7 +102,7 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
       <div className="w-full flex justify-center bg-black border border-slate-200">
         {lessonType === "video" && (
           <CourseLessonVideo
-            videoUrl={lesson?.videoUrl}
+            videoObjectName={lesson?.videoUrl}
             videoTitle={lesson?.title}
             completeLesson={handleComplete}
           />
