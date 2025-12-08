@@ -4,8 +4,10 @@ import {
   MessageSquare,
   Mic,
   MicOff,
+  Pause,
   PhoneOff,
   PinOff,
+  Play,
   ScreenShare,
   ScreenShareOff,
   Users,
@@ -23,6 +25,7 @@ import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {liveServices} from "@/lib/services/live.services";
 import {usePublishMedia} from "@/hooks/usePublishMedia";
 import {usePublishScreen} from "@/hooks/usePublishScreen";
+import {useRecording} from "@/hooks/useRecording";
 
 import BatchLiveError from "./BatchLiveError";
 import BatchLiveButton from "./BatchLiveButton";
@@ -60,6 +63,8 @@ export default function BatchLive() {
   const {publishScreen, isScreenPublished, localScreenStream, unpublishScreen} =
     usePublishScreen();
   const localScreenRef = useRef<HTMLVideoElement | null>(null);
+
+  const {isRecording, startRecording, stopRecording} = useRecording();
 
   // Participants
   const [isShowParticipants, setIsShowParticipants] = useState(false);
@@ -183,6 +188,15 @@ export default function BatchLive() {
       localScreenRef.current.srcObject = localScreenStream.current;
     }
   }, [isScreenPublished, localScreenStream]);
+
+  // Handle record
+  const handleRecord = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording(Number(roomId));
+    }
+  };
 
   // Handlers show participants and chat
   const handleShowParticipants = () => {
@@ -361,6 +375,13 @@ export default function BatchLive() {
                 <ScreenShare size={22} />,
                 <ScreenShareOff size={22} />,
               ]}
+            />
+            <BatchLiveButton
+              isSwitch={true}
+              state={isRecording}
+              title="Record"
+              onClick={handleRecord}
+              switchIcon={[<Pause size={22} />, <Play size={22} />]}
             />
             <BatchLiveButton
               isSwitch={false}

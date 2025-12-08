@@ -1,10 +1,13 @@
+import axios, {AxiosResponse} from "axios";
+
 import {
+  ChunkUploadResponse,
+  CompleteRecordResponse,
   JanusResponse,
   LiveSession,
   PublishRequest,
   PublishResponse,
 } from "@/types";
-import axios, {AxiosResponse} from "axios";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1/live";
 
@@ -225,6 +228,55 @@ export const liveServices = {
         sessionId: sessionId,
         handleId: handleId,
         sdpAnswer: sdpAnswer,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response;
+  },
+
+  async uploadChunk(
+    accessToken: string,
+    roomId: number,
+    blob: Blob,
+    chunkIndex: number,
+    duration: number,
+  ): Promise<AxiosResponse<ChunkUploadResponse>> {
+    const formData = new FormData();
+    formData.append(
+      "file",
+      blob,
+      `chunk-${String(chunkIndex).padStart(3, "0")}.webm`,
+    );
+
+    const response = await axios.post(
+      BASE_API +
+        `/recording/upload-chunk?roomId=${roomId}&chunkIndex=${chunkIndex}&duration=${duration}`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response;
+  },
+
+  async completeRecord(
+    accessToken: string,
+    roomId: number,
+    totalChunks: number,
+    totalDurationSeconds: number,
+  ): Promise<AxiosResponse<CompleteRecordResponse>> {
+    const response = await axios.post(
+      BASE_API + `/recording/complete`,
+      {
+        roomId: roomId,
+        totalChunks: totalChunks,
+        totalDurationSeconds: totalDurationSeconds,
       },
       {
         headers: {

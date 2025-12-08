@@ -386,3 +386,20 @@ export interface RemoteStream {
   stream?: MediaStream;
   displayName?: string;
 }
+
+export interface ChunkUploadResponse {
+  chunkId?: string;
+  chunkIndex?: number;
+  message?: string;
+  fileSize?: number;
+  totalChunksUploaded?: number;
+}
+
+export interface CompleteRecordResponse {
+  roomId?: number;
+  status?: string;
+  message?: string;
+  videoUrl?: string;
+  durationSeconds?: number;
+  totalChunks?: number;
+}
