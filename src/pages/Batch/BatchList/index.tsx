@@ -1,16 +1,19 @@
-import {publicServices} from "@/lib/services/public.services";
-// import {useAppSelector} from "@/redux/hooks";
-import {Batch} from "@/types";
-import {useQuery} from "@tanstack/react-query";
 import {useState} from "react";
+import {useQuery} from "@tanstack/react-query";
+
+import {Batch} from "@/types";
+// import {useAppSelector} from "@/redux/hooks";
+import {publicServices} from "@/lib/services/public.services";
+
 import {BatchSkeleton} from "./BatchSkeleton";
 import BatchItem from "./BatchItem";
+import notFoundImg from "@/assets/not_found.svg";
 
 export default function BatchList() {
-  const [batches, setBatches] = useState<Batch[]>();
+  const [batches, setBatches] = useState<Batch[]>([]);
   const [search, setSearch] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  //   const userData = useAppSelector((state) => state.user.data);
+  // const userData = useAppSelector((state) => state.user.data);
 
   const {isLoading} = useQuery({
     queryKey: ["batches"],
@@ -81,13 +84,17 @@ export default function BatchList() {
         </div>
       </div>
       {/* List of courses */}
-      {isLoading ? (
-        <BatchSkeleton count={6} />
-      ) : (
+      {isLoading && <BatchSkeleton count={6} />}
+      {!isLoading && batches.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
           {batches?.map((batch: Batch) => {
             return <BatchItem key={batch.id} batch={batch} />;
           })}
+        </div>
+      )}
+      {!isLoading && batches.length === 0 && (
+        <div className="w-full flex justify-center">
+          <img src={notFoundImg} alt="Not Found" className="w-1/2" />
         </div>
       )}
     </div>

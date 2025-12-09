@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {toast} from "react-toastify";
 import {Camera, Mail, ShieldUser, Trash2, User} from "lucide-react";
@@ -8,6 +8,7 @@ import {useAppDispatch, useAppSelector} from "@/redux/hooks";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {userServices} from "@/lib/services/user.services";
 import ProfileAvatarForm from "./ProfileAvatarForm";
+import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
 
 export default function Profile() {
   const userData = useAppSelector((state) => state.user.data);
@@ -15,7 +16,18 @@ export default function Profile() {
   const navigate = useNavigate();
 
   const [fullName, setFullName] = useState(userData?.name || "");
+  const [avatarUrl, setAvatarUrl] = useState<string>();
   const [isAvatarChoosing, setIsAvatarChoosing] = useState(false);
+
+  useEffect(() => {
+    async function fetchAvatarUrl() {
+      if (userData?.image) {
+        const url = await getFileUrlFromMinIO(userData.image);
+        setAvatarUrl(url.uploadUrl);
+      }
+    }
+    fetchAvatarUrl();
+  }, [userData?.image]);
 
   const handleSaveFullName = async () => {
     const accessToken = await getAccessToken();
@@ -123,7 +135,7 @@ export default function Profile() {
                   </div>
                 ) : (
                   <img
-                    src={userData.image}
+                    src={avatarUrl}
                     alt="Avatar"
                     className="w-full h-full object-cover"
                   />

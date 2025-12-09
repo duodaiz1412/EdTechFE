@@ -1,4 +1,5 @@
 import {adminServices} from "@/lib/services/admin.services";
+import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {User} from "@/types";
 import {useQueries} from "@tanstack/react-query";
@@ -26,6 +27,7 @@ export default function UserDetail() {
   const {userId} = useParams();
   const [user, setUser] = useState<User>();
   const [fullName, setFullName] = useState("");
+  const [imgUrl, setImgUrl] = useState<string>();
 
   const [currentRoles, setCurrentRoles] = useState<string[]>([]);
   const [isAddingRole, setIsAddingRole] = useState(false);
@@ -39,6 +41,10 @@ export default function UserDetail() {
           const response = await adminServices.getUser(userId!, accessToken);
           setUser(response);
           setFullName(response.fullName || "");
+          if (response.userImage) {
+            const finalUrl = await getFileUrlFromMinIO(response.userImage);
+            setImgUrl(finalUrl.uploadUrl);
+          }
           return response;
         },
       },
@@ -119,13 +125,13 @@ export default function UserDetail() {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-8">
           <div className="flex items-center space-x-6">
             <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-white shadow-lg">
-              {!user?.userImage ? (
+              {!imgUrl ? (
                 <div className="w-full h-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
                   <UserIcon size={40} className="text-white" />
                 </div>
               ) : (
                 <img
-                  src={user?.userImage}
+                  src={imgUrl}
                   alt={user?.fullName}
                   className="w-full h-full object-cover"
                 />

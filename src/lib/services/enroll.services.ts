@@ -73,10 +73,16 @@ export const enrollServices = {
     return response.data;
   },
 
-  async getPurchaseHistory(accessToken: string, page: number = 1) {
-    const size = 10;
+  async getPurchaseHistory(
+    accessToken: string,
+    filterBy: "COURSE" | "BATCH",
+    page: number = 0,
+    size: number = 10,
+  ) {
     const response = await axios.get(
-      BASE_API + "/enrollments/me" + `?page=${page}&size=${size}`,
+      BASE_API +
+        "/enrollments/me" +
+        `?filterBy=${filterBy}&page=${page}&size=${size}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

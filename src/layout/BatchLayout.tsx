@@ -9,13 +9,13 @@ import {useAppSelector} from "@/redux/hooks";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {publicServices} from "@/lib/services/public.services";
 import {liveServices} from "@/lib/services/live.services";
+import {formatDate} from "@/lib/utils/formatDate";
 import {isBatchInstructor} from "@/lib/utils/isBatchInstructor";
 
 import BatchNavbar from "./components/Batch/BatchNavbar";
 import BatchDiscussion from "@/pages/Batch/BatchContent/BatchDiscussion";
 import BatchRecords from "@/pages/Batch/BatchContent/BatchVideo/BatchRecords/BatchRecords";
 import Footer from "@/components/Footer";
-import {formatDate} from "@/lib/utils/formatDate";
 
 export default function BatchLayout() {
   const {batchSlug} = useParams();
@@ -81,6 +81,9 @@ export default function BatchLayout() {
               <div className="space-y-2 text-blue-50">
                 <p className="flex items-center gap-2">
                   <span className="font-semibold text-white">Instructor:</span>
+                  <span>
+                    {data?.instructors?.map((inst) => inst.fullName).join(", ")}
+                  </span>
                 </p>
                 <p className="flex items-center gap-2">
                   <span className="font-semibold text-white">Duration:</span>
@@ -146,14 +149,6 @@ export default function BatchLayout() {
               <div className="tab-content px-4 py-6">
                 <BatchRecords />
               </div>
-
-              <input
-                type="radio"
-                name="batch_tab"
-                className="tab"
-                aria-label="Everyone"
-              />
-              <div className="tab-content px-4 py-6">Tab content 3</div>
             </div>
           </div>
         </div>

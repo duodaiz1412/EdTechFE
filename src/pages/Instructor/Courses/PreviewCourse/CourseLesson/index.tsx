@@ -1,5 +1,4 @@
 import {useEffect, useState} from "react";
-import axios from "axios";
 
 import {Lesson} from "@/types";
 import {Download} from "lucide-react";
@@ -8,6 +7,7 @@ import CourseLessonQuiz from "./LessonType/CourseLessonQuiz";
 import CourseLessonArticle from "./LessonType/CourseLessonArticle";
 import LessonCommentList from "./Comment/LessonCommentList";
 import CourseReviewList from "./Review/CourseReviewList";
+import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
 
 interface CourseLessonProps {
   lesson?: Lesson;
@@ -31,11 +31,8 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
       }
 
       if (lesson.fileUrl) {
-        const response = await axios.get(lesson.fileUrl, {
-          responseType: "blob",
-        });
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        setDownloadUrl(url);
+        const response = await getFileUrlFromMinIO(lesson.fileUrl);
+        setDownloadUrl(response.uploadUrl);
       }
     };
 

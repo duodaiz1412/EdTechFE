@@ -290,6 +290,10 @@ export interface Batch {
   paidBatch?: boolean;
   actualPrice?: number;
   sellingPrice?: number;
+  currency?: string;
+  amountUsd?: number;
+  openTime?: string;
+  closeTime?: string;
   language?: string;
   startTime?: string;
   endTime?: string;

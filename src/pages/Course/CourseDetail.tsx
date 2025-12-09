@@ -1,29 +1,30 @@
+import {toast} from "react-toastify";
 import {useEffect, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {Link, useParams} from "react-router-dom";
+import {Languages, PlayCircle, User, XIcon} from "lucide-react";
+import {usePayOS} from "@payos/payos-checkout";
 import ReactPlayer from "react-player";
 
 import {Chapter, Course, Label, Tag, Review} from "@/types";
+import {useAppSelector} from "@/redux/hooks";
 import {publicServices} from "@/lib/services/public.services";
 import {enrollServices} from "@/lib/services/enroll.services";
 import {progressServices} from "@/lib/services/progress.services";
+import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {formatPrice} from "@/lib/utils/formatPrice";
 import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
 
-import {toast} from "react-toastify";
-import {useAppSelector} from "@/redux/hooks";
-import {Languages, PlayCircle, XIcon} from "lucide-react";
 import ReadOnlyRating from "@/components/ReadOnlyRating";
 import CourseContentList from "./CourseContent/CourseContentList";
 import CourseReviewItem from "./CourseLesson/Review/CourseReviewItem";
-
-import {usePayOS} from "@payos/payos-checkout";
 import HtmlDisplay from "@/components/HtmlDisplay";
 
 export default function CourseDetail() {
   // Data states
   const {slug} = useParams();
+  const [courseImgLink, setCourseImgLink] = useState<string>();
   const [courseInfo, setCourseInfo] = useState<Course>();
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [averageRating, setAverageRating] = useState<number>(0);
@@ -61,6 +62,10 @@ export default function CourseDetail() {
       if (!slug) return null;
       const course = await publicServices.getCourseBySlug(slug);
       setCourseInfo(course);
+      if (course.image) {
+        const imgLink = await getFileUrlFromMinIO(course.image);
+        setCourseImgLink(imgLink.uploadUrl);
+      }
       return course;
     },
   });
@@ -160,21 +165,20 @@ export default function CourseDetail() {
               <span>({courseInfo?.enrollments || 0} students)</span>
             </div>
             {/* Instructors */}
-            <div>
-              <span className="font-semibold">Create by: </span>
-              {courseInfo?.instructors?.map((instructor) => (
-                <Link
-                  to={`/users/${instructor.id}/profile`}
-                  key={instructor.id}
-                  className="link link-hover"
-                >
-                  {instructor.fullName}
-                </Link>
-              ))}
+            <div className="flex space-x-2">
+              <User size={20} />
+              <span className="font-semibold">Instructors: </span>
+              <p>
+                {courseInfo?.instructors
+                  ?.map((inst) => inst.fullName)
+                  .join(", ")}
+              </p>
             </div>
             <div className="flex items-center space-x-6">
               <div className="flex space-x-2">
-                <Languages size={20} />: <span>{courseInfo?.language}</span>
+                <Languages size={20} />
+                <span className="font-semibold">Language:</span>
+                <span>{courseInfo?.language}</span>
               </div>
               <div className="flex space-x-2">
                 {courseInfo?.labels?.map((label: Label) => (
@@ -241,13 +245,13 @@ export default function CourseDetail() {
         <div className="w-1/3 space-y-4">
           <div className="card border border-slate-200 shadow-sm rounded-lg">
             <figure className="h-56 border-b border-b-slate-200">
-              {courseInfo?.image && (
+              {courseImgLink && (
                 <img
                   className="w-full h-full object-cover"
-                  src={courseInfo.image}
+                  src={courseImgLink}
                 />
               )}
-              {!courseInfo?.image && (
+              {!courseImgLink && (
                 <div className="w-full h-full bg-slate-100 text-slate-500 flex justify-center items-center">
                   No image
                 </div>

@@ -1,30 +1,32 @@
+import {toast} from "react-toastify";
 import {useEffect, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
+import {usePayOS} from "@payos/payos-checkout";
 import {Link, useParams} from "react-router-dom";
+import {Clock, Languages, PlayCircle, User, XIcon} from "lucide-react";
 import ReactPlayer from "react-player";
 
 import {Batch, Label, Tag} from "@/types";
+import {useAppSelector} from "@/redux/hooks";
 import {publicServices} from "@/lib/services/public.services";
 import {enrollServices} from "@/lib/services/enroll.services";
+import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {formatPrice} from "@/lib/utils/formatPrice";
+import {formatDate} from "@/lib/utils/formatDate";
 
-import {toast} from "react-toastify";
-import {useAppSelector} from "@/redux/hooks";
-import {Clock, Languages, PlayCircle, XIcon} from "lucide-react";
-
-import {usePayOS} from "@payos/payos-checkout";
 import HtmlDisplay from "@/components/HtmlDisplay";
 
 export default function BatchDetail() {
   // Data states
   const {slug} = useParams();
+  const [batchImgLink, setBatchImgLink] = useState<string>();
   const [batchInfo, setBatchInfo] = useState<Batch>();
   const [isEnrolled, setIsEnrolled] = useState(false);
 
   // Redux states
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
-  //   const userData = useAppSelector((state) => state.user.data);
+  // const userData = useAppSelector((state) => state.user.data);
 
   // Preview states
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -50,9 +52,13 @@ export default function BatchDetail() {
     queryKey: ["batch-info", slug],
     queryFn: async () => {
       if (!slug) return null;
-      const course = await publicServices.getBatchBySlug(slug);
-      setBatchInfo(course);
-      return course;
+      const batch = await publicServices.getBatchBySlug(slug);
+      setBatchInfo(batch);
+      if (batch.image) {
+        const imgLink = await getFileUrlFromMinIO(batch.image);
+        setBatchImgLink(imgLink.uploadUrl);
+      }
+      return batch;
     },
   });
 
@@ -113,21 +119,27 @@ export default function BatchDetail() {
             <div className="flex items-center space-x-2">
               <div className="flex space-x-2">
                 <Clock size={20} />
-                <span>Duration:</span>
+                <span className="font-semibold">Duration:</span>
               </div>
               <p>
-                {new Date(batchInfo?.startTime || "").toLocaleDateString(
-                  "vi-VN",
-                )}{" "}
-                -{" "}
-                {new Date(batchInfo?.endTime || "").toLocaleDateString("vi-VN")}
+                {formatDate(batchInfo?.startTime)} -{" "}
+                {formatDate(batchInfo?.endTime)}
               </p>
             </div>
             {/* Instructor */}
+            <div className="flex items-center space-x-2">
+              <User size={20} />
+              <span className="font-semibold">Instructors:</span>
+              <p>
+                {batchInfo?.instructors.map((inst) => inst.fullName).join(", ")}
+              </p>
+            </div>
             {/* Language and labels */}
             <div className="flex items-center space-x-6">
               <div className="flex space-x-2">
-                <Languages size={20} />: <span>{batchInfo?.language}</span>
+                <Languages size={20} />
+                <span className="font-semibold">Language:</span>
+                <span>{batchInfo?.language}</span>
               </div>
               <div className="flex space-x-2">
                 {batchInfo?.labels?.map((label: Label) => (
@@ -168,13 +180,13 @@ export default function BatchDetail() {
         <div className="w-1/3 space-y-4">
           <div className="card border border-slate-200 shadow-sm rounded-lg">
             <figure className="h-56 border-b border-b-slate-200">
-              {batchInfo?.image && (
+              {batchImgLink && (
                 <img
                   className="w-full h-full object-cover"
-                  src={batchInfo.image}
+                  src={batchImgLink}
                 />
               )}
-              {!batchInfo?.image && (
+              {!batchImgLink && (
                 <div className="w-full h-full bg-slate-100 text-slate-500 flex justify-center items-center">
                   No image
                 </div>
@@ -185,7 +197,7 @@ export default function BatchDetail() {
                 <>
                   <p className="text-2xl font-bold">
                     {batchInfo?.paidBatch &&
-                      formatPrice(batchInfo?.sellingPrice, "VND")}
+                      formatPrice(batchInfo?.sellingPrice, batchInfo.currency)}
                     {!batchInfo?.paidBatch && "Free Batch"}
                   </p>
                   <button className="btn btn-neutral" onClick={handleEnroll}>
@@ -242,7 +254,7 @@ export default function BatchDetail() {
         <div className="flex flex-col items-center space-y-4 bg-white opacity-100 rounded-lg p-4">
           <div id="embedded-payment-container" className="w-96 h-96"></div>
           <p className="text-xl font-semibold">
-            Total: {formatPrice(batchInfo?.sellingPrice, "VND")}
+            Total: {formatPrice(batchInfo?.sellingPrice, batchInfo?.currency)}
           </p>
           <button className="btn btn-outline" onClick={handleCancelPayment}>
             Cancel
