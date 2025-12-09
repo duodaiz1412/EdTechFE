@@ -4,10 +4,10 @@ import {
   MessageSquare,
   Mic,
   MicOff,
-  Pause,
+  PauseCircle,
   PhoneOff,
   PinOff,
-  Play,
+  PlayCircle,
   ScreenShare,
   ScreenShareOff,
   Users,
@@ -18,14 +18,17 @@ import {useEffect, useRef, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import {useQuery} from "@tanstack/react-query";
 import {toast} from "react-toastify";
+import {motion} from "motion/react";
 
 import {RoomPublisher} from "@/types";
 import {useAppSelector} from "@/redux/hooks";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
+import {publicServices} from "@/lib/services/public.services";
 import {liveServices} from "@/lib/services/live.services";
 import {usePublishMedia} from "@/hooks/usePublishMedia";
 import {usePublishScreen} from "@/hooks/usePublishScreen";
 import {useRecording} from "@/hooks/useRecording";
+import {isBatchInstructor} from "@/lib/utils/isBatchInstructor";
 
 import BatchLiveError from "./BatchLiveError";
 import BatchLiveButton from "./BatchLiveButton";
@@ -35,6 +38,8 @@ import BatchParticipantList from "./BatchParticipantList";
 export default function BatchLive() {
   const userData = useAppSelector((state) => state.user.data);
   const navigate = useNavigate();
+  const [isInstructor, setIsInstructor] = useState(false);
+  // const [batchId, setBatchId] = useState("");
 
   // Room and navigation state
   const {roomId, batchSlug} = useParams();
@@ -72,6 +77,7 @@ export default function BatchLive() {
 
   // Chat
   const [isShowChat, setIsShowChat] = useState(false);
+  // const [messages, setMessages] = useState([]);
 
   // Join room
   const {isLoading, isError} = useQuery({
@@ -91,6 +97,20 @@ export default function BatchLive() {
       return response;
     },
   });
+  // Handle some state after join room
+  useEffect(() => {
+    if (!isJoin) return;
+
+    const fetchData = async () => {
+      const response = await publicServices.getBatchBySlug(batchSlug || "");
+      setIsInstructor(
+        isBatchInstructor(userData?.id || "", response.instructors),
+      );
+      // setBatchId(response?.id || "");
+    };
+
+    fetchData();
+  }, [isJoin, batchSlug, userData?.id]);
 
   // Publish media when joined
   useQuery({
@@ -210,6 +230,8 @@ export default function BatchLive() {
 
   // Handler leave room
   const handleLeaveRoom = async () => {
+    if (!isJoin) return;
+
     // 1. Unpublish all local feeds
     await unpublishMedia(Number(roomId));
     if (isScreenPublished) {
@@ -218,14 +240,17 @@ export default function BatchLive() {
 
     // 2. Leave room or end room
     const accessToken = await getAccessToken();
-    if (userData?.roles.includes("COURSE_CREATOR")) {
+    if (isInstructor) {
+      if (isRecording) {
+        await stopRecording();
+      }
       await liveServices.endRoom(accessToken, Number(roomId));
     } else {
       await liveServices.leaveRoom(accessToken, Number(roomId));
     }
 
     // 3. Navigate back to batch discussion
-    navigate(`/batch/${batchSlug}/teach`);
+    navigate(`/batch/${batchSlug}/detail`);
   };
 
   // Render loading, error state
@@ -262,7 +287,7 @@ export default function BatchLive() {
       >
         {/* Pin screen */}
         <div
-          className={`${!isPin && "hidden"} relative h-full bg-gradient-to-br from-gray-800 to-gray-700 rounded-xl shadow-2xl flex items-center justify-center border border-gray-600`}
+          className={`${!isPin && "hidden"} relative h-[calc(100vh-200px)] bg-gradient-to-br from-gray-800 to-gray-700 rounded-xl shadow-2xl flex items-center justify-center border border-gray-600`}
         >
           {isPin && (
             <button
@@ -352,6 +377,19 @@ export default function BatchLive() {
 
           {/* Main Controls */}
           <div className="flex items-center space-x-3">
+            {isRecording && (
+              <motion.div
+                initial={{opacity: 0, scale: 0}}
+                animate={{opacity: 1, scale: 1}}
+                transition={{
+                  duration: 0.3,
+                  scale: {type: "spring", visualDuration: 0.4, bounce: 0.5},
+                }}
+                className="rounded-full px-4 py-3 border-2 border-red-600 text-white font-semibold"
+              >
+                Recording
+              </motion.div>
+            )}
             <BatchLiveButton
               isSwitch={true}
               state={isCamOn}
@@ -376,18 +414,25 @@ export default function BatchLive() {
                 <ScreenShareOff size={22} />,
               ]}
             />
-            <BatchLiveButton
-              isSwitch={true}
-              state={isRecording}
-              title="Record"
-              onClick={handleRecord}
-              switchIcon={[<Pause size={22} />, <Play size={22} />]}
-            />
-            <BatchLiveButton
-              isSwitch={false}
-              title="Raise hand"
-              icon={<Hand size={22} />}
-            />
+            {isInstructor && (
+              <BatchLiveButton
+                isSwitch={true}
+                state={isRecording}
+                title="Record"
+                onClick={handleRecord}
+                switchIcon={[
+                  <PauseCircle size={22} />,
+                  <PlayCircle size={22} />,
+                ]}
+              />
+            )}
+            {!isInstructor && (
+              <BatchLiveButton
+                isSwitch={false}
+                title="Raise hand"
+                icon={<Hand size={22} />}
+              />
+            )}
             <button
               className="bg-red-600 hover:bg-red-700 px-8 py-4 rounded-full text-white font-semibold transition-all shadow-lg hover:scale-110 flex items-center space-x-2"
               title="Leave"

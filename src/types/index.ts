@@ -78,7 +78,7 @@ export interface Label {
   name?: string;
 }
 
-export interface CourseInstructor {
+export interface Instructor {
   id?: string;
   fullName?: string;
   email?: string;
@@ -109,7 +109,7 @@ export interface Course {
   learnerProfileDesc?: string;
   tags?: Tag[];
   labels?: Label[];
-  instructors?: CourseInstructor[];
+  instructors?: Instructor[];
 }
 
 export interface CourseEnrollment {
@@ -295,6 +295,7 @@ export interface Batch {
   endTime?: string;
   status?: string;
   maxCapacity?: number;
+  instructors: Instructor[];
   tags?: Tag[];
   labels?: Label[];
 }

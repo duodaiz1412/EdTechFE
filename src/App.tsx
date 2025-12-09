@@ -179,7 +179,10 @@ function App() {
                 path="/course/:courseSlug/learn/lesson/:lessonSlug"
                 element={<CourseLayout />}
               />
-              <Route path="/batch/:batchSlug/learn" element={<BatchLayout />} />
+              <Route
+                path="/batch/:batchSlug/detail"
+                element={<BatchLayout />}
+              />
               <Route
                 path="/learning"
                 element={
@@ -197,7 +200,6 @@ function App() {
               <Route path="/teaching" element={<BecomeInstructor />} />
 
               {/* Instructor: Batches management */}
-              <Route path="/batch/:batchSlug/teach" element={<BatchLayout />} />
               <Route
                 element={
                   <RoleProtectedRoute

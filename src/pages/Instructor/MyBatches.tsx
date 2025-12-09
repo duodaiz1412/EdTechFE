@@ -72,7 +72,7 @@ export default function MyBatches() {
                   </div>
                 </div>
                 <Link
-                  to={`/batch/${batch.slug}/teach`}
+                  to={`/batch/${batch.slug}/detail`}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200 font-medium"
                 >
                   <span>Go to discussion</span>

@@ -1,22 +1,27 @@
-import {useLocation, useNavigate, useParams} from "react-router-dom";
-import BatchNavbar from "./components/Batch/BatchNavbar";
-import {publicServices} from "@/lib/services/public.services";
+import {toast} from "react-toastify";
+import {useState} from "react";
 import {useQuery} from "@tanstack/react-query";
+import {useNavigate, useParams} from "react-router-dom";
 import {LogIn, Video} from "lucide-react";
+import {motion} from "motion/react";
+
+import {useAppSelector} from "@/redux/hooks";
+import {getAccessToken} from "@/lib/utils/getAccessToken";
+import {publicServices} from "@/lib/services/public.services";
+import {liveServices} from "@/lib/services/live.services";
+import {isBatchInstructor} from "@/lib/utils/isBatchInstructor";
+
+import BatchNavbar from "./components/Batch/BatchNavbar";
 import BatchDiscussion from "@/pages/Batch/BatchContent/BatchDiscussion";
 import BatchRecords from "@/pages/Batch/BatchContent/BatchVideo/BatchRecords/BatchRecords";
 import Footer from "@/components/Footer";
-import {useAppSelector} from "@/redux/hooks";
-import {useEffect, useState} from "react";
-import {getAccessToken} from "@/lib/utils/getAccessToken";
-import {liveServices} from "@/lib/services/live.services";
-import {toast} from "react-toastify";
+import {formatDate} from "@/lib/utils/formatDate";
 
 export default function BatchLayout() {
   const {batchSlug} = useParams();
-  const location = useLocation();
   const navigate = useNavigate();
   const userData = useAppSelector((state) => state.user.data);
+  const [isInstructor, setIsInstructor] = useState(false);
 
   const [isStartLive, setIsStartLive] = useState(false);
   const [isJoinRoom, setIsJoinRoom] = useState(false);
@@ -26,18 +31,12 @@ export default function BatchLayout() {
     queryKey: ["batch", batchSlug],
     queryFn: async () => {
       const response = await publicServices.getBatchBySlug(batchSlug || "");
+      setIsInstructor(
+        isBatchInstructor(userData?.id || "", response.instructors),
+      );
       return response;
     },
   });
-
-  useEffect(() => {
-    if (
-      location.pathname.includes("/teach") &&
-      !userData?.roles.includes("COURSE_CREATOR")
-    ) {
-      navigate(`/batch/${batchSlug}/learn`);
-    }
-  }, [batchSlug, location.pathname, navigate, userData]);
 
   const handleStartLive = async () => {
     setIsStartLive(true);
@@ -86,11 +85,7 @@ export default function BatchLayout() {
                 <p className="flex items-center gap-2">
                   <span className="font-semibold text-white">Duration:</span>
                   <span>
-                    {new Date(data?.startTime || "").toLocaleDateString(
-                      "vi-VN",
-                    )}{" "}
-                    -{" "}
-                    {new Date(data?.endTime || "").toLocaleDateString("vi-VN")}
+                    {formatDate(data?.startTime)} - {formatDate(data?.endTime)}
                   </span>
                 </p>
               </div>
@@ -101,23 +96,21 @@ export default function BatchLayout() {
         {/* Discussion, Records and Info */}
         <div className="grid grid-cols-5 gap-6">
           <div className="col-span-1 flex flex-col items-start space-y-4 mt-2">
-            {location.pathname.includes("teach") &&
-              userData?.roles.includes("COURSE_CREATOR") && (
-                <button
-                  className="btn btn-neutral rounded-lg space-x-2"
-                  disabled={isStartLive}
-                  onClick={handleStartLive}
-                >
-                  {isStartLive ? (
-                    <div className="loading loading-spinner loading-sm text-slate-400"></div>
-                  ) : (
-                    <Video size={20} />
-                  )}
-                  <span>New meeting</span>
-                </button>
-              )}
-            {(!location.pathname.includes("teach") ||
-              !userData?.roles.includes("COURSE_CREATOR")) && (
+            {isInstructor && (
+              <button
+                className="btn btn-neutral rounded-lg space-x-2"
+                disabled={isStartLive}
+                onClick={handleStartLive}
+              >
+                {isStartLive ? (
+                  <div className="loading loading-spinner loading-sm text-slate-400"></div>
+                ) : (
+                  <Video size={20} />
+                )}
+                <span>New meeting</span>
+              </button>
+            )}
+            {!isInstructor && (
               <button
                 className="btn btn-neutral rounded-lg space-x-2"
                 onClick={() => setIsJoinRoom(true)}
@@ -171,8 +164,16 @@ export default function BatchLayout() {
 
       {/* Join Room Form */}
       {isJoinRoom && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
-          <div className="w-full max-w-3xl bg-white rounded-lg p-6 space-y-6">
+        <div className="fixed inset-0 z-10 bg-black/30 flex items-center justify-center">
+          <motion.div
+            initial={{opacity: 0, scale: 0}}
+            animate={{opacity: 1, scale: 1}}
+            transition={{
+              duration: 0.3,
+              scale: {type: "spring", visualDuration: 0.4, bounce: 0.5},
+            }}
+            className="w-full max-w-3xl bg-white rounded-lg p-6 space-y-6"
+          >
             <h2 className="font-bold text-2xl">Enter Room ID</h2>
             <input
               className="input w-full rounded-lg"
@@ -194,7 +195,7 @@ export default function BatchLayout() {
                 Cancel
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>
