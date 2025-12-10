@@ -360,6 +360,7 @@ export interface JanusResponse {
   transaction?: string;
   sessionId?: number;
   handleId?: number;
+  liveSessionId?: string;
   plugindata?: Record<string, object>;
   jsep?: Record<string, object>;
   data?: Record<string, object>;

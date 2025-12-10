@@ -74,11 +74,14 @@ export const enrollServices = {
   },
 
   async getBatchEnrollments(accessToken: string): Promise<BatchEnrollment[]> {
-    const response = await axios.get(`${BASE_API}/live/enrolled-batches`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
+    const response = await axios.get(
+      `${BASE_API}/enrollments/enrolled-batches`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       },
-    });
+    );
     return response.data;
   },
 

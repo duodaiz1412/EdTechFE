@@ -40,7 +40,7 @@ export default function BatchLive() {
   const userData = useAppSelector((state) => state.user.data);
   const navigate = useNavigate();
   const [isInstructor, setIsInstructor] = useState(false);
-  const batchIdRef = useRef<string>();
+  const liveSessionIdRef = useRef<string>();
 
   // Room and navigation state
   const {roomId, batchSlug} = useParams();
@@ -85,8 +85,11 @@ export default function BatchLive() {
     unsubscribeFromSession,
     addUser,
     sendMessage,
+    raiseHand,
+    lowerHand,
   } = useChatSocket();
   const [isShowChat, setIsShowChat] = useState(false);
+  const [isRaiseHand, setIsRaiseHand] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
@@ -100,29 +103,45 @@ export default function BatchLive() {
         Number(roomId),
         userData?.name || "Anonymous",
       );
-      console.log(response);
 
       // Session state
       setIsJoin(true);
       setSessionId(response.data.sessionId);
+      liveSessionIdRef.current = response.data.liveSessionId;
 
       return response;
     },
   });
-  // Handle chat message
+
+  // Handle chat message and raise hand
   const handleSendMessage = () => {
-    sendMessage(batchIdRef.current!, userData?.name || "Anonymous", newMessage);
+    sendMessage(
+      liveSessionIdRef.current!,
+      userData?.name || "Anonymous",
+      newMessage,
+    );
     setNewMessage("");
   };
   const handleReceiveMessage = useCallback((msg: ChatMessage) => {
     if (msg.type === ChatMessageType.CHAT) {
       setMessages((prev) => [...prev, msg]);
-    }
-    if (msg.type === ChatMessageType.RAISE_HAND) {
+    } else {
       toast.info(msg.content);
     }
   }, []);
-  // Handle some state after join room
+  const handleRaiseHand = () => {
+    const studentName = userData?.name || "Anonymous";
+
+    if (isRaiseHand) {
+      setIsRaiseHand(false);
+      lowerHand(liveSessionIdRef.current!, studentName);
+    } else {
+      setIsRaiseHand(true);
+      raiseHand(liveSessionIdRef.current!, studentName);
+    }
+  };
+
+  // Connect to chat after join room
   useEffect(() => {
     if (!isJoin) return;
 
@@ -131,14 +150,13 @@ export default function BatchLive() {
       setIsInstructor(
         isBatchInstructor(userData?.id || "", response.instructors),
       );
-      batchIdRef.current = response.id;
       // Connect to chat socket
       const accessToken = await getAccessToken();
       connect(
         accessToken,
         () => {
-          subscribeToSession(response.id!, handleReceiveMessage);
-          addUser(response.id!, userData?.name || "Anonymous");
+          subscribeToSession(liveSessionIdRef.current!, handleReceiveMessage);
+          addUser(liveSessionIdRef.current!, userData?.name || "Anonymous");
         },
         () => {},
       );
@@ -147,7 +165,7 @@ export default function BatchLive() {
     fetchData();
 
     return () => {
-      unsubscribeFromSession(batchIdRef.current!);
+      unsubscribeFromSession(liveSessionIdRef.current!);
       disconnect();
     };
   }, [
@@ -358,24 +376,26 @@ export default function BatchLive() {
           ></video>
         </div>
 
-        {/* Other participants */}
+        {/* All screens */}
         <div
           className={`bg-transparent grid gap-4 transition-all 
             ${isPin ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"}
           `}
         >
+          {/* Local camera screen */}
           <div className="col-span-1 bg-blue-600 rounded-lg h-40 md:h-48 lg:h-52 xl:h-56 relative">
             <video
               ref={localMediaRef}
               autoPlay
               playsInline
-              muted={!isMicOn}
+              muted
               className={`${isCamOn ? "w-full h-full" : "w-0 h-0"} rounded-lg object-cover`}
             ></video>
             <div className="absolute bottom-0 left-0 right-0 p-6 text-center font-semibold text-white">
               {userData?.name || ""} (You)
             </div>
           </div>
+          {/* Local share screen */}
           <div
             className={`${isScreenPublished ? "col-span-1 h-40 md:h-48 lg:h-52 xl:h-56" : "hidden h-0"} bg-blue-600 rounded-lg relative`}
           >
@@ -392,6 +412,7 @@ export default function BatchLive() {
               </div>
             )}
           </div>
+          {/* Other publishers screen */}
           {publishers.length > 0 &&
             publishers.map((p: RoomPublisher) => (
               <BatchScreen
@@ -413,11 +434,24 @@ export default function BatchLive() {
               <BatchParticipantList roomId={Number(roomId)} />
             ) : (
               <>
-                <div className="text-white">
-                  {messages.map((msg) => (
-                    <div className="space-y-1 mb-4">
-                      <p className="font-semibold">{msg.sender}</p>
-                      <span>{msg.content}</span>
+                <div
+                  className="space-y-3 overflow-y-auto max-h-[calc(100vh-280px)] pr-2"
+                  style={{
+                    scrollbarWidth: "thin",
+                    scrollbarColor: "#4B5563 transparent",
+                  }}
+                >
+                  {messages.map((msg, index) => (
+                    <div
+                      key={index}
+                      className="bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow"
+                    >
+                      <p className="font-semibold text-sm text-blue-100 mb-2">
+                        {msg.sender}
+                      </p>
+                      <p className="text-white text-base leading-relaxed break-words">
+                        {msg.content}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -503,9 +537,11 @@ export default function BatchLive() {
             )}
             {!isInstructor && (
               <BatchLiveButton
-                isSwitch={false}
+                isSwitch={true}
+                state={isRaiseHand}
                 title="Raise hand"
-                icon={<Hand size={22} />}
+                onClick={handleRaiseHand}
+                switchIcon={[<Hand size={22} />, <Hand size={22} />]}
               />
             )}
             <button
