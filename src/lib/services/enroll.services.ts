@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import {CourseEnrollment, Order} from "@/types";
+import {BatchEnrollment, CourseEnrollment, Order} from "@/types";
 
 const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
 
@@ -73,10 +73,25 @@ export const enrollServices = {
     return response.data;
   },
 
-  async getPurchaseHistory(accessToken: string, page: number = 1) {
-    const size = 10;
+  async getBatchEnrollments(accessToken: string): Promise<BatchEnrollment[]> {
+    const response = await axios.get(`${BASE_API}/live/enrolled-batches`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return response.data;
+  },
+
+  async getPurchaseHistory(
+    accessToken: string,
+    filterBy: "COURSE" | "BATCH",
+    page: number = 0,
+    size: number = 10,
+  ) {
     const response = await axios.get(
-      BASE_API + "/enrollments/me" + `?page=${page}&size=${size}`,
+      BASE_API +
+        "/enrollments/me" +
+        `?filterBy=${filterBy}&page=${page}&size=${size}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

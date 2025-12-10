@@ -1,41 +1,23 @@
 import {useEffect, useState} from "react";
 import {toast} from "react-toastify";
 import {motion} from "motion/react";
+import {Download} from "lucide-react";
 
 import {Lesson} from "@/types";
-import {progressServices} from "@/lib/services/progress.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
+import {progressServices} from "@/lib/services/progress.services";
+import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
 
-import {Download} from "lucide-react";
 import CourseLessonVideo from "./LessonType/CourseLessonVideo";
 import CourseLessonQuiz from "./LessonType/CourseLessonQuiz";
 import CourseLessonArticle from "./LessonType/CourseLessonArticle";
 import LessonCommentList from "./Comment/LessonCommentList";
 import CourseReviewList from "./Review/CourseReviewList";
-import axios from "axios";
 
 interface CourseLessonProps {
   lesson?: Lesson;
   status?: boolean;
 }
-
-const getFileNameFromUrl = (url: string): string => {
-  const urlObj = new URL(url);
-  const pathSegments = urlObj.pathname.split("/");
-
-  // Find the last segment that looks like a file
-  for (let i = pathSegments.length - 1; i >= 0; i--) {
-    const segment = pathSegments[i];
-    // Check if the segment has a file extension
-    if (segment && /\.[a-zA-Z0-9]+$/.test(segment)) {
-      // Remove any leading numbering (e.g., "01-") from the filename
-      const cleanFileName = segment.replace(/^\d+-/, "");
-      return cleanFileName;
-    }
-  }
-
-  return "Attachment";
-};
 
 export default function CourseLesson({lesson, status}: CourseLessonProps) {
   const [lessonType, setLessonType] = useState("video");
@@ -57,35 +39,14 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
       }
 
       if (lesson.fileUrl) {
-        // Fetch file as blob
-        const response = await axios.get(lesson.fileUrl, {
-          responseType: "blob",
-        });
-        const contentType = response.headers["content-type"];
-
-        // Get filename
-        const extractedFileName = getFileNameFromUrl(lesson.fileUrl);
-        setFilename(extractedFileName);
-
-        // Create download URL
-        const url = window.URL.createObjectURL(
-          new Blob([response.data], {type: contentType}),
-        );
-        setDownloadUrl(url);
+        const url = await getFileUrlFromMinIO(lesson.fileUrl);
+        setDownloadUrl(url.uploadUrl);
+        setFilename(url.objectName);
       }
     };
 
     fetchData();
   }, [status, lesson]);
-
-  // Clean up the object URL when the component unmounts
-  useEffect(() => {
-    return () => {
-      if (downloadUrl) {
-        window.URL.revokeObjectURL(downloadUrl);
-      }
-    };
-  }, [downloadUrl]);
 
   const handleComplete = async () => {
     const accessToken = await getAccessToken();

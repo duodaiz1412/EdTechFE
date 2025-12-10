@@ -1,13 +1,27 @@
+import {useEffect, useState} from "react";
+import {Link, useNavigate} from "react-router-dom";
+import {Presentation, User, LogOut, UsersRound, CreditCard} from "lucide-react";
+
 import {useAppDispatch, useAppSelector} from "@/redux/hooks";
 import {logout} from "@/redux/slice/userSlice";
-import {Presentation, User, LogOut, UsersRound, CreditCard} from "lucide-react";
-import {Link, useNavigate} from "react-router-dom";
+import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
 
 export default function AvatarMenu() {
   const userData = useAppSelector((state) => state.user.data);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const haveAvatarImage = userData?.image !== undefined;
+  const [finalUrl, setFinalUrl] = useState<string>();
+
+  useEffect(() => {
+    async function fetchImage() {
+      if (userData?.image) {
+        const url = await getFileUrlFromMinIO(userData.image);
+        setFinalUrl(url.uploadUrl);
+      }
+    }
+    fetchImage();
+  }, [userData?.image]);
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -26,7 +40,7 @@ export default function AvatarMenu() {
         <div
           className={`w-9 rounded-full ${!haveAvatarImage && "bg-black text-white"}`}
         >
-          {haveAvatarImage && <img src={userData?.image} />}
+          {haveAvatarImage && <img src={finalUrl} />}
           {!haveAvatarImage && (
             <span className="select-none">{userData?.name[0]}</span>
           )}

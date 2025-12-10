@@ -81,7 +81,6 @@ export default function BatchDiscussion({batchId}: BatchDiscussionProps) {
       {isNewPost && (
         <NewDiscussionPost batchId={batchId || ""} setIsOpen={setIsNewPost} />
       )}
-      {/* Detail post */}
     </>
   );
 }

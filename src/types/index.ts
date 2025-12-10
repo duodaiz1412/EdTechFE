@@ -290,6 +290,10 @@ export interface Batch {
   paidBatch?: boolean;
   actualPrice?: number;
   sellingPrice?: number;
+  currency?: string;
+  amountUsd?: number;
+  openTime?: string;
+  closeTime?: string;
   language?: string;
   startTime?: string;
   endTime?: string;
@@ -298,6 +302,14 @@ export interface Batch {
   instructors: Instructor[];
   tags?: Tag[];
   labels?: Label[];
+}
+
+export interface BatchEnrollment {
+  id?: string;
+  slug?: string;
+  title?: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 export interface BatchPost {
@@ -403,6 +415,24 @@ export interface CompleteRecordResponse {
   videoUrl?: string;
   durationSeconds?: number;
   totalChunks?: number;
+}
+
+export interface BatchRecordInfo {
+  sessionId?: string;
+  roomId?: number;
+  title?: string;
+  description?: string;
+  objectName?: string;
+  durationSeconds?: number;
+  recordedAt?: string;
+  instructorName?: string;
+}
+
+export interface BatchRecordResponse {
+  batchId?: string;
+  batchTitle?: string;
+  batchSlug?: string;
+  recordings?: BatchRecordInfo[];
 }
 
 export enum ChatMessageType {

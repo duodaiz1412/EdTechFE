@@ -1,8 +1,10 @@
+import {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
+import {Tooltip} from "react-tooltip";
 
 import {Batch} from "@/types";
+import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
 import {formatPrice} from "@/lib/utils/formatPrice";
-import {Tooltip} from "react-tooltip";
 import {BatchTooltip} from "./BatchTooltip";
 
 interface BatchItemProps {
@@ -10,7 +12,19 @@ interface BatchItemProps {
   isEnrolled?: boolean;
 }
 
-export default function BatchItem({batch}: BatchItemProps) {
+export default function BatchItem({batch, isEnrolled}: BatchItemProps) {
+  const [imgLink, setImgLink] = useState<string>();
+
+  useEffect(() => {
+    async function fetchImage() {
+      if (batch.image) {
+        const imgLink = await getFileUrlFromMinIO(batch.image);
+        setImgLink(imgLink.uploadUrl);
+      }
+    }
+    fetchImage();
+  }, [batch.image]);
+
   return (
     <>
       <Link
@@ -21,10 +35,10 @@ export default function BatchItem({batch}: BatchItemProps) {
       >
         {/* Course image */}
         <figure className="h-56 border-b border-b-slate-200">
-          {batch.image && (
-            <img className="w-full h-full object-cover" src={batch.image} />
+          {imgLink && (
+            <img className="w-full h-full object-cover" src={imgLink} />
           )}
-          {!batch.image && (
+          {!imgLink && (
             <div className="w-full h-full bg-slate-100 flex justify-center items-center text-slate-500">
               No image
             </div>
@@ -34,13 +48,16 @@ export default function BatchItem({batch}: BatchItemProps) {
         <div className="card-body">
           <h2 className="card-title">{batch.title}</h2>
           <div className="flex space-x-2 items-start"></div>
-
-          {
+          {isEnrolled && (
+            <div className="badge bg-blue-600 text-white">Enrolled</div>
+          )}
+          {!isEnrolled && (
             <span className="text-lg font-bold">
-              {batch.paidBatch && formatPrice(batch.sellingPrice, "VND")}
+              {batch.paidBatch &&
+                formatPrice(batch.sellingPrice, batch.currency)}
               {!batch.paidBatch && "Free"}
             </span>
-          }
+          )}
         </div>
       </Link>
       <Tooltip

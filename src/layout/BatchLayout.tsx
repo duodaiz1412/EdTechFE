@@ -9,18 +9,20 @@ import {useAppSelector} from "@/redux/hooks";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {publicServices} from "@/lib/services/public.services";
 import {liveServices} from "@/lib/services/live.services";
+import {formatDate} from "@/lib/utils/formatDate";
 import {isBatchInstructor} from "@/lib/utils/isBatchInstructor";
+import {isBatchEnrolled} from "@/lib/utils/isBatchEnrolled";
 
 import BatchNavbar from "./components/Batch/BatchNavbar";
 import BatchDiscussion from "@/pages/Batch/BatchContent/BatchDiscussion";
 import BatchRecords from "@/pages/Batch/BatchContent/BatchVideo/BatchRecords/BatchRecords";
 import Footer from "@/components/Footer";
-import {formatDate} from "@/lib/utils/formatDate";
 
 export default function BatchLayout() {
   const {batchSlug} = useParams();
   const navigate = useNavigate();
   const userData = useAppSelector((state) => state.user.data);
+
   const [isInstructor, setIsInstructor] = useState(false);
 
   const [isStartLive, setIsStartLive] = useState(false);
@@ -31,9 +33,21 @@ export default function BatchLayout() {
     queryKey: ["batch", batchSlug],
     queryFn: async () => {
       const response = await publicServices.getBatchBySlug(batchSlug || "");
-      setIsInstructor(
-        isBatchInstructor(userData?.id || "", response.instructors),
+      const checkInstructor = isBatchInstructor(
+        userData?.id || "",
+        response.instructors,
       );
+      const checkEnrolled = isBatchEnrolled(
+        userData?.batchEnrollments || [],
+        batchSlug,
+      );
+
+      if (!checkInstructor && !checkEnrolled) {
+        navigate(`/batch/${batchSlug}`);
+        toast.error("You're not enrolled this batch");
+      }
+
+      setIsInstructor(checkInstructor);
       return response;
     },
   });
@@ -81,6 +95,9 @@ export default function BatchLayout() {
               <div className="space-y-2 text-blue-50">
                 <p className="flex items-center gap-2">
                   <span className="font-semibold text-white">Instructor:</span>
+                  <span>
+                    {data?.instructors?.map((inst) => inst.fullName).join(", ")}
+                  </span>
                 </p>
                 <p className="flex items-center gap-2">
                   <span className="font-semibold text-white">Duration:</span>
@@ -144,16 +161,12 @@ export default function BatchLayout() {
                 aria-label="Records"
               />
               <div className="tab-content px-4 py-6">
-                <BatchRecords />
+                {!isLoading && data?.id ? (
+                  <BatchRecords batchId={data.id} />
+                ) : (
+                  <div>Loading...</div>
+                )}
               </div>
-
-              <input
-                type="radio"
-                name="batch_tab"
-                className="tab"
-                aria-label="Everyone"
-              />
-              <div className="tab-content px-4 py-6">Tab content 3</div>
             </div>
           </div>
         </div>

@@ -6,11 +6,12 @@ import {useAppSelector} from "@/redux/hooks";
 import {publicServices} from "@/lib/services/public.services";
 import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
 
+import notFoundImg from "@/assets/not_found.svg";
 import CourseItem from "./CourseItem";
 import {CourseSkeleton} from "./CourseSkeleton";
 
 export default function CourseList() {
-  const [courses, setCourses] = useState<Course[]>();
+  const [courses, setCourses] = useState<Course[]>([]);
   const [search, setSearch] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const userData = useAppSelector((state) => state.user.data);
@@ -84,9 +85,8 @@ export default function CourseList() {
         </div>
       </div>
       {/* List of courses */}
-      {isLoading ? (
-        <CourseSkeleton count={6} />
-      ) : (
+      {isLoading && <CourseSkeleton count={6} />}
+      {!isLoading && courses.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
           {courses?.map((course: Course) => {
             const isEnrolled = isCourseEnrolled(
@@ -102,6 +102,11 @@ export default function CourseList() {
               />
             );
           })}
+        </div>
+      )}
+      {!isLoading && courses.length === 0 && (
+        <div className="w-full flex justify-center">
+          <img src={notFoundImg} alt="Not Found" className="w-1/2" />
         </div>
       )}
     </div>

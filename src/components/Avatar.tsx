@@ -1,3 +1,6 @@
+import {useEffect, useState} from "react";
+import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
+
 interface AvatarProps {
   imageUrl?: string;
   isBig?: boolean;
@@ -9,14 +12,26 @@ export default function Avatar({
   isBig,
   name = "Anonymous",
 }: AvatarProps) {
+  const [finalUrl, setFinalUrl] = useState<string>();
+
+  useEffect(() => {
+    async function fetchImage() {
+      if (imageUrl) {
+        const url = await getFileUrlFromMinIO(imageUrl);
+        setFinalUrl(url.uploadUrl);
+      }
+    }
+    fetchImage();
+  }, [imageUrl]);
+
   return (
-    <div className={`avatar ${imageUrl ? "" : "avatar-placeholder"}`}>
-      {imageUrl && (
+    <div className={`avatar ${finalUrl ? "" : "avatar-placeholder"}`}>
+      {finalUrl && (
         <div className={`${isBig ? "w-16" : "w-10"} rounded-full`}>
           <img src={imageUrl} />
         </div>
       )}
-      {!imageUrl && (
+      {!finalUrl && (
         <div
           className={`bg-black text-neutral-content ${isBig ? "w-16" : "w-10"} rounded-full`}
         >

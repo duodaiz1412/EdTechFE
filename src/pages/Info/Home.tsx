@@ -6,9 +6,11 @@ import "slick-carousel/slick/slick-theme.css";
 
 import {Link} from "react-router-dom";
 import {useQueries} from "@tanstack/react-query";
-import {publicServices} from "@/lib/services/public.services";
-import CourseItem from "../Course/CourseList/CourseItem";
+
 import {Batch, Course} from "@/types";
+import {publicServices} from "@/lib/services/public.services";
+
+import CourseItem from "../Course/CourseList/CourseItem";
 import BatchItem from "../Batch/BatchList/BatchItem";
 
 export default function Home() {

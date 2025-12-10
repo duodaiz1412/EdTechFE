@@ -20,6 +20,8 @@ export default function ProtectedRoute() {
       const response = await userServices.getUserInfo(accessToken);
       const courseEnrollments =
         await enrollServices.getCourseEnrollments(accessToken);
+      const batchEnrollments =
+        await enrollServices.getBatchEnrollments(accessToken);
 
       // Set global state
       dispatch(
@@ -32,6 +34,7 @@ export default function ProtectedRoute() {
           type: response.data.userType,
           roles: response.data.roles.map((role: Role) => role.role),
           courseEnrollments: courseEnrollments,
+          batchEnrollments: batchEnrollments,
         }),
       );
       return response;
