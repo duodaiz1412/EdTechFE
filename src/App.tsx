@@ -82,6 +82,8 @@ function App() {
       const response = await userServices.getUserInfo(accessToken);
       const courseEnrollments =
         await enrollServices.getCourseEnrollments(accessToken);
+      const batchEnrollments =
+        await enrollServices.getBatchEnrollments(accessToken);
 
       // Set global state
       dispatch(
@@ -94,6 +96,7 @@ function App() {
           type: response.data.userType,
           roles: response.data.roles.map((role: Role) => role.role),
           courseEnrollments: courseEnrollments,
+          batchEnrollments: batchEnrollments,
         }),
       );
       return response;

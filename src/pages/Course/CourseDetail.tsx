@@ -73,7 +73,7 @@ export default function CourseDetail() {
   // Fetch chapters, reviews, enrollment status, progress
   useEffect(() => {
     const fetchData = async () => {
-      if (!slug) return;
+      if (!slug || !userData) return;
 
       // Get chapters and lessons
       const chapters = await publicServices.getChapters(slug);

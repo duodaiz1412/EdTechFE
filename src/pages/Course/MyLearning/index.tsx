@@ -1,3 +1,4 @@
+import MyLearningBatches from "./Batches/MyLearningBatches";
 import MyLearningCourses from "./Courses/MyLearningCourses";
 
 export default function MyLearning() {
@@ -25,7 +26,7 @@ export default function MyLearning() {
           aria-label="Batches"
         />
         <div className="tab-content px-3 py-4">
-          <div>My Learning Batches</div>
+          <MyLearningBatches />
         </div>
       </div>
     </div>

@@ -48,15 +48,6 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
     fetchData();
   }, [status, lesson]);
 
-  // Clean up the object URL when the component unmounts
-  useEffect(() => {
-    return () => {
-      if (downloadUrl) {
-        window.URL.revokeObjectURL(downloadUrl);
-      }
-    };
-  }, [downloadUrl]);
-
   const handleComplete = async () => {
     const accessToken = await getAccessToken();
     const response = await progressServices.completeLesson(

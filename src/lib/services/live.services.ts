@@ -1,6 +1,7 @@
 import axios, {AxiosResponse} from "axios";
 
 import {
+  BatchRecordResponse,
   ChunkUploadResponse,
   CompleteRecordResponse,
   JanusResponse,
@@ -278,6 +279,21 @@ export const liveServices = {
         totalChunks: totalChunks,
         totalDurationSeconds: totalDurationSeconds,
       },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response;
+  },
+
+  async getListRecords(
+    accessToken: string,
+    batchId: string,
+  ): Promise<AxiosResponse<BatchRecordResponse>> {
+    const response = await axios.get(
+      BASE_API + `/batches/${batchId}/recordings`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

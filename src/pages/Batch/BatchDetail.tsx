@@ -3,7 +3,14 @@ import {useEffect, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {usePayOS} from "@payos/payos-checkout";
 import {Link, useParams} from "react-router-dom";
-import {Clock, Languages, PlayCircle, User, XIcon} from "lucide-react";
+import {
+  Clock,
+  Languages,
+  MoveRight,
+  PlayCircle,
+  User,
+  XIcon,
+} from "lucide-react";
 import ReactPlayer from "react-player";
 
 import {Batch, Label, Tag} from "@/types";
@@ -14,8 +21,10 @@ import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {formatPrice} from "@/lib/utils/formatPrice";
 import {formatDate} from "@/lib/utils/formatDate";
+import {isBatchEnrolled} from "@/lib/utils/isBatchEnrolled";
 
 import HtmlDisplay from "@/components/HtmlDisplay";
+import {isBatchInstructor} from "@/lib/utils/isBatchInstructor";
 
 export default function BatchDetail() {
   // Data states
@@ -23,10 +32,11 @@ export default function BatchDetail() {
   const [batchImgLink, setBatchImgLink] = useState<string>();
   const [batchInfo, setBatchInfo] = useState<Batch>();
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [isInstructor, setIsInstructor] = useState(false);
 
   // Redux states
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
-  // const userData = useAppSelector((state) => state.user.data);
+  const userData = useAppSelector((state) => state.user.data);
 
   // Preview states
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -47,13 +57,14 @@ export default function BatchDetail() {
   const [payOSConfig, setPayOSConfig] = useState(defaultPayOSConfig);
   const {open, exit} = usePayOS(payOSConfig);
 
-  // Fetch course info
+  // Fetch batch info
   useQuery({
     queryKey: ["batch-info", slug],
     queryFn: async () => {
       if (!slug) return null;
       const batch = await publicServices.getBatchBySlug(slug);
       setBatchInfo(batch);
+      setIsInstructor(isBatchInstructor(userData?.id || "", batch.instructors));
       if (batch.image) {
         const imgLink = await getFileUrlFromMinIO(batch.image);
         setBatchImgLink(imgLink.uploadUrl);
@@ -61,6 +72,13 @@ export default function BatchDetail() {
       return batch;
     },
   });
+
+  useEffect(() => {
+    if (!slug || !userData) return;
+
+    const enrolled = isBatchEnrolled(userData.batchEnrollments || [], slug);
+    setIsEnrolled(enrolled);
+  }, [slug, userData]);
 
   const handleEnroll = async () => {
     if (!isAuthenticated) {
@@ -112,7 +130,21 @@ export default function BatchDetail() {
       <div className="flex items-start space-x-12 pt-6">
         {/* Course info */}
         <div className="w-2/3 space-y-10">
-          <h2 className="text-3xl font-bold">{batchInfo?.title}</h2>
+          <h2 className="text-3xl font-bold space-x-4">
+            <span>{batchInfo?.title}</span>
+            {isInstructor && (
+              <span className="badge bg-blue-600 text-white">Your batch</span>
+            )}
+          </h2>
+          {isInstructor && (
+            <Link
+              to={`/batch/${batchInfo?.slug}/detail`}
+              className="gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200 font-medium btn"
+            >
+              Go to discussion
+              <MoveRight size={18} />
+            </Link>
+          )}
           {/* General info */}
           <div className="space-y-3 text-sm">
             {/* Time */}
@@ -206,10 +238,10 @@ export default function BatchDetail() {
                 </>
               ) : (
                 <Link
-                  to={`/course/${batchInfo?.slug}/learn`}
+                  to={`/batch/${batchInfo?.slug}/detail`}
                   className="btn btn-neutral"
                 >
-                  Continue learning
+                  Go to discussion
                 </Link>
               )}
               <button className="btn" onClick={() => setIsPreviewOpen(true)}>

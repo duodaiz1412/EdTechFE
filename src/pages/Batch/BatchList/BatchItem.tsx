@@ -12,7 +12,7 @@ interface BatchItemProps {
   isEnrolled?: boolean;
 }
 
-export default function BatchItem({batch}: BatchItemProps) {
+export default function BatchItem({batch, isEnrolled}: BatchItemProps) {
   const [imgLink, setImgLink] = useState<string>();
 
   useEffect(() => {
@@ -48,14 +48,16 @@ export default function BatchItem({batch}: BatchItemProps) {
         <div className="card-body">
           <h2 className="card-title">{batch.title}</h2>
           <div className="flex space-x-2 items-start"></div>
-
-          {
+          {isEnrolled && (
+            <div className="badge bg-blue-600 text-white">Enrolled</div>
+          )}
+          {!isEnrolled && (
             <span className="text-lg font-bold">
               {batch.paidBatch &&
                 formatPrice(batch.sellingPrice, batch.currency)}
               {!batch.paidBatch && "Free"}
             </span>
-          }
+          )}
         </div>
       </Link>
       <Tooltip

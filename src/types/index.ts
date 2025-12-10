@@ -304,6 +304,14 @@ export interface Batch {
   labels?: Label[];
 }
 
+export interface BatchEnrollment {
+  id?: string;
+  slug?: string;
+  title?: string;
+  startTime?: string;
+  endTime?: string;
+}
+
 export interface BatchPost {
   id?: string;
   title?: string;
@@ -407,4 +415,22 @@ export interface CompleteRecordResponse {
   videoUrl?: string;
   durationSeconds?: number;
   totalChunks?: number;
+}
+
+export interface BatchRecordInfo {
+  sessionId?: string;
+  roomId?: number;
+  title?: string;
+  description?: string;
+  objectName?: string;
+  durationSeconds?: number;
+  recordedAt?: string;
+  instructorName?: string;
+}
+
+export interface BatchRecordResponse {
+  batchId?: string;
+  batchTitle?: string;
+  batchSlug?: string;
+  recordings?: BatchRecordInfo[];
 }
