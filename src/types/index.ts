@@ -404,3 +404,17 @@ export interface CompleteRecordResponse {
   durationSeconds?: number;
   totalChunks?: number;
 }
+
+export enum ChatMessageType {
+  JOIN = "JOIN",
+  LEAVE = "LEAVE",
+  CHAT = "CHAT",
+  RAISE_HAND = "RAISE_HAND",
+  LOWER_HAND = "LOWER_HAND",
+}
+
+export interface ChatMessage {
+  type: ChatMessageType;
+  sender?: string;
+  content?: string;
+}

@@ -14,21 +14,22 @@ import {
   Video,
   VideoOff,
 } from "lucide-react";
-import {useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import {useQuery} from "@tanstack/react-query";
 import {toast} from "react-toastify";
 import {motion} from "motion/react";
 
-import {RoomPublisher} from "@/types";
+import {ChatMessage, ChatMessageType, RoomPublisher} from "@/types";
 import {useAppSelector} from "@/redux/hooks";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {publicServices} from "@/lib/services/public.services";
 import {liveServices} from "@/lib/services/live.services";
+import {isBatchInstructor} from "@/lib/utils/isBatchInstructor";
 import {usePublishMedia} from "@/hooks/usePublishMedia";
 import {usePublishScreen} from "@/hooks/usePublishScreen";
 import {useRecording} from "@/hooks/useRecording";
-import {isBatchInstructor} from "@/lib/utils/isBatchInstructor";
+import {useChatSocket} from "@/hooks/useChatSocket";
 
 import BatchLiveError from "./BatchLiveError";
 import BatchLiveButton from "./BatchLiveButton";
@@ -39,7 +40,7 @@ export default function BatchLive() {
   const userData = useAppSelector((state) => state.user.data);
   const navigate = useNavigate();
   const [isInstructor, setIsInstructor] = useState(false);
-  // const [batchId, setBatchId] = useState("");
+  const batchIdRef = useRef<string>();
 
   // Room and navigation state
   const {roomId, batchSlug} = useParams();
@@ -69,15 +70,25 @@ export default function BatchLive() {
     usePublishScreen();
   const localScreenRef = useRef<HTMLVideoElement | null>(null);
 
+  // Recording
   const {isRecording, startRecording, stopRecording} = useRecording();
 
   // Participants
   const [isShowParticipants, setIsShowParticipants] = useState(false);
   const [publishers, setPublishers] = useState<RoomPublisher[]>([]);
 
-  // Chat
+  // Chat and raise hand
+  const {
+    connect,
+    disconnect,
+    subscribeToSession,
+    unsubscribeFromSession,
+    addUser,
+    sendMessage,
+  } = useChatSocket();
   const [isShowChat, setIsShowChat] = useState(false);
-  // const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   // Join room
   const {isLoading, isError} = useQuery({
@@ -89,6 +100,7 @@ export default function BatchLive() {
         Number(roomId),
         userData?.name || "Anonymous",
       );
+      console.log(response);
 
       // Session state
       setIsJoin(true);
@@ -97,6 +109,19 @@ export default function BatchLive() {
       return response;
     },
   });
+  // Handle chat message
+  const handleSendMessage = () => {
+    sendMessage(batchIdRef.current!, userData?.name || "Anonymous", newMessage);
+    setNewMessage("");
+  };
+  const handleReceiveMessage = useCallback((msg: ChatMessage) => {
+    if (msg.type === ChatMessageType.CHAT) {
+      setMessages((prev) => [...prev, msg]);
+    }
+    if (msg.type === ChatMessageType.RAISE_HAND) {
+      toast.info(msg.content);
+    }
+  }, []);
   // Handle some state after join room
   useEffect(() => {
     if (!isJoin) return;
@@ -106,11 +131,36 @@ export default function BatchLive() {
       setIsInstructor(
         isBatchInstructor(userData?.id || "", response.instructors),
       );
-      // setBatchId(response?.id || "");
+      batchIdRef.current = response.id;
+      // Connect to chat socket
+      const accessToken = await getAccessToken();
+      connect(
+        accessToken,
+        () => {
+          subscribeToSession(response.id!, handleReceiveMessage);
+          addUser(response.id!, userData?.name || "Anonymous");
+        },
+        () => {},
+      );
     };
 
     fetchData();
-  }, [isJoin, batchSlug, userData?.id]);
+
+    return () => {
+      unsubscribeFromSession(batchIdRef.current!);
+      disconnect();
+    };
+  }, [
+    isJoin,
+    batchSlug,
+    userData,
+    addUser,
+    connect,
+    disconnect,
+    subscribeToSession,
+    unsubscribeFromSession,
+    handleReceiveMessage,
+  ]);
 
   // Publish media when joined
   useQuery({
@@ -218,7 +268,7 @@ export default function BatchLive() {
     }
   };
 
-  // Handlers show participants and chat
+  // Handle show participants and chat
   const handleShowParticipants = () => {
     setIsShowParticipants((prev) => !prev);
     if (isShowChat) setIsShowChat(false);
@@ -231,6 +281,9 @@ export default function BatchLive() {
   // Handler leave room
   const handleLeaveRoom = async () => {
     if (!isJoin) return;
+
+    const confirm = window.confirm("Leave room now?");
+    if (!confirm) return;
 
     // 1. Unpublish all local feeds
     await unpublishMedia(Number(roomId));
@@ -352,14 +405,36 @@ export default function BatchLive() {
 
         {/* Chat and participants */}
         {(isShowChat || isShowParticipants) && (
-          <div className="h-full bg-gradient-to-br from-gray-800 to-gray-700 rounded-xl shadow-2xl border border-gray-600 p-6">
+          <div className="h-full bg-gradient-to-br from-gray-800 to-gray-700 rounded-xl shadow-2xl border border-gray-600 p-6 relative">
             <h3 className="text-white font-semibold text-lg mb-4">
               {isShowParticipants ? "Participants" : "Chat"}
             </h3>
             {isShowParticipants ? (
               <BatchParticipantList roomId={Number(roomId)} />
             ) : (
-              <div>{/* Chat layout here */}</div>
+              <>
+                <div className="text-white">
+                  {messages.map((msg) => (
+                    <div className="space-y-1 mb-4">
+                      <p className="font-semibold">{msg.sender}</p>
+                      <span>{msg.content}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="absolute bottom-6 left-6 right-6 flex space-x-2">
+                  <input
+                    className="input rounded-lg bg-slate-200"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                  />
+                  <button
+                    className="btn btn-neutral rounded-lg"
+                    onClick={handleSendMessage}
+                  >
+                    Send
+                  </button>
+                </div>
+              </>
             )}
           </div>
         )}
