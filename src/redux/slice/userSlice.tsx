@@ -1,6 +1,6 @@
 import {createSlice} from "@reduxjs/toolkit";
 import {RootState} from "../store";
-import {CourseEnrollment} from "@/types";
+import {BatchEnrollment, CourseEnrollment} from "@/types";
 
 export interface UserState {
   isAuthenticated: boolean;
@@ -13,6 +13,7 @@ export interface UserState {
     type: string;
     roles: string[];
     courseEnrollments: CourseEnrollment[];
+    batchEnrollments: BatchEnrollment[];
   } | null;
 }
 

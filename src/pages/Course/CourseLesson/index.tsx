@@ -1,19 +1,18 @@
 import {useEffect, useState} from "react";
 import {toast} from "react-toastify";
 import {motion} from "motion/react";
+import {Download} from "lucide-react";
 
 import {Lesson} from "@/types";
 import {progressServices} from "@/lib/services/progress.services";
+import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
-import {getFileUrl} from "@/lib/services/upload.services";
 
-import {Download} from "lucide-react";
 import CourseLessonVideo from "./LessonType/CourseLessonVideo";
 import CourseLessonQuiz from "./LessonType/CourseLessonQuiz";
 import CourseLessonArticle from "./LessonType/CourseLessonArticle";
 import LessonCommentList from "./Comment/LessonCommentList";
 import CourseReviewList from "./Review/CourseReviewList";
-import axios from "axios";
 
 interface CourseLessonProps {
   lesson?: Lesson;
@@ -40,47 +39,14 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
       }
 
       if (lesson.fileUrl) {
-        try {
-          // Lấy URL từ objectName
-          const fileUrl = await getFileUrl(lesson.fileUrl);
-
-          // Fetch file as blob từ URL đã lấy được
-          const response = await axios.get(fileUrl, {
-            responseType: "blob",
-          });
-          const contentType = response.headers["content-type"];
-
-          // Get filename từ objectName
-          const pathSegments = lesson.fileUrl.split("/");
-          const lastSegment = pathSegments[pathSegments.length - 1];
-          const extractedFileName = lastSegment
-            ? lastSegment.replace(/^\d+-/, "")
-            : "Attachment";
-
-          setFilename(extractedFileName);
-
-          // Create download URL
-          const url = window.URL.createObjectURL(
-            new Blob([response.data], {type: contentType}),
-          );
-          setDownloadUrl(url);
-        } catch {
-          toast.error("Cannot load file attachment");
-        }
+        const url = await getFileUrlFromMinIO(lesson.fileUrl);
+        setDownloadUrl(url.uploadUrl);
+        setFilename(url.objectName);
       }
     };
 
     fetchData();
   }, [status, lesson]);
-
-  // Clean up the object URL when the component unmounts
-  useEffect(() => {
-    return () => {
-      if (downloadUrl) {
-        window.URL.revokeObjectURL(downloadUrl);
-      }
-    };
-  }, [downloadUrl]);
 
   const handleComplete = async () => {
     const accessToken = await getAccessToken();
@@ -102,7 +68,7 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
       <div className="w-full flex justify-center bg-black border border-slate-200">
         {lessonType === "video" && (
           <CourseLessonVideo
-            videoObjectName={lesson?.videoUrl}
+            videoUrl={lesson?.videoUrl}
             videoTitle={lesson?.title}
             completeLesson={handleComplete}
           />

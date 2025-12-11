@@ -51,9 +51,17 @@ export default function CourseLayout() {
 
   useEffect(() => {
     fetchChapters();
-    fetchProgress();
     fetchLesson();
-  }, [fetchChapters, fetchProgress, fetchLesson]);
+  }, [fetchChapters, fetchLesson]);
+
+  useEffect(() => {
+    fetchProgress();
+    const interval = setInterval(() => {
+      fetchProgress();
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [fetchProgress]);
 
   return (
     <div>

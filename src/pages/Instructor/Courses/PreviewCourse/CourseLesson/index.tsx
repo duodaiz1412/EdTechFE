@@ -1,15 +1,13 @@
 import {useEffect, useState} from "react";
-import axios from "axios";
 
 import {Lesson} from "@/types";
-import {getFileUrl} from "@/lib/services/upload.services";
 import {Download} from "lucide-react";
 import CourseLessonVideo from "./LessonType/CourseLessonVideo";
 import CourseLessonQuiz from "./LessonType/CourseLessonQuiz";
 import CourseLessonArticle from "./LessonType/CourseLessonArticle";
 import LessonCommentList from "./Comment/LessonCommentList";
 import CourseReviewList from "./Review/CourseReviewList";
-import {toast} from "react-toastify";
+import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
 
 interface CourseLessonProps {
   lesson?: Lesson;
@@ -33,19 +31,8 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
       }
 
       if (lesson.fileUrl) {
-        try {
-          // Lấy URL từ objectName
-          const fileUrl = await getFileUrl(lesson.fileUrl);
-
-          // Fetch file as blob từ URL đã lấy được
-          const response = await axios.get(fileUrl, {
-            responseType: "blob",
-          });
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          setDownloadUrl(url);
-        } catch {
-          toast.error("Cannot load file attachment");
-        }
+        const response = await getFileUrlFromMinIO(lesson.fileUrl);
+        setDownloadUrl(response.uploadUrl);
       }
     };
 
@@ -58,7 +45,7 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
       <div className="w-full flex justify-center bg-black border border-slate-200">
         {lessonType === "video" && (
           <CourseLessonVideo
-            videoObjectName={lesson?.videoUrl}
+            videoUrl={lesson?.videoUrl}
             videoTitle={lesson?.title}
           />
         )}

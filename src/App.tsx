@@ -36,6 +36,7 @@ import BatchLayout from "./layout/BatchLayout.tsx";
 import BatchList from "./pages/Batch/BatchList/index.tsx";
 import BatchesByTag from "./pages/Batch/BatchList/BatchesByTag.tsx";
 import BatchDetail from "./pages/Batch/BatchDetail.tsx";
+import BatchLive from "./pages/Batch/BatchContent/BatchVideo/BatchLive/BatchLive.tsx";
 
 import ProfileLayout from "./layout/ProfileLayout.tsx";
 import Profile from "./pages/Profile/Profile.tsx";
@@ -82,6 +83,8 @@ function App() {
       const response = await userServices.getUserInfo(accessToken);
       const courseEnrollments =
         await enrollServices.getCourseEnrollments(accessToken);
+      const batchEnrollments =
+        await enrollServices.getBatchEnrollments(accessToken);
 
       // Set global state
       dispatch(
@@ -94,6 +97,7 @@ function App() {
           type: response.data.userType,
           roles: response.data.roles.map((role: Role) => role.role),
           courseEnrollments: courseEnrollments,
+          batchEnrollments: batchEnrollments,
         }),
       );
       return response;
@@ -179,7 +183,10 @@ function App() {
                 path="/course/:courseSlug/learn/lesson/:lessonSlug"
                 element={<CourseLayout />}
               />
-              <Route path="/batch/:batchSlug/learn" element={<BatchLayout />} />
+              <Route
+                path="/batch/:batchSlug/detail"
+                element={<BatchLayout />}
+              />
               <Route
                 path="/learning"
                 element={
@@ -188,12 +195,15 @@ function App() {
                   </MainLayout>
                 }
               />
+              <Route
+                path="/batch/:batchSlug/live/:roomId"
+                element={<BatchLive />}
+              />
 
               {/* Instructor routes */}
               <Route path="/teaching" element={<BecomeInstructor />} />
 
               {/* Instructor: Batches management */}
-              <Route path="/batch/:batchSlug/teach" element={<BatchLayout />} />
               <Route
                 element={
                   <RoleProtectedRoute

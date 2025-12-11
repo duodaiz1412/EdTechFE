@@ -10,8 +10,8 @@ export default function MyLearningCourses() {
   const userData = useAppSelector((state) => state.user.data);
   const dispatch = useAppDispatch();
 
-  useQuery({
-    queryKey: ["enrollments"],
+  const {data} = useQuery({
+    queryKey: ["course-enrollments"],
     queryFn: async () => {
       const accessToken = await getAccessToken();
       const response = await enrollServices.getCourseEnrollments(accessToken);
@@ -23,17 +23,16 @@ export default function MyLearningCourses() {
   return (
     <div className="w-full">
       <div className="grid grid-cols-3 gap-6">
-        {userData?.courseEnrollments &&
-          userData.courseEnrollments.length > 0 &&
-          userData?.courseEnrollments?.map((enroll) => (
+        {data &&
+          data.length > 0 &&
+          data.map((enroll) => (
             <MyLearningCourseItem key={enroll.id} enroll={enroll} />
           ))}
-        {userData?.courseEnrollments &&
-          userData.courseEnrollments.length === 0 && (
-            <span className="col-span-4">
-              You have not enrolled in any courses yet.
-            </span>
-          )}
+        {data && data.length === 0 && (
+          <span className="col-span-4">
+            You have not enrolled in any courses yet.
+          </span>
+        )}
       </div>
     </div>
   );

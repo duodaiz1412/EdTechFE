@@ -78,7 +78,7 @@ export interface Label {
   name?: string;
 }
 
-export interface CourseInstructor {
+export interface Instructor {
   id?: string;
   fullName?: string;
   email?: string;
@@ -109,7 +109,7 @@ export interface Course {
   learnerProfileDesc?: string;
   tags?: Tag[];
   labels?: Label[];
-  instructors?: CourseInstructor[];
+  instructors?: Instructor[];
 }
 
 export interface CourseEnrollment {
@@ -290,13 +290,26 @@ export interface Batch {
   paidBatch?: boolean;
   actualPrice?: number;
   sellingPrice?: number;
+  currency?: string;
+  amountUsd?: number;
+  openTime?: string;
+  closeTime?: string;
   language?: string;
   startTime?: string;
   endTime?: string;
   status?: string;
   maxCapacity?: number;
+  instructors: Instructor[];
   tags?: Tag[];
   labels?: Label[];
+}
+
+export interface BatchEnrollment {
+  id?: string;
+  slug?: string;
+  title?: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 export interface BatchPost {
@@ -348,4 +361,118 @@ export interface PerformanceReportItem {
   title: string;
   totalRevenue: number;
   enrollmentCount: number;
+}
+
+// Live Types
+export interface LiveSession {
+  id?: string;
+  janusSessionId?: number;
+  janusHandleId?: number;
+  roomId?: number;
+  instructorId?: string;
+  instructorName?: string;
+  batchId?: string;
+  batchTitle?: string;
+  status?: "PUBLISHED" | "ENDED";
+  title?: string;
+  description?: string;
+  startedAt?: string;
+  endedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface JanusResponse {
+  janus?: string;
+  transaction?: string;
+  sessionId?: number;
+  handleId?: number;
+  liveSessionId?: string;
+  plugindata?: Record<string, object>;
+  jsep?: Record<string, object>;
+  data?: Record<string, object>;
+  error?: string;
+  errorCode?: number;
+}
+
+export interface PublishRequest {
+  roomId?: number;
+  sdp?: string;
+  streamType?: string;
+}
+
+export interface PublishResponse {
+  sdpOffer?: string;
+  sdpAnswer?: string;
+  type?: string;
+  sessionId?: number;
+  handleId?: number;
+  error?: string;
+  errorCode?: number;
+}
+
+export interface RoomParticipant {
+  id?: number;
+  displayName?: string;
+}
+
+export interface RoomPublisher {
+  id?: number;
+  display?: string;
+  publisher?: boolean;
+}
+
+export interface RemoteStream {
+  feedId?: number;
+  stream?: MediaStream;
+  displayName?: string;
+}
+
+export interface ChunkUploadResponse {
+  chunkId?: string;
+  chunkIndex?: number;
+  message?: string;
+  fileSize?: number;
+  totalChunksUploaded?: number;
+}
+
+export interface CompleteRecordResponse {
+  roomId?: number;
+  status?: string;
+  message?: string;
+  videoUrl?: string;
+  durationSeconds?: number;
+  totalChunks?: number;
+}
+
+export interface BatchRecordInfo {
+  sessionId?: string;
+  roomId?: number;
+  title?: string;
+  description?: string;
+  objectName?: string;
+  durationSeconds?: number;
+  recordedAt?: string;
+  instructorName?: string;
+}
+
+export interface BatchRecordResponse {
+  batchId?: string;
+  batchTitle?: string;
+  batchSlug?: string;
+  recordings?: BatchRecordInfo[];
+}
+
+export enum ChatMessageType {
+  JOIN = "JOIN",
+  LEAVE = "LEAVE",
+  CHAT = "CHAT",
+  RAISE_HAND = "RAISE_HAND",
+  LOWER_HAND = "LOWER_HAND",
+}
+
+export interface ChatMessage {
+  type: ChatMessageType;
+  sender?: string;
+  content?: string;
 }

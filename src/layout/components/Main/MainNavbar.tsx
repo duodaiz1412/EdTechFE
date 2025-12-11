@@ -3,6 +3,7 @@ import {useAppSelector} from "@/redux/hooks";
 
 import Logo from "@/components/Logo";
 import AvatarMenu from "@/components/AvatarMenu";
+import {BookOpenText, Video} from "lucide-react";
 
 export default function MainNavbar() {
   const location = useLocation();
@@ -20,9 +21,21 @@ export default function MainNavbar() {
       {isAuthenticated && (
         <div className="space-x-4 flex items-center">
           {userData?.roles.includes("COURSE_CREATOR") && (
-            <Link to="/my-batches">My batches</Link>
+            <Link
+              to="/my-batches"
+              className="flex items-center space-x-2 hover:bg-blue-50 hover:text-blue-400 p-2 rounded-lg transition-colors"
+            >
+              <span>My batches</span>
+              <Video size={18} />
+            </Link>
           )}
-          <Link to="/learning">My learning</Link>
+          <Link
+            to="/learning"
+            className="flex items-center space-x-2 hover:bg-blue-50 hover:text-blue-400 p-2 rounded-lg transition-colors"
+          >
+            <span>My learning</span>
+            <BookOpenText size={18} />
+          </Link>
           <AvatarMenu />
         </div>
       )}

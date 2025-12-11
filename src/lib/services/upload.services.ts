@@ -151,7 +151,7 @@ export const getFileUrlFromMinIO = async (
     );
     return response.data;
   } catch {
-    toast.error("Cannot get file URL");
+    // toast.error("Cannot get file URL");
     throw new Error("Cannot get file URL");
   }
 };

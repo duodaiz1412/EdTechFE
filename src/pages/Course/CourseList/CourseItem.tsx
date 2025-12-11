@@ -1,12 +1,15 @@
+import {useEffect, useState} from "react";
+import {useQuery} from "@tanstack/react-query";
 import {Link} from "react-router-dom";
 import {Tooltip} from "react-tooltip";
-import {useQuery} from "@tanstack/react-query";
 
 import {Course} from "@/types";
-import {formatPrice} from "@/lib/utils/formatPrice";
-import ReadOnlyRating from "@/components/ReadOnlyRating";
 import {publicServices} from "@/lib/services/public.services";
+import {formatPrice} from "@/lib/utils/formatPrice";
+
 import {CourseTooltip} from "./CourseTooltip";
+import ReadOnlyRating from "@/components/ReadOnlyRating";
+import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
 
 interface CourseItemProps {
   course: Course;
@@ -14,6 +17,8 @@ interface CourseItemProps {
 }
 
 export default function CourseItem({course, isEnrolled}: CourseItemProps) {
+  const [imgLink, setImgLink] = useState<string>();
+
   const {data} = useQuery({
     queryKey: ["average-rating", course.slug],
     queryFn: async () => {
@@ -21,6 +26,16 @@ export default function CourseItem({course, isEnrolled}: CourseItemProps) {
       return response;
     },
   });
+
+  useEffect(() => {
+    async function fetchImage() {
+      if (course.image) {
+        const imgLink = await getFileUrlFromMinIO(course.image);
+        setImgLink(imgLink.uploadUrl);
+      }
+    }
+    fetchImage();
+  }, [course.image]);
 
   return (
     <>
@@ -32,10 +47,10 @@ export default function CourseItem({course, isEnrolled}: CourseItemProps) {
       >
         {/* Course image */}
         <figure className="h-56 border-b border-b-slate-200">
-          {course.image && (
-            <img className="w-full h-full object-cover" src={course.image} />
+          {imgLink && (
+            <img className="w-full h-full object-cover" src={imgLink} />
           )}
-          {!course.image && (
+          {!imgLink && (
             <div className="w-full h-full bg-slate-100 flex justify-center items-center text-slate-500">
               No image
             </div>
