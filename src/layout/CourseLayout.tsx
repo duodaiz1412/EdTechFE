@@ -81,7 +81,11 @@ export default function CourseLayout() {
           )}
         </main>
 
-        <CourseSidebar chapters={chapters} currentLesson={currentLesson} />
+        <CourseSidebar
+          chapters={chapters}
+          currentLesson={currentLesson}
+          lessonId={lesson?.id}
+        />
       </div>
     </div>
   );

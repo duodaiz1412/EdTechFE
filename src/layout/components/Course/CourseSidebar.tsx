@@ -1,25 +1,26 @@
-import CourseContentList from "@/pages/Course/CourseContent/CourseContentList";
 import {Chapter, LessonCurrent} from "@/types";
-import {useParams} from "react-router-dom";
+import {LessonChatWidget} from "@/components/Chat/LessonChatWidget";
 
 interface CourseSidebarProps {
   chapters?: Chapter[];
   currentLesson?: LessonCurrent;
+  lessonId?: string;
 }
 
 export default function CourseSidebar({
   chapters,
   currentLesson,
+  lessonId,
 }: CourseSidebarProps) {
-  const {courseSlug} = useParams();
-
   return (
-    <div className="w-1/4 h-full overflow-y-scroll border-l border-l-slate-200">
-      <CourseContentList
-        courseSlug={courseSlug}
-        chapters={chapters}
-        currentLesson={currentLesson}
-      />
+    <div className="w-1/4 h-full flex flex-col border-l border-l-slate-200">
+      {lessonId && (
+        <LessonChatWidget
+          lessonId={lessonId}
+          chapters={chapters}
+          currentLesson={currentLesson}
+        />
+      )}
     </div>
   );
 }
