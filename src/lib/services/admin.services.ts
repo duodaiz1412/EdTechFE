@@ -1,8 +1,8 @@
 import axios from "axios";
-
+import {config} from "@/config";
 import {Role, User} from "@/types";
 
-const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1/admin/users";
+const BASE_API = config.BASE_API + "/admin/users";
 
 export const adminServices = {
   async getUserList(accessToken: string, page: number = 0, size: number = 10) {

@@ -9,8 +9,9 @@ import {
   PublishRequest,
   PublishResponse,
 } from "@/types";
+import {config} from "@/config";
 
-const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1/live";
+const BASE_API = config.BASE_API + "/live";
 
 export const liveServices = {
   async startLive(

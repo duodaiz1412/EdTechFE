@@ -1,6 +1,7 @@
 import axios from "axios";
+import {config} from "@/config";
 
-const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
+const BASE_API = config.BASE_API;
 
 // Course API Endpoints
 const COURSE_ENDPOINTS = {

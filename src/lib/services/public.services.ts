@@ -1,8 +1,9 @@
 import axios from "axios";
 
 import {Batch, Chapter, Course} from "@/types";
+import {config} from "@/config";
 
-const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1/public";
+const BASE_API = config.BASE_API + "/public";
 
 export const publicServices = {
   async getCourses(

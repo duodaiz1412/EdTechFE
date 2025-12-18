@@ -2,8 +2,9 @@ import axios from "axios";
 
 import {User} from "@/types";
 import {authServices} from "./auth.services";
+import {config} from "@/config";
 
-const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
+const BASE_API = config.BASE_API;
 
 const USER_ENDPOINTS = {
   USER_INFO: BASE_API + "/users/me",

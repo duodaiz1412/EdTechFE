@@ -1,8 +1,9 @@
 import axios from "axios";
 
 import {BatchEnrollment, CourseEnrollment, Order} from "@/types";
+import {config} from "@/config";
 
-const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
+const BASE_API = config.BASE_API;
 
 export const enrollServices = {
   async enrollFreeCourse(courseSlug: string, accessToken: string) {

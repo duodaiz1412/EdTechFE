@@ -7,8 +7,9 @@ import {
 } from "../../types/upload.types";
 import {convertUrlToRelatuvePath} from "../utils";
 import {getAccessToken} from "../utils/getAccessToken";
+import {config} from "@/config";
 
-const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
+const BASE_API = config.BASE_API;
 
 // Upload API Endpoints
 const UPLOAD_ENDPOINTS = {

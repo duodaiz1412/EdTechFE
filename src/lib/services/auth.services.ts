@@ -1,6 +1,7 @@
 import axios from "axios";
+import {config} from "@/config";
 
-const BASE_API = import.meta.env.VITE_API_BASE_URL + "/api/v1";
+const BASE_API = config.BASE_API;
 const AUTH_ENDPOINTS = {
   LOGIN: BASE_API + "/auth/login",
   REGISTER: BASE_API + "/auth/register",
