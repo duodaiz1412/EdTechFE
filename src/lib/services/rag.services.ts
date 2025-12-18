@@ -1,9 +1,9 @@
 import axios from "axios";
+import {getAccessToken} from "@/lib/utils/getAccessToken";
 
-// RAG API Base URL - defaults to localhost:8001 if not set
-// Port 8001 to avoid conflict with Spring Boot backend (port 8000)
+// RAG API Base URL - defaults to localhost:8000 if not set
 const RAG_API_BASE_URL =
-  import.meta.env.VITE_RAG_API_BASE_URL || "http://localhost:8001";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 // RAG API Endpoints
 const RAG_ENDPOINTS = {
@@ -20,80 +20,136 @@ export interface ChatMessage {
 export interface Source {
   rank?: number;
   document_id?: string;
-  doc_type?: string;
-  course_id?: string;
-  course_title?: string;
-  chapter_id?: string;
-  chapter_title?: string;
-  lesson_id?: string;
-  lesson_title?: string;
-  requires_enrollment?: boolean;
-  tags?: string[];
-  language?: string;
-  course_skill_level?: string;
-  chapter_summary?: string;
-  last_modified?: string;
-  distance?: number;
-  metadata?: Record<string, any>;
+  metadata?: {
+    [key: string]: any;
+  };
 }
 
-export interface AskRequest {
+export interface AskRAGRequest {
   question: string;
   user_id?: string;
+  lesson_id?: string;
+  lessonId?: string; // Backend uses camelCase
   chat_history?: ChatMessage[];
 }
 
-export interface AskResponse {
+export interface AskRAGResponse {
   answer: string;
-  trace: string;
   sources: Source[];
   chat_history: ChatMessage[];
+  trace?: string;
 }
 
-/**
- * Ask a question to the Agentic RAG system
- * @param request - The question and optional context
- * @returns Promise with the RAG response
- */
-export const askRAG = async (request: AskRequest): Promise<AskResponse> => {
-  try {
-    const response = await axios.post<AskResponse>(RAG_ENDPOINTS.ASK, request, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      timeout: 60000, // 60 seconds timeout for RAG processing
-    });
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
+export const ragServices = {
+  /**
+   * Ask a question to the RAG system
+   */
+  async askRAG(request: AskRAGRequest): Promise<AskRAGResponse> {
+    const accessToken = await getAccessToken();
+
+    if (!accessToken) {
+      throw new Error("Authentication required. Please login.");
+    }
+
+    try {
+      const response = await axios.post<AskRAGResponse>(
+        RAG_ENDPOINTS.ASK,
+        request,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        // Handle timeout errors
+        if (
+          error.code === "ECONNABORTED" ||
+          error.message.includes("timeout")
+        ) {
+          throw new Error(
+            "Request timeout. The AI is taking longer than expected to respond. Please try again with a simpler question.",
+          );
+        }
+
+        // Handle network errors
+        if (error.code === "ERR_NETWORK" || !error.response) {
+          throw new Error(
+            "Network error. Please check your connection and try again.",
+          );
+        }
+
+        // Handle server errors
+        if (error.response?.status >= 500) {
+          const errorMessage = error.response?.data?.message || error.message;
+
+          if (
+            errorMessage.includes("timeout") ||
+            errorMessage.includes("timed out")
+          ) {
+            throw new Error(
+              "The AI service is taking too long to respond. This might be due to high load. Please try again in a moment.",
+            );
+          }
+          throw new Error(
+            errorMessage || "Server error. Please try again later.",
+          );
+        }
+
+        // Handle client errors (4xx)
+        if (error.response?.status === 401) {
+          throw new Error("Authentication failed. Please login again.");
+        }
+
+        if (error.response?.status === 403) {
+          throw new Error(
+            "You do not have permission to access this resource.",
+          );
+        }
+
+        if (error.response?.status === 404) {
+          throw new Error("The requested service is not available.");
+        }
+
+        // Generic error
+        const errorMessage = error.response?.data?.message || error.message;
+        throw new Error(errorMessage || "An error occurred. Please try again.");
+      }
+
+      // Non-axios error
+      throw error instanceof Error
+        ? error
+        : new Error("An unexpected error occurred. Please try again.");
+    }
+  },
+
+  /**
+   * Health check endpoint
+   */
+  async healthCheck(): Promise<{status: string}> {
+    const accessToken = await getAccessToken();
+
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    try {
+      const response = await axios.get<{status: string}>(RAG_ENDPOINTS.HEALTH, {
+        headers,
+        timeout: 10000, // 10 seconds for health check
+      });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
         throw new Error(
-          `RAG API Error: ${error.response.data?.detail || error.message}`,
-        );
-      } else if (error.request) {
-        throw new Error(
-          "RAG API Error: No response from server. Please check if the RAG API is running.",
+          `Health check failed: ${error.message || "Unable to reach the service"}`,
         );
       }
+      throw error;
     }
-    throw error;
-  }
-};
-
-/**
- * Check if the RAG API is healthy
- * @returns Promise with health status
- */
-export const checkRAGHealth = async (): Promise<{status: string}> => {
-  try {
-    const response = await axios.get<{status: string}>(RAG_ENDPOINTS.HEALTH, {
-      timeout: 5000,
-    });
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error("RAG API is not available");
-    }
-    throw error;
-  }
+  },
 };

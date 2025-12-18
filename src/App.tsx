@@ -1,4 +1,10 @@
-import {BrowserRouter, Outlet, Route, Routes} from "react-router-dom";
+import {
+  BrowserRouter,
+  Outlet,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 import {ToastContainer} from "react-toastify";
 import {useQuery} from "@tanstack/react-query";
 import {GlobalPollingProvider} from "./components/GlobalPollingProvider";
@@ -25,6 +31,7 @@ import MainLayout from "./layout/MainLayout.tsx";
 import Support from "./pages/Info/Support.tsx";
 import About from "./pages/Info/About.tsx";
 import Home from "./pages/Info/Home.tsx";
+import {FloatingChatWidget} from "./components/Chat/FloatingChatWidget.tsx";
 
 import MyLearning from "./pages/Course/MyLearning/index.tsx";
 import CourseLayout from "./layout/CourseLayout.tsx";
@@ -372,9 +379,21 @@ function App() {
               </Route>
             </Route>
           </Routes>
+          <AppContent />
         </BrowserRouter>
       </GlobalPollingProvider>
+    </>
+  );
+}
 
+function AppContent() {
+  const location = useLocation();
+  const isCourseLearnLesson =
+    location.pathname.includes("/course/") &&
+    location.pathname.includes("/learn/lesson/");
+
+  return (
+    <>
       <ToastContainer
         position="top-right"
         draggable
@@ -384,6 +403,9 @@ function App() {
         newestOnTop
         pauseOnHover
       />
+
+      {/* Hide FloatingChatWidget on course learn lesson route */}
+      {!isCourseLearnLesson && <FloatingChatWidget />}
     </>
   );
 }
