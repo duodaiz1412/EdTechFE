@@ -36,11 +36,11 @@ export function useChatSocket() {
           console.log("WebSocket connected");
           if (onConnected) onConnected();
         },
-        onStompError: (frame) => {
+        onStompError: (frame: any) => {
           console.error("STOMP error:", frame);
           if (onError) onError(frame);
         },
-        onWebSocketError: (error) => {
+        onWebSocketError: (error: any) => {
           console.error("WebSocket error:", error);
           if (onError) onError(error);
         },

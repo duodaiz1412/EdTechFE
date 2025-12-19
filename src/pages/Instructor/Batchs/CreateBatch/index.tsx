@@ -2,6 +2,7 @@ import {useNavigate} from "react-router";
 import {useCallback} from "react";
 import Button from "@/components/Button";
 import {useCourseContext} from "@/context/CourseContext";
+import {IBatchRequest} from "@/lib/services/instructor.services";
 import BasicInfoStep from "./steps/BasicInfoStep";
 import TimeStep from "./steps/TimeStep";
 import TagsLabelsStep from "./steps/TagsLabelsStep";
@@ -34,7 +35,24 @@ export default function CreateBatch() {
       setBatchWizardState({isSubmitting: true});
       clearError();
 
-      const batch = await createBatch(batchFormData);
+      // Convert date strings to Date objects for IBatchRequest
+      const batchRequestData: IBatchRequest = {
+        ...batchFormData,
+        startTime: batchFormData.startTime
+          ? new Date(batchFormData.startTime)
+          : undefined,
+        endTime: batchFormData.endTime
+          ? new Date(batchFormData.endTime)
+          : undefined,
+        openTime: batchFormData.openTime
+          ? new Date(batchFormData.openTime)
+          : undefined,
+        closeTime: batchFormData.closeTime
+          ? new Date(batchFormData.closeTime)
+          : undefined,
+      };
+
+      const batch = await createBatch(batchRequestData);
 
       if (batch?.id) {
         toast.success("Batch created successfully!");

@@ -13,7 +13,6 @@ import {
   IPayOSConfigResponse,
   IUpdatePayOSConfigRequest,
 } from "@/lib/services/instructor.services";
-import {toast} from "@/hooks/use-toast";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {
   Eye,
@@ -23,6 +22,7 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
+import {toast} from "react-toastify";
 
 export default function SetPayment() {
   const [currentConfig, setCurrentConfig] =
@@ -186,14 +186,11 @@ export default function SetPayment() {
           : "PayOS configuration created successfully!",
       );
 
-      toast({
-        title: isEditing
+      toast.success(
+        isEditing
           ? "PayOS updated successfully"
           : "PayOS configuration created",
-        description: isEditing
-          ? "Your payment configuration has been updated."
-          : "A new PayOS payment configuration has been created.",
-      });
+      );
 
       // Hide form and reset
       setShowForm(false);
