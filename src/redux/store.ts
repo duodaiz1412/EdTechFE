@@ -1,30 +1,12 @@
-import {configureStore, createSlice} from "@reduxjs/toolkit";
+import {configureStore} from "@reduxjs/toolkit";
+import userReducer from "./slice/userSlice";
 
-// Tạo một slice mặc định để tránh lỗi
-const defaultSlice = createSlice({
-  name: "default",
-  initialState: {
-    value: 0,
-  },
-  reducers: {
-    increment: (state) => {
-      state.value += 1;
-    },
-  },
-});
-
-export const {increment} = defaultSlice.actions;
-
-const store = configureStore({
+export const store = configureStore({
   reducer: {
-    default: defaultSlice.reducer,
+    user: userReducer,
   },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: false,
-    }),
 });
 
-export default store;
-export type IRootState = ReturnType<typeof store.getState>;
+export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+export type AppStore = typeof store;

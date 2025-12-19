@@ -1,5 +1,3 @@
-import React from "react";
-
 export default function DaisyUIDemo() {
   return (
     <div className="container mx-auto p-8 space-y-8">

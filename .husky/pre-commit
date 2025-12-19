@@ -1,1 +1,1 @@
-yarn prettier:fix
+yarn lint-staged
