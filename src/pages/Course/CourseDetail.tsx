@@ -264,7 +264,7 @@ export default function CourseDetail() {
                     {courseInfo?.paidCourse &&
                       formatPrice(
                         courseInfo?.sellingPrice,
-                        courseInfo?.currency,
+                        courseInfo?.currency || "VND",
                       )}
                     {!courseInfo?.paidCourse && "Free Course"}
                   </p>
@@ -322,7 +322,11 @@ export default function CourseDetail() {
         <div className="flex flex-col items-center space-y-4 bg-white opacity-100 rounded-lg p-4">
           <div id="embedded-payment-container" className="w-96 h-96"></div>
           <p className="text-xl font-semibold">
-            Total: {formatPrice(courseInfo?.sellingPrice, courseInfo?.currency)}
+            Total:{" "}
+            {formatPrice(
+              courseInfo?.sellingPrice,
+              courseInfo?.currency || "VND",
+            )}
           </p>
           <button className="btn btn-outline" onClick={handleCancelPayment}>
             Cancel

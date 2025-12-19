@@ -229,7 +229,10 @@ export default function BatchDetail() {
                 <>
                   <p className="text-2xl font-bold">
                     {batchInfo?.paidBatch &&
-                      formatPrice(batchInfo?.sellingPrice, batchInfo.currency)}
+                      formatPrice(
+                        batchInfo?.sellingPrice,
+                        batchInfo.currency || "VND",
+                      )}
                     {!batchInfo?.paidBatch && "Free Batch"}
                   </p>
                   <button className="btn btn-neutral" onClick={handleEnroll}>
@@ -286,7 +289,8 @@ export default function BatchDetail() {
         <div className="flex flex-col items-center space-y-4 bg-white opacity-100 rounded-lg p-4">
           <div id="embedded-payment-container" className="w-96 h-96"></div>
           <p className="text-xl font-semibold">
-            Total: {formatPrice(batchInfo?.sellingPrice, batchInfo?.currency)}
+            Total:{" "}
+            {formatPrice(batchInfo?.sellingPrice, batchInfo?.currency || "VND")}
           </p>
           <button className="btn btn-outline" onClick={handleCancelPayment}>
             Cancel

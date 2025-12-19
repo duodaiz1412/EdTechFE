@@ -54,7 +54,7 @@ export default function BatchItem({batch, isEnrolled}: BatchItemProps) {
           {!isEnrolled && (
             <span className="text-lg font-bold">
               {batch.paidBatch &&
-                formatPrice(batch.sellingPrice, batch.currency)}
+                formatPrice(batch.sellingPrice, batch.currency || "VND")}
               {!batch.paidBatch && "Free"}
             </span>
           )}

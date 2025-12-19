@@ -29,7 +29,7 @@ export default function InstructorCourse() {
   const [sortBy, setSortBy] = useState("newest");
   const [courses, setCourses] = useState<Course[]>([]);
   const [currentPage] = useState(0);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(100);
 
   const loadCourses = useCallback(async () => {
     try {

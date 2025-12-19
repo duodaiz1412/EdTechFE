@@ -17,7 +17,9 @@ export default function CourseLessonVideo({
   const {data, isLoading} = useQuery({
     queryKey: ["video-lesson-url", videoUrl],
     queryFn: async () => {
-      const finalUrl = await getFileUrlFromMinIO(videoUrl!);
+      if (!videoUrl) return "";
+
+      const finalUrl = await getFileUrlFromMinIO(videoUrl);
       return finalUrl.uploadUrl;
     },
   });

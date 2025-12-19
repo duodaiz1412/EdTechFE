@@ -239,7 +239,7 @@ export default function CourseLandingPreview() {
               <p className="text-2xl font-bold">
                 {formatPrice(
                   courseInfo?.sellingPrice || 0,
-                  courseInfo?.currency || "USD",
+                  courseInfo?.currency || "VND",
                 )}
               </p>
               {courseInfo?.coursePrice &&
@@ -247,7 +247,7 @@ export default function CourseLandingPreview() {
                   <p className="text-lg text-gray-500 line-through">
                     {formatPrice(
                       courseInfo.coursePrice,
-                      courseInfo.currency || "USD",
+                      courseInfo.currency || "VND",
                     )}
                   </p>
                 )}
