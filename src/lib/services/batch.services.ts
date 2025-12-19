@@ -1,7 +1,7 @@
 import axios from "axios";
 import {config} from "@/config";
 
-const BASE_API = config.BASE_API;
+const BASE_API = config.BASE_API + "/api/v1";
 
 export const batchServices = {
   async createDiscussionPost(

@@ -1,9 +1,9 @@
 import axios from "axios";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
+import {config} from "@/config";
 
 // RAG API Base URL - defaults to localhost:8000 if not set
-const RAG_API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const RAG_API_BASE_URL = config.BASE_API || "http://localhost:8000";
 
 // RAG API Endpoints
 const RAG_ENDPOINTS = {

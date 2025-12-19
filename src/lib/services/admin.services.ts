@@ -2,7 +2,7 @@ import axios from "axios";
 import {config} from "@/config";
 import {Role, User} from "@/types";
 
-const BASE_API = config.BASE_API + "/admin/users";
+const BASE_API = config.BASE_API + "/api/v1/admin/users";
 
 export const adminServices = {
   async getUserList(accessToken: string, page: number = 0, size: number = 10) {

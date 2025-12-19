@@ -3,7 +3,7 @@ import axios from "axios";
 import {Quiz, QuizSubmmission} from "@/types";
 import {config} from "@/config";
 
-const BASE_API = config.BASE_API;
+const BASE_API = config.BASE_API + "/api/v1";
 
 export const learnerServices = {
   async getLesson(accessToken?: string, lessonSlug?: string) {

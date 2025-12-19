@@ -11,7 +11,7 @@ import {
 } from "@/types";
 import {config} from "@/config";
 
-const BASE_API = config.BASE_API + "/live";
+const BASE_API = config.BASE_API + "/api/v1/live";
 
 export const liveServices = {
   async startLive(

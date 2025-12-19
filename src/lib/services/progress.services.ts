@@ -3,7 +3,7 @@ import axios from "axios";
 import {Progress} from "@/types";
 import {config} from "@/config";
 
-const BASE_API = config.BASE_API;
+const BASE_API = config.BASE_API + "/api/v1";
 
 export const progressServices = {
   async getProgress(slug: string, accessToken: string): Promise<Progress> {

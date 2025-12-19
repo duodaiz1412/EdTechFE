@@ -1,3 +1,3 @@
 export const config = {
-  BASE_API: import.meta.env.VITE_API_BASE_URL + "/api/v1",
+  BASE_API: process.env.VITE_API_BASE_URL || import.meta.env.VITE_API_BASE_URL,
 };

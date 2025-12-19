@@ -4,7 +4,7 @@ import {User} from "@/types";
 import {authServices} from "./auth.services";
 import {config} from "@/config";
 
-const BASE_API = config.BASE_API;
+const BASE_API = config.BASE_API + "/api/v1";
 
 const USER_ENDPOINTS = {
   USER_INFO: BASE_API + "/users/me",

@@ -3,7 +3,7 @@ import axios from "axios";
 import {Batch, Chapter, Course} from "@/types";
 import {config} from "@/config";
 
-const BASE_API = config.BASE_API + "/public";
+const BASE_API = config.BASE_API + "/api/v1/public";
 
 export const publicServices = {
   async getCourses(
