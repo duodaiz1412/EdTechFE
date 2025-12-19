@@ -168,7 +168,7 @@ export function useRecording() {
       };
 
       mr.onerror = (event) => {
-        console.error("[MEDIA RECORDER]: Error occurred", event.error);
+        console.error("[MEDIA RECORDER]: Error occurred", event);
       };
 
       mr.onstop = async () => {

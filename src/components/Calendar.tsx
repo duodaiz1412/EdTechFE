@@ -37,7 +37,7 @@ const Calendar = ({value, onChange, minDate}: CalendarProps) => {
           date = new Date(`${value}T00:00:00`);
         }
         // Check if the resulting date is valid
-        if (!isNaN(date.getTime())) {
+        if (date && !isNaN(date.getTime())) {
           return date;
         }
       } catch {

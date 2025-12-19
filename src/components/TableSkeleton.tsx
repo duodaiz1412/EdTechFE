@@ -1,5 +1,3 @@
-import React from "react";
-
 const TableSkeleton = () => (
   <div className="divide-y divide-gray-200">
     {[...Array(5)].map((_, i) => (

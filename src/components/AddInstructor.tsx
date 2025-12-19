@@ -8,7 +8,7 @@ import {User} from "../types";
 import Button from "./Button";
 import Chip from "./Chip";
 import {toast} from "react-toastify";
-import {RootState} from "@/lib/redux/store";
+import {RootState} from "@/redux/store";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 
 interface AddInstructorsProps {

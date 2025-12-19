@@ -56,11 +56,11 @@ export default function LessonCommentItem({
         content: "This is a sample parent comment for preview.",
         authorId: "parent-user",
         authorName: "Parent User",
-        authorImage: null,
+        authorImage: undefined,
         creation: new Date(Date.now() - 7200000).toISOString(),
         upvotes: 2,
         downvotes: 0,
-        parentId: null,
+        parentId: undefined,
       });
     }
   }, [comment.parentId]);
