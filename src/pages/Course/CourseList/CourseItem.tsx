@@ -77,7 +77,7 @@ export default function CourseItem({course, isEnrolled}: CourseItemProps) {
           {!isEnrolled && (
             <span className="text-lg font-bold">
               {course.paidCourse &&
-                formatPrice(course.sellingPrice, course.currency)}
+                formatPrice(course.sellingPrice, course.currency || "VND")}
               {!course.paidCourse && "Free"}
             </span>
           )}
