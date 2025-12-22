@@ -1,6 +1,6 @@
 import {Instructor} from "@/types";
 
-export const isBatchInstructor = (
+export const checkIsInstructor = (
   userId: string,
   instructors: Instructor[] | undefined,
 ): boolean => {

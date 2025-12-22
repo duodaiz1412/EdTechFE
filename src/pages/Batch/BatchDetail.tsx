@@ -22,9 +22,9 @@ import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {formatPrice} from "@/lib/utils/formatPrice";
 import {formatDate} from "@/lib/utils/formatDate";
 import {isBatchEnrolled} from "@/lib/utils/isBatchEnrolled";
+import {checkIsInstructor} from "@/lib/utils/isBatchInstructor";
 
 import HtmlDisplay from "@/components/HtmlDisplay";
-import {isBatchInstructor} from "@/lib/utils/isBatchInstructor";
 
 export default function BatchDetail() {
   // Data states
@@ -64,7 +64,7 @@ export default function BatchDetail() {
       if (!slug) return null;
       const batch = await publicServices.getBatchBySlug(slug);
       setBatchInfo(batch);
-      setIsInstructor(isBatchInstructor(userData?.id || "", batch.instructors));
+      setIsInstructor(checkIsInstructor(userData?.id || "", batch.instructors));
       if (batch.image) {
         const imgLink = await getFileUrlFromMinIO(batch.image);
         setBatchImgLink(imgLink.uploadUrl);
@@ -225,7 +225,12 @@ export default function BatchDetail() {
               )}
             </figure>
             <div className="card-body space-y-2">
-              {!isEnrolled ? (
+              {isInstructor && (
+                <div className="p-2 rounded-lg bg-blue-600 text-white text-center text-lg">
+                  Your batch
+                </div>
+              )}
+              {!isInstructor && !isEnrolled && (
                 <>
                   <p className="text-2xl font-bold">
                     {batchInfo?.paidBatch &&
@@ -239,7 +244,8 @@ export default function BatchDetail() {
                     Enroll this batch
                   </button>
                 </>
-              ) : (
+              )}{" "}
+              {!isInstructor && isEnrolled && (
                 <Link
                   to={`/batch/${batchInfo?.slug}/detail`}
                   className="btn btn-neutral"
@@ -247,9 +253,11 @@ export default function BatchDetail() {
                   Go to discussion
                 </Link>
               )}
-              <button className="btn" onClick={() => setIsPreviewOpen(true)}>
-                Batch introduction
-              </button>
+              {!isInstructor && (
+                <button className="btn" onClick={() => setIsPreviewOpen(true)}>
+                  Course introduction
+                </button>
+              )}
             </div>
           </div>
         </div>

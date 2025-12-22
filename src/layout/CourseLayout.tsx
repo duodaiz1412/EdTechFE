@@ -58,7 +58,7 @@ export default function CourseLayout() {
     fetchProgress();
     const interval = setInterval(() => {
       fetchProgress();
-    }, 1000);
+    }, 60000);
 
     return () => clearInterval(interval);
   }, [fetchProgress]);

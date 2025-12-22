@@ -10,7 +10,7 @@ import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {publicServices} from "@/lib/services/public.services";
 import {liveServices} from "@/lib/services/live.services";
 import {formatDate} from "@/lib/utils/formatDate";
-import {isBatchInstructor} from "@/lib/utils/isBatchInstructor";
+import {checkIsInstructor} from "@/lib/utils/isBatchInstructor";
 import {isBatchEnrolled} from "@/lib/utils/isBatchEnrolled";
 
 import BatchNavbar from "./components/Batch/BatchNavbar";
@@ -33,7 +33,7 @@ export default function BatchLayout() {
     queryKey: ["batch", batchSlug],
     queryFn: async () => {
       const response = await publicServices.getBatchBySlug(batchSlug || "");
-      const checkInstructor = isBatchInstructor(
+      const checkInstructor = checkIsInstructor(
         userData?.id || "",
         response.instructors,
       );

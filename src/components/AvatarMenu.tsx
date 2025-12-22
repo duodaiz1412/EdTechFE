@@ -1,6 +1,13 @@
 import {useEffect, useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
-import {Presentation, User, LogOut, UsersRound, CreditCard} from "lucide-react";
+import {Link, useLocation, useNavigate} from "react-router-dom";
+import {
+  Presentation,
+  User,
+  LogOut,
+  UsersRound,
+  CreditCard,
+  BookOpen,
+} from "lucide-react";
 
 import {useAppDispatch, useAppSelector} from "@/redux/hooks";
 import {logout} from "@/redux/slice/userSlice";
@@ -10,6 +17,7 @@ export default function AvatarMenu() {
   const userData = useAppSelector((state) => state.user.data);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const haveAvatarImage = userData?.image !== undefined;
   const [finalUrl, setFinalUrl] = useState<string>();
 
@@ -64,12 +72,21 @@ export default function AvatarMenu() {
             </Link>
           </li>
         )}
-        <li>
-          <Link to="/instructor">
-            <Presentation size={20} />
-            <span>Instructor</span>
-          </Link>
-        </li>
+        {!location.pathname.startsWith("/instructor") ? (
+          <li>
+            <Link to="/instructor">
+              <Presentation size={20} />
+              <span>Instructor</span>
+            </Link>
+          </li>
+        ) : (
+          <li>
+            <Link to="/">
+              <BookOpen size={20} />
+              <span>Student</span>
+            </Link>
+          </li>
+        )}
         <li>
           <Link to="/purchases">
             <CreditCard size={20} />

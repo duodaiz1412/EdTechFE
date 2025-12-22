@@ -25,7 +25,7 @@ import {useAppSelector} from "@/redux/hooks";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {publicServices} from "@/lib/services/public.services";
 import {liveServices} from "@/lib/services/live.services";
-import {isBatchInstructor} from "@/lib/utils/isBatchInstructor";
+import {checkIsInstructor} from "@/lib/utils/isBatchInstructor";
 import {usePublishMedia} from "@/hooks/usePublishMedia";
 import {usePublishScreen} from "@/hooks/usePublishScreen";
 import {useRecording} from "@/hooks/useRecording";
@@ -90,6 +90,7 @@ export default function BatchLive() {
   } = useChatSocket();
   const [isShowChat, setIsShowChat] = useState(false);
   const [isRaiseHand, setIsRaiseHand] = useState(false);
+  const [raiseStudents, setRaiseStudents] = useState<string[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
@@ -125,6 +126,12 @@ export default function BatchLive() {
   const handleReceiveMessage = useCallback((msg: ChatMessage) => {
     if (msg.type === ChatMessageType.CHAT) {
       setMessages((prev) => [...prev, msg]);
+    } else if (msg.type === ChatMessageType.RAISE_HAND) {
+      setRaiseStudents((prev) => [...prev, msg.sender!]);
+      toast.info(msg.content);
+    } else if (msg.type === ChatMessageType.LOWER_HAND) {
+      setRaiseStudents((prev) => prev.filter((name) => name !== msg.sender));
+      toast.info(msg.content);
     } else {
       toast.info(msg.content);
     }
@@ -148,7 +155,7 @@ export default function BatchLive() {
     const fetchData = async () => {
       const response = await publicServices.getBatchBySlug(batchSlug || "");
       setIsInstructor(
-        isBatchInstructor(userData?.id || "", response.instructors),
+        checkIsInstructor(userData?.id || "", response.instructors),
       );
       // Connect to chat socket
       const accessToken = await getAccessToken();
@@ -235,7 +242,7 @@ export default function BatchLive() {
       setPublishers(publishers || []);
       return response;
     },
-    refetchInterval: 1000,
+    refetchInterval: 3000,
   });
 
   // Handlers pin stream
@@ -431,7 +438,10 @@ export default function BatchLive() {
               {isShowParticipants ? "Participants" : "Chat"}
             </h3>
             {isShowParticipants ? (
-              <BatchParticipantList roomId={Number(roomId)} />
+              <BatchParticipantList
+                roomId={Number(roomId)}
+                raiseStudents={raiseStudents}
+              />
             ) : (
               <>
                 <div
@@ -444,12 +454,15 @@ export default function BatchLive() {
                   {messages.map((msg, index) => (
                     <div
                       key={index}
-                      className="bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow"
+                      className="bg-slate-300 rounded-lg px-4 py-2 shadow-lg hover:shadow-xl transition-shadow"
                     >
-                      <p className="font-semibold text-sm text-blue-100 mb-2">
-                        {msg.sender}
+                      <p className="font-semibold text-sm mb-2 space-x-2">
+                        <span>{msg.sender}</span>
+                        {msg.sender === userData?.name && (
+                          <div className="badge badge-xs badge-info">You</div>
+                        )}
                       </p>
-                      <p className="text-white text-base leading-relaxed break-words">
+                      <p className="text-base leading-relaxed break-words">
                         {msg.content}
                       </p>
                     </div>

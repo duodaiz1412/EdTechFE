@@ -20,6 +20,7 @@ import ReadOnlyRating from "@/components/ReadOnlyRating";
 import CourseContentList from "./CourseContent/CourseContentList";
 import CourseReviewItem from "./CourseLesson/Review/CourseReviewItem";
 import HtmlDisplay from "@/components/HtmlDisplay";
+import {checkIsInstructor} from "@/lib/utils/isBatchInstructor";
 
 export default function CourseDetail() {
   // Data states
@@ -31,6 +32,7 @@ export default function CourseDetail() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [currentLessonSlug, setCurrentLessonSlug] = useState("");
+  const [isInstructor, setIsInstructor] = useState(false);
 
   // Redux states
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
@@ -62,6 +64,9 @@ export default function CourseDetail() {
       if (!slug) return null;
       const course = await publicServices.getCourseBySlug(slug);
       setCourseInfo(course);
+      setIsInstructor(
+        checkIsInstructor(userData?.id || "", course.instructors),
+      );
       if (course.image) {
         const imgLink = await getFileUrlFromMinIO(course.image);
         setCourseImgLink(imgLink.uploadUrl);
@@ -258,7 +263,12 @@ export default function CourseDetail() {
               )}
             </figure>
             <div className="card-body space-y-2">
-              {!isEnrolled ? (
+              {isInstructor && (
+                <div className="p-2 rounded-lg bg-blue-600 text-white text-center text-lg">
+                  Your course
+                </div>
+              )}
+              {!isInstructor && !isEnrolled && (
                 <>
                   <p className="text-2xl font-bold">
                     {courseInfo?.paidCourse &&
@@ -272,7 +282,8 @@ export default function CourseDetail() {
                     Enroll this course
                   </button>
                 </>
-              ) : (
+              )}
+              {!isInstructor && isEnrolled && (
                 <Link
                   to={`/course/${courseInfo?.slug}/learn/lesson/${currentLessonSlug || chapters?.[0]?.lessons?.[0]?.slug}`}
                   className="btn btn-neutral"
@@ -280,9 +291,11 @@ export default function CourseDetail() {
                   Continue learning
                 </Link>
               )}
-              <button className="btn" onClick={() => setIsPreviewOpen(true)}>
-                Course introduction
-              </button>
+              {!isInstructor && (
+                <button className="btn" onClick={() => setIsPreviewOpen(true)}>
+                  Course introduction
+                </button>
+              )}
             </div>
           </div>
         </div>

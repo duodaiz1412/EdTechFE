@@ -140,14 +140,14 @@ export const getFileUrlFromMinIO = async (
   objectName: string,
 ): Promise<PresignedUrlResponse> => {
   try {
-    const accessToken = await getAccessToken();
+    // const accessToken = await getAccessToken();
     const response = await axios.get<PresignedUrlResponse>(
       UPLOAD_ENDPOINTS.GET_URL,
       {
         params: {objectName},
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        // headers: {
+        //   Authorization: `Bearer ${accessToken}`,
+        // },
       },
     );
     return response.data;

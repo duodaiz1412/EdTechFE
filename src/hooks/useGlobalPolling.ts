@@ -20,7 +20,7 @@ export const useGlobalPolling = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const retryCountRef = useRef(0);
   const maxRetries = 100;
-  const interval = 5000;
+  const interval = 15000;
 
   // Check job status function
   const checkJobStatus = useCallback(

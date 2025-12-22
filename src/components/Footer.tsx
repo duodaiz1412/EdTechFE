@@ -1,6 +1,10 @@
 import {Link} from "react-router-dom";
 
-const Footer = () => {
+interface FooterProps {
+  className?: string;
+}
+
+const Footer = ({className}: FooterProps) => {
   const pages = [
     {name: "Home", path: "/"},
     {name: "Courses", path: "/courses"},
@@ -17,7 +21,9 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-gray-900 text-gray-300 pt-8 mt-auto">
+    <footer
+      className={`bg-gray-900 text-gray-300 pt-8 mt-auto ${className || ""}`}
+    >
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Column 1: Logo and Description */}

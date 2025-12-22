@@ -8,7 +8,7 @@ interface MainLayoutProps {
 
 export default function MainLayout({children}: MainLayoutProps) {
   return (
-    <div>
+    <div className="relative">
       <MainNavbar />
       <MainSidebar />
       <main className="mt-16 ml-32 px-4 py-6 min-h-[720px]">{children}</main>
