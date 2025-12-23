@@ -388,9 +388,22 @@ function App() {
 
 function AppContent() {
   const location = useLocation();
-  const isCourseLearnLesson =
-    location.pathname.includes("/course/") &&
-    location.pathname.includes("/learn/lesson/");
+
+  // Chỉ hiển thị ChatWidget ở các route cụ thể
+  const allowedPaths = [
+    "/", // Home
+    "/courses", // Course list
+    "/instructor", // Instructor page
+  ];
+
+  const isCourseDetail =
+    location.pathname.startsWith("/course/") &&
+    !location.pathname.includes("/learn/lesson/") &&
+    !location.pathname.includes("/edit") &&
+    !location.pathname.includes("/preview");
+
+  const shouldShowChatWidget =
+    allowedPaths.includes(location.pathname) || isCourseDetail;
 
   return (
     <>
@@ -404,8 +417,8 @@ function AppContent() {
         pauseOnHover
       />
 
-      {/* Hide FloatingChatWidget on course learn lesson route */}
-      {!isCourseLearnLesson && <FloatingChatWidget />}
+      {/* Only show FloatingChatWidget on allowed routes */}
+      {shouldShowChatWidget && <FloatingChatWidget />}
     </>
   );
 }
