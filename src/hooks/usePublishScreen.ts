@@ -29,8 +29,8 @@ export function usePublishScreen() {
       // 1.1. Get local screen stream
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: {
-          width: {ideal: 1920},
-          height: {ideal: 1080},
+          width: {ideal: 640},
+          height: {ideal: 480},
           frameRate: {ideal: 30},
         },
         audio: false,
