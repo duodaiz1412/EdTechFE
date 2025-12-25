@@ -23,6 +23,7 @@ export const LessonChatWidget = ({
 
   const {messages, sendMessage, isLoading} = useChat({
     lessonId,
+    useV1Endpoint: true, // Use simplified endpoint for lesson chat
   });
 
   return (
