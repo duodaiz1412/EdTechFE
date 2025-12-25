@@ -4,7 +4,11 @@ import {
   useChatSelectors,
   ChatMessage,
 } from "@/stores/chatStore";
-import {ragServices, AskRAGRequest} from "@/lib/services/rag.services";
+import {
+  ragServices,
+  AskRAGRequest,
+  AskRAGV1Request,
+} from "@/lib/services/rag.services";
 import {toast} from "sonner";
 import {useAppSelector} from "@/redux/hooks";
 import {selectUser} from "@/redux/slice/userSlice";
@@ -13,6 +17,7 @@ interface UseChatOptions {
   noteId?: string;
   lessonId?: string;
   sessionId?: string;
+  useV1Endpoint?: boolean; // Use simplified /api/v1/ask endpoint
   onMessageAdded?: (message: ChatMessage) => void;
   onError?: (error: Error) => void;
 }
@@ -22,6 +27,7 @@ export const useChat = (options: UseChatOptions = {}) => {
     noteId,
     lessonId,
     sessionId: providedSessionId,
+    useV1Endpoint = false,
     onMessageAdded,
     onError,
   } = options;
@@ -137,60 +143,111 @@ export const useChat = (options: UseChatOptions = {}) => {
           [],
         );
 
-      // Prepare request
-      const request: AskRAGRequest = {
-        question: content.trim(),
-        chat_history: chatHistory,
-      };
-
-      // Add lesson_id from session if available
-      if (currentSession.lessonId) {
-        request.lesson_id = currentSession.lessonId;
-        request.lessonId = currentSession.lessonId; // Backend uses camelCase
-      }
-
-      // Add user_id if available
-      if (user?.id) {
-        request.user_id = user.id;
-      }
-
       setStreamingResponse(currentSessionId, "");
 
       try {
-        const response = await ragServices.askRAG(request);
+        let assistantMessage;
 
-        // Add assistant message
-        const assistantMessage = {
-          role: "assistant" as const,
-          content: response.answer,
-          sources: response.sources?.map((source, index) => {
-            // Support new format: { title, slug } directly on source
-            // Also support old format: { metadata: { title, url, ... } }
-            const title =
-              (source as any).title ||
-              source.metadata?.title ||
-              source.metadata?.source ||
-              "Unknown";
-            const slug = (source as any).slug;
-            const url = source.metadata?.url;
+        if (useV1Endpoint) {
+          // Use V1 simplified endpoint
+          if (!user?.id) {
+            throw new Error("User ID is required for V1 endpoint.");
+          }
 
-            return {
-              id: source.document_id || `source-${index}`,
-              title,
-              slug,
-              url,
-              type: source.metadata?.type || (slug ? "course" : "web_link"),
-            };
-          }),
-        };
+          const v1Request: AskRAGV1Request = {
+            question: content.trim(),
+            userId: user.id,
+            chatHistory: chatHistory,
+          };
+
+          // Add lessonId if available
+          if (currentSession.lessonId) {
+            v1Request.lessonId = currentSession.lessonId;
+          }
+
+          const response = await ragServices.askRAGV1(v1Request);
+
+          // Process V1 response format
+          assistantMessage = {
+            role: "assistant" as const,
+            content: response.answer,
+            sources: response.sources?.map((source, index) => {
+              // V1 sources can be CourseSource or LessonSource
+              if ("slug" in source) {
+                // CourseSource: { title, slug }
+                return {
+                  id: `course-${index}`,
+                  title: source.title,
+                  slug: source.slug,
+                  type: "course",
+                };
+              } else {
+                // LessonSource: { lesson_id, lesson_title, course_slug, ... }
+                return {
+                  id: source.lesson_id || `lesson-${index}`,
+                  title: source.lesson_title || "Lesson",
+                  slug: source.course_slug,
+                  lessonId: source.lesson_id,
+                  courseId: source.course_id,
+                  courseTitle: source.course_title,
+                  type: "lesson",
+                };
+              }
+            }),
+          };
+        } else {
+          // Use full endpoint
+          const request: AskRAGRequest = {
+            question: content.trim(),
+            chat_history: chatHistory,
+          };
+
+          // Add lesson_id from session if available
+          if (currentSession.lessonId) {
+            request.lesson_id = currentSession.lessonId;
+            request.lessonId = currentSession.lessonId; // Backend uses camelCase
+          }
+
+          // Add user_id if available
+          if (user?.id) {
+            request.user_id = user.id;
+          }
+
+          const response = await ragServices.askRAG(request);
+
+          // Add assistant message
+          assistantMessage = {
+            role: "assistant" as const,
+            content: response.answer,
+            sources: response.sources?.map((source, index) => {
+              // Support new format: { title, slug } directly on source
+              // Also support old format: { metadata: { title, url, ... } }
+              const title =
+                (source as any).title ||
+                source.metadata?.title ||
+                source.metadata?.source ||
+                "Unknown";
+              const slug = (source as any).slug;
+              const url = source.metadata?.url;
+
+              return {
+                id: source.document_id || `source-${index}`,
+                title,
+                slug,
+                url,
+                type: source.metadata?.type || (slug ? "course" : "web_link"),
+              };
+            }),
+          };
+        }
 
         addMessage(currentSessionId, assistantMessage);
         setStreamingResponse(currentSessionId, null);
 
         // Get the created message from store to pass to callback
-        const currentSession = getCurrentSession();
+        const updatedSession = getCurrentSession();
         const createdMessage =
-          currentSession?.messages[currentSession.messages.length - 1];
+          updatedSession?.messages[updatedSession.messages.length - 1];
         if (createdMessage) {
           onMessageAdded?.(createdMessage);
         }
@@ -199,7 +256,7 @@ export const useChat = (options: UseChatOptions = {}) => {
           error instanceof Error ? error : new Error("Failed to send message");
 
         // Mark user message as error
-        const lastUserMessage = currentSession.messages
+        const lastUserMessage = currentSession?.messages
           .filter((msg) => msg.role === "user")
           .pop();
 
@@ -216,6 +273,7 @@ export const useChat = (options: UseChatOptions = {}) => {
       currentSessionId,
       currentSession,
       user,
+      useV1Endpoint,
       addMessage,
       updateMessage,
       setStreamingResponse,
