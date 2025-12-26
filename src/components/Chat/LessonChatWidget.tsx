@@ -2,7 +2,7 @@ import {useState} from "react";
 import {useChat} from "@/hooks/useChat";
 import {ChatList} from "./ChatList";
 import {ChatInput} from "./ChatInput";
-import {BookOpen, MessageSquare} from "lucide-react";
+import {BookOpen, MessageSquare, Trash2} from "lucide-react";
 import {Chapter, LessonCurrent} from "@/types";
 import CourseContentList from "@/pages/Course/CourseContent/CourseContentList";
 import {useParams} from "react-router-dom";
@@ -21,7 +21,7 @@ export const LessonChatWidget = ({
   const [activeTab, setActiveTab] = useState<"chapter" | "chat">("chapter");
   const {courseSlug} = useParams();
 
-  const {messages, sendMessage, isLoading} = useChat({
+  const {messages, sendMessage, clearChat, isLoading} = useChat({
     lessonId,
     useV1Endpoint: true, // Use simplified endpoint for lesson chat
   });
@@ -72,6 +72,22 @@ export const LessonChatWidget = ({
 
         {activeTab === "chat" && (
           <div className="flex flex-col h-full">
+            {/* Header with clear button */}
+            {messages.length > 0 && (
+              <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-gray-50">
+                <span className="text-sm text-gray-600">
+                  {messages.length} message{messages.length !== 1 ? "s" : ""}
+                </span>
+                <button
+                  onClick={clearChat}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-md transition-colors"
+                  title="Clear chat history"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Clear</span>
+                </button>
+              </div>
+            )}
             <ChatList
               messages={messages}
               isLoading={isLoading}

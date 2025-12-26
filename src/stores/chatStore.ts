@@ -46,6 +46,7 @@ interface ChatStore {
     updates: Partial<ChatMessage>,
   ) => void;
   removeMessage: (sessionId: string, messageId: string) => void;
+  clearMessages: (sessionId: string) => void;
   setStreamingResponse: (sessionId: string, content: string | null) => void;
   clearSession: (sessionId: string) => void;
   clearAllSessions: () => void;
@@ -157,6 +158,22 @@ export const useChatStore = create<ChatStore>()(
         }));
       },
 
+      // Clear all messages in a session
+      clearMessages: (sessionId) => {
+        set((state) => ({
+          sessions: state.sessions.map((session) =>
+            session.sessionId === sessionId
+              ? {
+                  ...session,
+                  messages: [],
+                  updatedAt: Date.now(),
+                }
+              : session,
+          ),
+          streamingResponse: null,
+        }));
+      },
+
       // Set streaming response
       setStreamingResponse: (_sessionId, content) => {
         set({streamingResponse: content});
@@ -258,6 +275,7 @@ export const useChatActions = () => {
   const addMessage = useChatStore((state) => state.addMessage);
   const updateMessage = useChatStore((state) => state.updateMessage);
   const removeMessage = useChatStore((state) => state.removeMessage);
+  const clearMessages = useChatStore((state) => state.clearMessages);
   const setStreamingResponse = useChatStore(
     (state) => state.setStreamingResponse,
   );
@@ -271,6 +289,7 @@ export const useChatActions = () => {
     addMessage,
     updateMessage,
     removeMessage,
+    clearMessages,
     setStreamingResponse,
     clearSession,
     clearAllSessions,
