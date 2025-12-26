@@ -47,6 +47,7 @@ export const useChat = (options: UseChatOptions = {}) => {
     setCurrentSession,
     addMessage,
     updateMessage,
+    clearMessages,
     setStreamingResponse,
   } = useChatActions();
 
@@ -286,10 +287,10 @@ export const useChat = (options: UseChatOptions = {}) => {
   const clearChat = useCallback(() => {
     if (currentSessionId) {
       // Clear messages but keep session
-      // You might want to add a clearMessages action instead
+      clearMessages(currentSessionId);
       setStreamingResponse(currentSessionId, null);
     }
-  }, [currentSessionId, setStreamingResponse]);
+  }, [currentSessionId, clearMessages, setStreamingResponse]);
 
   return {
     // State

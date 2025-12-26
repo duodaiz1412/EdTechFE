@@ -1,5 +1,5 @@
 import {useState, useEffect} from "react";
-import {MessageCircle} from "lucide-react";
+import {Bot} from "lucide-react";
 import {ChatWidget} from "./ChatWidget";
 import {cn} from "@/lib/utils";
 import {useAppSelector} from "@/redux/hooks";
@@ -78,7 +78,7 @@ export const FloatingChatWidget = () => {
           aria-label="Open chat"
           title="Open chat"
         >
-          <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+          <Bot className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
       )}
     </div>
