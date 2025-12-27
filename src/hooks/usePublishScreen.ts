@@ -72,7 +72,7 @@ export function usePublishScreen() {
       await pc.setLocalDescription(offer);
 
       // 5. Handle ICE candidates
-      const timeout = 10000;
+      const timeout = 15000;
       const sdp = await new Promise((resolve) => {
         if (pc.iceGatheringState === "complete") {
           resolve(pc.localDescription?.sdp);

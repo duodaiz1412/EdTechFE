@@ -52,16 +52,8 @@ export default function CourseLayout() {
   useEffect(() => {
     fetchChapters();
     fetchLesson();
-  }, [fetchChapters, fetchLesson]);
-
-  useEffect(() => {
     fetchProgress();
-    const interval = setInterval(() => {
-      fetchProgress();
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, [fetchProgress]);
+  }, [fetchChapters, fetchLesson, fetchProgress]);
 
   return (
     <div>
@@ -85,6 +77,7 @@ export default function CourseLayout() {
             <CourseLesson
               lesson={lesson}
               status={isLessonCompleted(lesson?.id, progress)}
+              fetchProgress={fetchProgress}
             />
           )}
         </main>

@@ -73,7 +73,7 @@ export function useSubscribeFeed() {
       await pc.setLocalDescription(answer);
 
       // 3. Handle ICE candidates
-      const timeout = 10000;
+      const timeout = 15000;
       const sdp = await new Promise((resolve) => {
         if (pc.iceGatheringState === "complete") {
           resolve(pc.localDescription?.sdp);

@@ -20,7 +20,7 @@ export default function CourseList() {
     queryKey: ["courses"],
     queryFn: async () => {
       const response = await publicServices.getCourses();
-      setCourses(response.content);
+      setCourses(response.content.reverse());
       return response;
     },
   });

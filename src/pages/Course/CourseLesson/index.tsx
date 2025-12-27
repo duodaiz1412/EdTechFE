@@ -17,9 +17,14 @@ import CourseReviewList from "./Review/CourseReviewList";
 interface CourseLessonProps {
   lesson?: Lesson;
   status?: boolean;
+  fetchProgress: () => void;
 }
 
-export default function CourseLesson({lesson, status}: CourseLessonProps) {
+export default function CourseLesson({
+  lesson,
+  status,
+  fetchProgress,
+}: CourseLessonProps) {
   const [lessonType, setLessonType] = useState("video");
   const [isCompleted, setIsCompleted] = useState(status);
   const [downloadUrl, setDownloadUrl] = useState("");
@@ -57,6 +62,7 @@ export default function CourseLesson({lesson, status}: CourseLessonProps) {
 
     if (response.status === 200) {
       setIsCompleted(true);
+      fetchProgress();
     } else {
       toast.error("Can't complete this lesson now");
     }

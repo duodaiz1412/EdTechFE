@@ -7,7 +7,8 @@ import {usePayOS} from "@payos/payos-checkout";
 import ReactPlayer from "react-player";
 
 import {Chapter, Course, Label, Tag, Review} from "@/types";
-import {useAppSelector} from "@/redux/hooks";
+import {useAppDispatch, useAppSelector} from "@/redux/hooks";
+import {login} from "@/redux/slice/userSlice";
 import {publicServices} from "@/lib/services/public.services";
 import {enrollServices} from "@/lib/services/enroll.services";
 import {progressServices} from "@/lib/services/progress.services";
@@ -15,12 +16,12 @@ import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {formatPrice} from "@/lib/utils/formatPrice";
 import {isCourseEnrolled} from "@/lib/utils/isCourseEnrolled";
+import {checkIsInstructor} from "@/lib/utils/isBatchInstructor";
 
 import ReadOnlyRating from "@/components/ReadOnlyRating";
 import CourseContentList from "./CourseContent/CourseContentList";
 import CourseReviewItem from "./CourseLesson/Review/CourseReviewItem";
 import HtmlDisplay from "@/components/HtmlDisplay";
-import {checkIsInstructor} from "@/lib/utils/isBatchInstructor";
 
 export default function CourseDetail() {
   // Data states
@@ -37,6 +38,7 @@ export default function CourseDetail() {
   // Redux states
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
   const userData = useAppSelector((state) => state.user.data);
+  const dispatch = useAppDispatch();
 
   // Preview states
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -49,24 +51,33 @@ export default function CourseDetail() {
     CHECKOUT_URL: "",
     embedded: true,
     onSuccess: () => {
-      toast.success("Payment successful");
       setIsEnrolled(true);
       setIsPaying(false);
+
+      const fetchData = async () => {
+        const accessToken = await getAccessToken();
+        const courseEnrollments =
+          await enrollServices.getCourseEnrollments(accessToken);
+        dispatch(
+          login({
+            ...userData,
+            courseEnrollments: courseEnrollments,
+          }),
+        );
+      };
+      fetchData();
     },
   };
   const [payOSConfig, setPayOSConfig] = useState(defaultPayOSConfig);
   const {open, exit} = usePayOS(payOSConfig);
 
   // Fetch course info
-  useQuery({
+  const {isLoading} = useQuery({
     queryKey: ["course-info", slug],
     queryFn: async () => {
       if (!slug) return null;
       const course = await publicServices.getCourseBySlug(slug);
       setCourseInfo(course);
-      setIsInstructor(
-        checkIsInstructor(userData?.id || "", course.instructors),
-      );
       if (course.image) {
         const imgLink = await getFileUrlFromMinIO(course.image);
         setCourseImgLink(imgLink.uploadUrl);
@@ -74,6 +85,12 @@ export default function CourseDetail() {
       return course;
     },
   });
+  // Check if user is instructor
+  useEffect(() => {
+    if (courseInfo && userData?.id) {
+      setIsInstructor(checkIsInstructor(userData.id, courseInfo.instructors));
+    }
+  }, [courseInfo, userData?.id]);
 
   // Fetch chapters, reviews, enrollment status, progress
   useEffect(() => {
@@ -121,8 +138,17 @@ export default function CourseDetail() {
         accessToken,
       );
       if (response.status === 201) {
-        setIsEnrolled(true);
         toast.success("Enroll course successfully");
+        setIsEnrolled(true);
+
+        const courseEnrollments =
+          await enrollServices.getCourseEnrollments(accessToken);
+        dispatch(
+          login({
+            ...userData,
+            courseEnrollments: courseEnrollments,
+          }),
+        );
       }
     } else {
       setIsPaying(true);
@@ -263,12 +289,17 @@ export default function CourseDetail() {
               )}
             </figure>
             <div className="card-body space-y-2">
-              {isInstructor && (
+              {isLoading && (
+                <button disabled className="btn btn-neutral">
+                  <div className="loading"></div>
+                </button>
+              )}
+              {!isLoading && isInstructor && (
                 <div className="p-2 rounded-lg bg-blue-600 text-white text-center text-lg">
                   Your course
                 </div>
               )}
-              {!isInstructor && !isEnrolled && (
+              {!isLoading && !isInstructor && !isEnrolled && (
                 <>
                   <p className="text-2xl font-bold">
                     {courseInfo?.paidCourse &&
@@ -283,7 +314,7 @@ export default function CourseDetail() {
                   </button>
                 </>
               )}
-              {!isInstructor && isEnrolled && (
+              {!isLoading && !isInstructor && isEnrolled && (
                 <Link
                   to={`/course/${courseInfo?.slug}/learn/lesson/${currentLessonSlug || chapters?.[0]?.lessons?.[0]?.slug}`}
                   className="btn btn-neutral"
@@ -291,7 +322,7 @@ export default function CourseDetail() {
                   Continue learning
                 </Link>
               )}
-              {!isInstructor && (
+              {!isLoading && !isInstructor && (
                 <button className="btn" onClick={() => setIsPreviewOpen(true)}>
                   Course introduction
                 </button>

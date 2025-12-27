@@ -20,7 +20,7 @@ export default function BatchList() {
     queryKey: ["batches"],
     queryFn: async () => {
       const response = await publicServices.getBatches();
-      setBatches(response.content);
+      setBatches(response.content.reverse());
       return response;
     },
   });

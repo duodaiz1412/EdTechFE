@@ -18,7 +18,7 @@ export default function BatchesByTag() {
     queryKey: ["batches-by-tag"],
     queryFn: async () => {
       const response = await publicServices.getBatches("", tag as string);
-      setBatches(response.content);
+      setBatches(response.content.reverse());
       return response;
     },
   });

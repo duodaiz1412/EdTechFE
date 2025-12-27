@@ -14,7 +14,8 @@ import {
 import ReactPlayer from "react-player";
 
 import {Batch, Label, Tag} from "@/types";
-import {useAppSelector} from "@/redux/hooks";
+import {useAppDispatch, useAppSelector} from "@/redux/hooks";
+import {login} from "@/redux/slice/userSlice";
 import {publicServices} from "@/lib/services/public.services";
 import {enrollServices} from "@/lib/services/enroll.services";
 import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
@@ -37,6 +38,7 @@ export default function BatchDetail() {
   // Redux states
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
   const userData = useAppSelector((state) => state.user.data);
+  const dispatch = useAppDispatch();
 
   // Preview states
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -49,22 +51,33 @@ export default function BatchDetail() {
     CHECKOUT_URL: "",
     embedded: true,
     onSuccess: () => {
-      toast.success("Payment successful");
       setIsEnrolled(true);
       setIsPaying(false);
+
+      const fetchData = async () => {
+        const accessToken = await getAccessToken();
+        const batchEnrollments =
+          await enrollServices.getBatchEnrollments(accessToken);
+        dispatch(
+          login({
+            ...userData,
+            batchEnrollments: batchEnrollments,
+          }),
+        );
+      };
+      fetchData();
     },
   };
   const [payOSConfig, setPayOSConfig] = useState(defaultPayOSConfig);
   const {open, exit} = usePayOS(payOSConfig);
 
   // Fetch batch info
-  useQuery({
+  const {isLoading} = useQuery({
     queryKey: ["batch-info", slug],
     queryFn: async () => {
       if (!slug) return null;
       const batch = await publicServices.getBatchBySlug(slug);
       setBatchInfo(batch);
-      setIsInstructor(checkIsInstructor(userData?.id || "", batch.instructors));
       if (batch.image) {
         const imgLink = await getFileUrlFromMinIO(batch.image);
         setBatchImgLink(imgLink.uploadUrl);
@@ -72,6 +85,12 @@ export default function BatchDetail() {
       return batch;
     },
   });
+  // Check if user is instructor
+  useEffect(() => {
+    if (batchInfo && userData?.id) {
+      setIsInstructor(checkIsInstructor(userData.id, batchInfo.instructors));
+    }
+  }, [batchInfo, userData?.id]);
 
   useEffect(() => {
     if (!slug || !userData) return;
@@ -93,8 +112,17 @@ export default function BatchDetail() {
         accessToken,
       );
       if (response.status === 201) {
-        setIsEnrolled(true);
         toast.success("Enroll course successfully");
+        setIsEnrolled(true);
+
+        const batchEnrollments =
+          await enrollServices.getBatchEnrollments(accessToken);
+        dispatch(
+          login({
+            ...userData,
+            batchEnrollments: batchEnrollments,
+          }),
+        );
       }
     } else {
       setIsPaying(true);
@@ -132,9 +160,6 @@ export default function BatchDetail() {
         <div className="w-2/3 space-y-10">
           <h2 className="text-3xl font-bold space-x-4">
             <span>{batchInfo?.title}</span>
-            {isInstructor && (
-              <span className="badge bg-blue-600 text-white">Your batch</span>
-            )}
           </h2>
           {isInstructor && (
             <Link
@@ -225,12 +250,17 @@ export default function BatchDetail() {
               )}
             </figure>
             <div className="card-body space-y-2">
-              {isInstructor && (
+              {isLoading && (
+                <button disabled className="btn btn-neutral">
+                  <div className="loading"></div>
+                </button>
+              )}
+              {!isLoading && isInstructor && (
                 <div className="p-2 rounded-lg bg-blue-600 text-white text-center text-lg">
                   Your batch
                 </div>
               )}
-              {!isInstructor && !isEnrolled && (
+              {!isLoading && !isInstructor && !isEnrolled && (
                 <>
                   <p className="text-2xl font-bold">
                     {batchInfo?.paidBatch &&
@@ -245,7 +275,7 @@ export default function BatchDetail() {
                   </button>
                 </>
               )}{" "}
-              {!isInstructor && isEnrolled && (
+              {!isLoading && !isInstructor && isEnrolled && (
                 <Link
                   to={`/batch/${batchInfo?.slug}/detail`}
                   className="btn btn-neutral"
@@ -253,7 +283,7 @@ export default function BatchDetail() {
                   Go to discussion
                 </Link>
               )}
-              {!isInstructor && (
+              {!isLoading && !isInstructor && (
                 <button className="btn" onClick={() => setIsPreviewOpen(true)}>
                   Course introduction
                 </button>

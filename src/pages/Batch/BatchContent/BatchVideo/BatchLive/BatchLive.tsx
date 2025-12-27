@@ -288,6 +288,7 @@ export default function BatchLive() {
   const handleRecord = () => {
     if (isRecording) {
       stopRecording();
+      toast.info("Recording stopped");
     } else {
       startRecording(Number(roomId));
     }
@@ -390,7 +391,7 @@ export default function BatchLive() {
           `}
         >
           {/* Local camera screen */}
-          <div className="col-span-1 bg-blue-600 rounded-lg h-40 md:h-48 lg:h-52 xl:h-56 relative">
+          <div className="col-span-1 bg-black rounded-lg h-40 md:h-48 lg:h-52 xl:h-56 relative">
             <video
               ref={localMediaRef}
               autoPlay
@@ -404,7 +405,7 @@ export default function BatchLive() {
           </div>
           {/* Local share screen */}
           <div
-            className={`${isScreenPublished ? "col-span-1 h-40 md:h-48 lg:h-52 xl:h-56" : "hidden h-0"} bg-blue-600 rounded-lg relative`}
+            className={`${isScreenPublished ? "col-span-1 h-40 md:h-48 lg:h-52 xl:h-56" : "hidden h-0"} bg-black rounded-lg relative`}
           >
             <video
               ref={localScreenRef}

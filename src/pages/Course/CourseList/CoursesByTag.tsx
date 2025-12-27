@@ -18,7 +18,7 @@ export default function CoursesByTag() {
     queryKey: ["courses-by-tag"],
     queryFn: async () => {
       const response = await publicServices.getCourses("", tag as string);
-      setCourses(response.content);
+      setCourses(response.content.reverse());
       return response;
     },
   });
