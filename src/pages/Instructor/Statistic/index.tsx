@@ -56,7 +56,23 @@ export default function InstructorStatistic() {
   }>({content: [], pagination: null});
   const [coursePage, setCoursePage] = useState(0);
   const [batchPage, setBatchPage] = useState(0);
-  const [loadingPerformances, setLoadingPerformances] = useState(true);
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [loadingBatches, setLoadingBatches] = useState(true);
+
+  const sortData = (data: any) => {
+    return [...data].sort((a, b) => {
+      // 1. Sort by totalRevenue (Descending)
+      if (b.totalRevenue !== a.totalRevenue) {
+        return b.totalRevenue - a.totalRevenue;
+      }
+      // 2. Sort by enrollmentCount (Descending)
+      if (b.enrollmentCount !== a.enrollmentCount) {
+        return b.enrollmentCount - a.enrollmentCount;
+      }
+      // 3. Sort by title (Alphabetical/Ascending)
+      return a.title.localeCompare(b.title);
+    });
+  };
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -117,10 +133,10 @@ export default function InstructorStatistic() {
   }, [period, revenueType, accessToken]);
 
   useEffect(() => {
-    const fetchPerformances = async () => {
+    const fetchCoursePerformance = async () => {
       if (!accessToken) return;
 
-      setLoadingPerformances(true);
+      setLoadingCourses(true);
       try {
         const courseRes =
           await InstructorService.getStatisticsCoursePerformance(
@@ -128,29 +144,44 @@ export default function InstructorStatistic() {
             coursePage,
             5,
           );
+        const sortedContent = sortData(courseRes.data.content);
         setCoursePerformance({
-          content: courseRes.data.content,
+          content: sortedContent,
           pagination: courseRes.data.pagination,
         });
+      } catch {
+        // handle error
+      } finally {
+        setLoadingCourses(false);
+      }
+    };
+    fetchCoursePerformance();
+  }, [coursePage, accessToken]);
 
-        // Fetch batch performance data
+  useEffect(() => {
+    const fetchBatchPerformance = async () => {
+      if (!accessToken) return;
+
+      setLoadingBatches(true);
+      try {
         const batchRes = await InstructorService.getStatisticsBatchPerformance(
           accessToken,
           batchPage,
           5,
         );
+        const sortedContent = sortData(batchRes.data.content);
         setBatchPerformance({
-          content: batchRes.data.content,
+          content: sortedContent,
           pagination: batchRes.data.pagination,
         });
       } catch {
         // handle error
       } finally {
-        setLoadingPerformances(false);
+        setLoadingBatches(false);
       }
     };
-    fetchPerformances();
-  }, [coursePage, batchPage, accessToken]);
+    fetchBatchPerformance();
+  }, [batchPage, accessToken]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -327,7 +358,7 @@ export default function InstructorStatistic() {
             data={coursePerformance.content}
             pagination={coursePerformance.pagination}
             onPageChange={setCoursePage}
-            loading={loadingPerformances}
+            loading={loadingCourses}
             formatCurrency={formatCurrency}
             currentPage={coursePage}
           />
@@ -336,7 +367,7 @@ export default function InstructorStatistic() {
             data={batchPerformance.content}
             pagination={batchPerformance.pagination}
             onPageChange={setBatchPage}
-            loading={loadingPerformances}
+            loading={loadingBatches}
             formatCurrency={formatCurrency}
             currentPage={batchPage}
           />
