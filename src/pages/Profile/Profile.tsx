@@ -7,8 +7,8 @@ import {login} from "@/redux/slice/userSlice";
 import {useAppDispatch, useAppSelector} from "@/redux/hooks";
 import {getAccessToken} from "@/lib/utils/getAccessToken";
 import {userServices} from "@/lib/services/user.services";
-import ProfileAvatarForm from "./ProfileAvatarForm";
 import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
+import ProfileAvatarForm from "./ProfileAvatarForm";
 
 export default function Profile() {
   const userData = useAppSelector((state) => state.user.data);
@@ -32,7 +32,9 @@ export default function Profile() {
   const handleSaveFullName = async () => {
     const accessToken = await getAccessToken();
     const response = await userServices.changeUserInfo(accessToken, {
+      id: userData?.id || "",
       fullName: fullName,
+      userImage: userData?.image || "",
     });
 
     if (response.status === 200) {

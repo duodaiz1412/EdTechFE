@@ -1,3 +1,4 @@
+import HtmlDisplay from "@/components/HtmlDisplay";
 import {Copy, HelpCircle, Mail, CheckCircle} from "lucide-react";
 import {useState} from "react";
 
@@ -6,14 +7,21 @@ export default function Support() {
 
   const questions = [
     {
-      title: "How to enroll in a course?",
+      title: "How to enroll in a course or batch?",
       answer:
-        "To enroll in a course, simply click on the 'Enroll Now' button on the course page and follow the instructions.",
+        "To enroll in a course or batch, simply go to this course/batch and click on the 'Enroll' button on the page.",
     },
     {
       title: "What payment methods are accepted?",
-      answer:
-        "We accept various payment methods including credit/debit cards, PayPal, and other local payment options.",
+      answer: "We accept QR payment method.",
+    },
+    {
+      title: "How to add my payment method as instructor?",
+      answer: `<ul>
+<li>Step 1: Open <a href="https://my.payos.vn/login" target="_blank">PayOS</a> and create an account.</li>
+<li>Step 2: Go to "Kênh thanh toán", click "Tạo kênh thanh toán". At webhook url, add <strong>https://api.edtech.works/api/v1/payments/webhook/payos</strong></li>
+<li>Step 3: Back to Edtech, go to Instructor &gt; Payment, and copy all field from your payment method.</li>
+</ul>`,
     },
   ];
 
@@ -57,7 +65,8 @@ export default function Support() {
                 {q.title}
               </div>
               <div className="collapse-content">
-                <p className="text-gray-600 pt-2">{q.answer}</p>
+                {/* <p className="text-gray-600 pt-2">{q.answer}</p> */}
+                <HtmlDisplay html={q.answer} />
               </div>
             </div>
           ))}

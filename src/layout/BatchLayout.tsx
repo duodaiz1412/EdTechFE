@@ -64,7 +64,7 @@ export default function BatchLayout() {
     );
 
     if (response.status === 201) {
-      navigate(`/batch/${batchSlug}/live/${response.data.roomId}`);
+      window.open(`/batch/${batchSlug}/live/${response.data.roomId}`, "_blank");
     } else {
       toast.error("Failed to create new meeting");
     }
