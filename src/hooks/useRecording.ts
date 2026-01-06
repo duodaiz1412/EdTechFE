@@ -24,7 +24,7 @@ interface RecordingRefs {
   startTime: number | null;
   totalDurationSeconds: number;
 
-  // 🔥 CRITICAL: Flags MUST be in refs for createMediaRecorder to read fresh values
+  // Flags
   isRecording: boolean;
   isStopping: boolean;
   isCompleting: boolean;
@@ -36,7 +36,6 @@ interface RecordingRefs {
 }
 
 export function useRecording() {
-  // 🔥 CRITICAL: Use refs for ALL state that needs to be read in async callbacks
   const refs = useRef<RecordingRefs>({
     screenStream: null,
     micStream: null,
@@ -58,7 +57,7 @@ export function useRecording() {
     handleId: null,
   });
 
-  // UI state (for React re-renders)
+  // UI state
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [isStopping, setIsStopping] = useState<boolean>(false);
   const [duration, setDuration] = useState<number>(0);
@@ -125,7 +124,6 @@ export function useRecording() {
     [],
   );
 
-  // Create MediaRecorder
   const createMediaRecorder = useCallback(
     (roomId: number) => {
       const stream = refs.current.combinedStream;
@@ -153,17 +151,17 @@ export function useRecording() {
 
         try {
           await uploadChunk(blob, duration);
-          // ✅ CRITICAL: Only increment after successful upload
+          // Only increment after successful upload
           refs.current.chunkIndex += 1;
           console.log(
             `[MEDIA RECORDER]: Chunk #${currentIndex} uploaded successfully`,
           );
         } catch (error) {
+          // Don't increment on failure
           console.error(
             `[MEDIA RECORDER]: Failed to upload chunk #${currentIndex}`,
             error,
           );
-          // Don't increment on failure - will retry with same index
         }
       };
 
@@ -176,7 +174,6 @@ export function useRecording() {
           `[MEDIA RECORDER]: Stop (chunk #${refs.current.chunkIndex} completed)`,
         );
 
-        // 🔥 CRITICAL: Read from refs.current - NOT from closure state!
         if (refs.current.isStopping || !refs.current.isRecording) {
           console.log(
             "[MEDIA RECORDER]: Recording is stopping, NOT restarting",
@@ -187,7 +184,7 @@ export function useRecording() {
         // Wait for final data
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        // 🔥 CRITICAL: Check again with fresh values
+        // Check again with fresh values
         if (refs.current.isRecording && !refs.current.isStopping) {
           console.log(
             `[MEDIA RECORDER]: Restarting for chunk #${refs.current.chunkIndex}`,
@@ -303,7 +300,7 @@ export function useRecording() {
         });
         refs.current.screenStream = screenStream;
 
-        // 🔥 CRITICAL: Handle user stops sharing via browser button
+        // Handle user stops sharing via browser button
         screenStream.getVideoTracks()[0].onended = () => {
           console.log("[START RECORDING]: Screen sharing stopped by user");
           stopRecording();
@@ -376,7 +373,7 @@ export function useRecording() {
 
         // 7. Setup chunk timer (stop/restart every 30s)
         refs.current.chunkTimer = setInterval(() => {
-          // 🔥 CRITICAL: Read from refs.current - NOT closure
+          // Read from refs.current - NOT closure
           if (
             refs.current.isRecording &&
             refs.current.mediaRecorder &&
@@ -424,7 +421,6 @@ export function useRecording() {
 
   // Stop Recording
   const stopRecording = useCallback(async () => {
-    // 🔥 CRITICAL: Read from refs, not state
     if (!refs.current.isRecording) {
       console.log("[STOP RECORDING]: Not recording");
       return;
