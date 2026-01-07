@@ -409,6 +409,12 @@ export default function EditQuizLecture() {
 
   // Add option
   const addOption = (questionId: string) => {
+    const question = questions.find((q) => q.id === questionId);
+    if (question && question.options.length >= 4) {
+      toast.warning("Maximum 4 answer options allowed");
+      return;
+    }
+
     setQuestions(
       questions.map((q) =>
         q.id === questionId ? {...q, options: [...q.options, ""]} : q,
