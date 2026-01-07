@@ -2,6 +2,7 @@ import {useQuery} from "@tanstack/react-query";
 import MuxPlayer from "@mux/mux-player-react";
 
 import {getFileUrlFromMinIO} from "@/lib/services/upload.services";
+import {useEffect, useState} from "react";
 
 interface CourseLessonVideoProps {
   videoUrl?: string | null;
@@ -14,6 +15,7 @@ export default function CourseLessonVideo({
   videoTitle = "Video title",
   completeLesson,
 }: CourseLessonVideoProps) {
+  const [counter, setCounter] = useState(0);
   const {data, isLoading} = useQuery({
     queryKey: ["video-lesson-url", videoUrl],
     queryFn: async () => {
@@ -23,6 +25,22 @@ export default function CourseLessonVideo({
       return finalUrl.uploadUrl;
     },
   });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCounter((prevCounter) => prevCounter + 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [data]);
+
+  useEffect(() => {
+    if (counter > 5) {
+      if (completeLesson) {
+        completeLesson();
+      }
+    }
+  }, [counter, completeLesson]);
 
   return (
     <>

@@ -15,6 +15,7 @@ export default function CourseLessonQuiz({
 }: CourseLessonQuizProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [completePercentage, setCompletePercentage] = useState(0);
 
   const [isDoing, setIsDoing] = useState(false);
   const [answers, setAnswers] = useState<{[key: string]: string}>({});
@@ -33,7 +34,13 @@ export default function CourseLessonQuiz({
   };
 
   const setCurrentAnswer = (questionId: string, answer: string) => {
-    setAnswers((answers) => ({...answers, [questionId]: answer}));
+    setAnswers((prevAnswers) => {
+      const newAnswers = {...prevAnswers, [questionId]: answer};
+      setCompletePercentage(
+        (Object.keys(newAnswers).length / questions.length) * 100,
+      );
+      return newAnswers;
+    });
   };
 
   const submitQuiz = async () => {
@@ -57,6 +64,7 @@ export default function CourseLessonQuiz({
     setCurrentIdx(0);
     setAnswers({});
     setResult(undefined);
+    setCompletePercentage(0);
   };
 
   return (
@@ -131,7 +139,7 @@ export default function CourseLessonQuiz({
               </button>
               <button
                 className="btn btn-sm btn-neutral rounded-lg"
-                disabled={Object.keys(answers).length != questions.length}
+                disabled={completePercentage < 50}
                 onClick={submitQuiz}
               >
                 Submit quiz
